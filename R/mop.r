@@ -4,36 +4,29 @@
 #' @param set1 Data frame or matrix one or more columns wide.
 #' @param set2 Data frame or matrix one or more columns wide.
 #' @param p Numeric value(s) in the range [0, 1]. The \emph{p}-th percentile of sites in \code{set1} and \code{set2} that are closest to one another are returned.  Note that if \code{p} = 1 then all sites in \code{set1} and \code{set2} are returned.
+#' @param index Logical, if \code{TRUE} then return the indices of the rows in \code{set1} and \code{set2} that correspond to each value of \code{p}. If \code{FALSE} then return data frames or matrices (depending on the class of \code{set1} and \code{set2}).
 #' @param na.rm Logical, if \code{TRUE} then any rows in \code{set1} or \code{set2} with at least one \code{NA} are removed first.
 #' @return List with three elements. The first two elements correspond to \code{set1} and \code{set2}. Each of these elements is a list the same length of \code{p}, with each data frame/matrix coresponding to a value of \code{p}. The third element is a matrix of statistics reporting the statistics pertaining to the environmental distances between each subset of \code{set1} and \code{set2}.
 #' @seealso \code{\link[dismo]{mess}}
 #' @examples
 #' set1 <- data.frame(x1=1:20, x2=round(100 * rnorm(20)))
 #' set2 <- data.frame(x1=sample(1:30, 30), x2=sort(round(100 * rnorm(30))))
-#  mostSimilar <- mop(set1, set2, p=seq(0.1, 1, by=0.1))
-#' mostSimilar
+#' # return data frames that are subsets of set1 and set2
+#' out <- mop(set1, set2, p=c(0.1, 0.5))
+#' out
+#' # return indices of subsets of set1 and set2
+#  out <- mop(set1, set2, p=c(0.1, 0.5), index=TRUE)
+#' out
 #' @export
 
 mop <- function(
 	set1,
 	set2,
 	p,
+	index = FALSE,
 	na.rm = FALSE
 ) {
 
-	# remove NAs
-	if (na.rm) {
-
-		nas1 <- naRows(set1)
-		nas2 <- naRows(set2)
-		
-		if (length(nas1) > 0) set1 <- set1[-nas1, , drop=FALSE]
-		if (length(nas2) > 0) set2 <- set2[-nas2, , drop=FALSE]
-		
-		if (nrow(set1) == 0 | nrow(set2) == 0) stop('All rows in at least one set have at least one NA.')
-
-	}
-	
 	# calculate Euclidean distances
 	dists <- matrix(NA, nrow=nrow(set1), ncol=nrow(set2))
 	for (i in 1:nrow(set1)) {
@@ -43,8 +36,8 @@ mop <- function(
 	}
 
 	# find nearest set of points in each set
-	near1 <- apply(dists, 1, min)
-	near2 <- apply(dists, 2, min)
+	near1 <- apply(dists, 1, min, na.rm=na.rm)
+	near2 <- apply(dists, 2, min, na.rm=na.rm)
 	
 	nearRank1 <- rank(near1)
 	nearRank2 <- rank(near2)
@@ -58,8 +51,8 @@ mop <- function(
 	
 		thisNearest1 <- which(nearRank1 <= round(p[i] * nrow(set1)))
 		thisNearest2 <- which(nearRank2 <= round(p[i] * nrow(set2)))
-		out$set1[[i]] <- set1[thisNearest1, , drop=FALSE]
-		out$set2[[i]] <- set2[thisNearest2, , drop=FALSE]
+		out$set1[[i]] <- if (index) { thisNearest1 } else { set1[thisNearest1, , drop=FALSE] }
+		out$set2[[i]] <- if (index) { thisNearest2 } else { set2[thisNearest2, , drop=FALSE] }
 		attr(out$set1[[i]], 'p') <- p[i]
 		attr(out$set2[[i]], 'p') <- p[i]
 		

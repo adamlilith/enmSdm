@@ -4,7 +4,7 @@
 \alias{mop}
 \title{Identify sites in two sets based on mobility-oriented parity (MOP).}
 \usage{
-mop(set1, set2, p, na.rm = FALSE)
+mop(set1, set2, p, index = FALSE, na.rm = FALSE)
 }
 \arguments{
 \item{set1}{Data frame or matrix one or more columns wide.}
@@ -12,6 +12,8 @@ mop(set1, set2, p, na.rm = FALSE)
 \item{set2}{Data frame or matrix one or more columns wide.}
 
 \item{p}{Numeric value(s) in the range [0, 1]. The \emph{p}-th percentile of sites in \code{set1} and \code{set2} that are closest to one another are returned.  Note that if \code{p} = 1 then all sites in \code{set1} and \code{set2} are returned.}
+
+\item{index}{Logical, if \code{TRUE} then return the indices of the rows in \code{set1} and \code{set2} that correspond to each value of \code{p}. If \code{FALSE} then return data frames or matrices (depending on the class of \code{set1} and \code{set2}).}
 
 \item{na.rm}{Logical, if \code{TRUE} then any rows in \code{set1} or \code{set2} with at least one \code{NA} are removed first.}
 }
@@ -24,7 +26,11 @@ This function takes two data frames or matrices that represent the environment o
 \examples{
 set1 <- data.frame(x1=1:20, x2=round(100 * rnorm(20)))
 set2 <- data.frame(x1=sample(1:30, 30), x2=sort(round(100 * rnorm(30))))
-mostSimilar
+# return data frames that are subsets of set1 and set2
+out <- mop(set1, set2, p=c(0.1, 0.5))
+out
+# return indices of subsets of set1 and set2
+out
 }
 \seealso{
 \code{\link[dismo]{mess}}
