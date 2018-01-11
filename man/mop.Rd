@@ -30,6 +30,7 @@ set2 <- data.frame(x1=sample(1:30, 30), x2=sort(round(100 * rnorm(30))))
 out <- mop(set1, set2, p=c(0.1, 0.5))
 out
 # return indices of subsets of set1 and set2
+out <- mop(set1, set2, p=c(0.1, 0.5), index=TRUE)
 out
 }
 \seealso{

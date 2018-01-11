@@ -15,7 +15,7 @@
 #' out <- mop(set1, set2, p=c(0.1, 0.5))
 #' out
 #' # return indices of subsets of set1 and set2
-#  out <- mop(set1, set2, p=c(0.1, 0.5), index=TRUE)
+#' out <- mop(set1, set2, p=c(0.1, 0.5), index=TRUE)
 #' out
 #' @export
 
@@ -61,7 +61,7 @@ mop <- function(
 			apply(dists[ , thisNearest2, drop=FALSE], 2, mean)
 		)
 		
-		thisStats <- matrix(c(p[i], min(theseDists), quantile(theseDists, 0.025), mean(theseDists), median(theseDists), quantile(theseDists, 0.975), max(theseDists), sd(theseDists), length(thisNearest1), length(thisNearest2)), ncol=9)
+		thisStats <- matrix(c(p[i], min(theseDists), quantile(theseDists, 0.025), mean(theseDists), median(theseDists), quantile(theseDists, 0.975), max(theseDists), sd(theseDists), length(thisNearest1), length(thisNearest2)), ncol=10)
 		if (exists('stats', where=out, inherits=FALSE)) {
 			out$stats <- rbind(out$stats, thisStats)
 		} else {
