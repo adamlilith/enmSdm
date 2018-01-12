@@ -39,7 +39,7 @@ mop <- function(
 
 	} else {
 
-		# multi-core function
+		# multi-core
 		n <- parallel::detectCores()
 		n <- min(n, cores)
 		clust <- parallel::makeCluster(n)
