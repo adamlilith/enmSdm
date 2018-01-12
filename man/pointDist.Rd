@@ -2,28 +2,31 @@
 % Please edit documentation in R/pointDist.r
 \name{pointDist}
 \alias{pointDist}
-\title{Calculate distance matrix between geographic points}
+\title{Calculate distance matrix between geographic points.}
 \usage{
-pointDist(x, distFunct = NULL, longLat = NULL, ...)
+pointDist(x, y = NULL, distFunct = NULL, longLat = NULL, ...)
 }
 \arguments{
 \item{x}{A data frame, matrix, \code{SpatialPoints}, or \code{SpatialPointsDataFrame} object. If a data frame or matrix then the coordinate reference system is assumed to be unprojected (WGS84).}
+
+\item{y}{If \code{NULL} then pairwise distances are calculated between all points in \code{x}. However, if \code{y} is a data frame, matrix, \code{SpatialPoints}, or \code{SpatialPointsDataFrame} object then distances are between all points in \code{x} and \code{y}.}
 
 \item{distFunct}{Either a function or \code{NULL}. If \code{NULL} then \code{\link[geosphere]{distCosine}}is used to calculate distances.  More accurate distances can be obtained by using other functions (see \code{\link[geosphere]{distHaversine}} and related "\code{dist}" functions). Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.}
 
 \item{...}{Arguments to pass to \code{distFunct}.}
 }
 \value{
-Matrix of values in units given by the units of \code{f} (if the distance function used is [geosphere::distCosine()] or related \code{dist} functions).
+Matrix of values in units given by the coordinate reference system of \code{x} or in meters (if \code{x} is a matrix, data frame, or unprojected).
 }
 \description{
 This function calculates a distance matrix between points. It is similar to the \code{dist()} function except that it does its calculations in geographic space.
 }
 \examples{
-\dontrun{
 set.seed(17)
 # random points centered on long -90, lat 45
 x <- cbind(rnorm(5, -90), rnorm(5, 45))
 pointDist(x)
 }
+\seealso{
+\code{\link[geosphere]{distCosine}}, \code{\link[omnibus]{pairDist}}
 }
