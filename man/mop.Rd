@@ -4,7 +4,7 @@
 \alias{mop}
 \title{Identify sites in two sets based on mobility-oriented parity (MOP).}
 \usage{
-mop(set1, set2, p, index = FALSE, na.rm = FALSE)
+mop(set1, set2, p, index = FALSE, cores = 1, na.rm = FALSE)
 }
 \arguments{
 \item{set1}{Data frame or matrix one or more columns wide.}
@@ -15,10 +15,12 @@ mop(set1, set2, p, index = FALSE, na.rm = FALSE)
 
 \item{index}{Logical, if \code{TRUE} then return the indices of the rows in \code{set1} and \code{set2} that correspond to each value of \code{p}. If \code{FALSE} then return data frames or matrices (depending on the class of \code{set1} and \code{set2}).}
 
+\item{cores}{Integer >= 0, number of cores to use (can speed large computations).}
+
 \item{na.rm}{Logical, if \code{TRUE} then any rows in \code{set1} or \code{set2} with at least one \code{NA} are removed first.}
 }
 \value{
-List with three elements. The first two elements correspond to \code{set1} and \code{set2}. Each of these elements is a list the same length of \code{p}, with each data frame/matrix coresponding to a value of \code{p}. The third element is a matrix of statistics reporting the statistics pertaining to the environmental distances between each subset of \code{set1} and \code{set2}.
+List with three elements. The first two elements correspond to \code{set1} and \code{set2}. Each of these elements is a list the same length of \code{p}, with each data frame/matrix corresponding to a value of \code{p}. The third element is a matrix of statistics reporting the statistics pertaining to the environmental distances between each subset of \code{set1} and \code{set2}.
 }
 \description{
 This function takes two data frames or matrices that represent the environment of sites measured in univariate or multivariate space and returns the \emph{x}-th percentile of sites in each set that are closest to each other in Euclidean space. Note that in many cases it is advisable to first transform the raw environmental values using, for example, PCA.  MOP was first presented formally in Owens, H.L., Campbell, L.P., Dornak, L.L., Saupe, E.E., Barve, N., Soberón, Ingenloff, K., Lira-Noriega, A., Hensz, C., Myers, C.E., and Peterson, A.T.  2013.  Constraints on interpretation of ecological niche models by limited environmental ranges on calibration area.  \emph{Ecological Modeling} 263:10-18.
