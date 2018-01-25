@@ -36,7 +36,7 @@ Numeric value.
 This function calculates the Continuous Boyce Index (CBI), a measure of model accuracy for presence-only test data. Overlapping bins are placed such that any given point (prediction) along [0, 1] is covered by at most 2 bins. See the function \code{\link[enmSdm]{contBoyce}} for a version that allows coverage by 2 or more bins.
 }
 \details{
-The CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicte the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probabilty of presence.
+The CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicate the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probabilty of presence.
 }
 \examples{
 set.seed(57)
