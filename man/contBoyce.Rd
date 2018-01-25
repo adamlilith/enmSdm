@@ -2,7 +2,7 @@
 % Please edit documentation in R/contBoyce.r
 \name{contBoyce}
 \alias{contBoyce}
-\title{The Continuous Boyce Index (CBI) with optional weighting}
+\title{The Continuous Boyce Index (CBI) with optional weighting.}
 \usage{
 contBoyce(pres, bg, numBins = 101, binWidth = 0.1, presWeight = rep(1,
   length(pres)), bgWeight = rep(1, length(bg)), autoWindow = TRUE,
@@ -21,7 +21,7 @@ contBoyce(pres, bg, numBins = 101, binWidth = 0.1, presWeight = rep(1,
 
 \item{bgWeight}{Numeric vector same length as \code{bg}. Relative weights of background sites.}
 
-\item{autoWindow}{Logical. If \code{FALSE} calculate bin boundaries starting at 0 and ending at 1 (default). If \code{TRUE} then calculate bin boundaries starting at mininum predicted value and ending at maximum predicted value.}
+\item{autoWindow}{Logical. If \code{FALSE} calculate bin boundaries starting at 0 and ending at 1 (default). If \code{TRUE} then calculate bin boundaries starting at minimum predicted value and ending at maximum predicted value.}
 
 \item{method}{Character. Type of correlation to calculate. The default is \code{'spearman'}, the Spearman rank correlation coefficient used by Boyce et al. (2002) and Hirzel et al. (2006), which is the traditional CBI. In contrast, \code{'pearson'} or \code{'kendall'} can be used instead.  See [stats::cor()] for more details.}
 
@@ -38,15 +38,17 @@ Numeric value.
 This function calculates the Continuous Boyce Index (CBI), a measure of model accuracy for presence-only test data.
 }
 \details{
-The CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicte the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatrively correlated with the true probabilty of presence.
+The CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicte the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probabilty of presence.
 }
 \examples{
 set.seed(123)
 pres <- sqrt(runif(100))
 bg <- runif(1000)
 contBoyce(pres, bg)
+contBoyce2x(pres, bg)
 presWeight <- c(rep(1, 10), rep(0.5, 40))
 contBoyce(pres, bg, presWeight=presWeight)
+contBoyce2x(pres, bg, presWeight=presWeight)
 \dontrun{
 # compare stability of CBI calculated with ecospat.boyce() in ecospat package
 library(ecospat)
@@ -100,8 +102,8 @@ legend('bottomright', fill=c('darkred', 'cornflowerblue'), legend=c('ecospat', '
 \references{
 Boyce, M.S., Vernier, P.R., Nielsen, S.E., and Schmiegelow, F.K.A.  2002.  Evaluating resource selection functions.  \emph{Ecological Modeling} 157:281-300)
 
-Hirzel, A.H., Le Lay, G., Helfer, V., Randon, C., and Guisan, A.  2006.  Evaluating the ability of habitat suitabilioty models to predict species presences.  \emph{Ecological Modeling} 199:142-152.
+Hirzel, A.H., Le Lay, G., Helfer, V., Randon, C., and Guisan, A.  2006.  Evaluating the ability of habitat suitability models to predict species presences.  \emph{Ecological Modeling} 199:142-152.
 }
 \seealso{
-\code{\link[stats]{cor}}, \code{\link{Fpb}}, \code{\link{aucWeighted}}
+\code{\link[stats]{cor}}, \code{\link{Fpb}}, \code{\link{aucWeighted}}, \code{link[enmSdm]{contBoyce2x}}
 }
