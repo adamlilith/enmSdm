@@ -34,28 +34,28 @@
 #' for (perform in c(1, 1.5, 2)) {
 #' 	for (i in 1:30) {
 #'
-#' 		pres <- runif(100)^(1 / perform)
-#' 		bg <- runif(1000)
+#'    pres <- runif(100)^(1 / perform)
+#'    bg <- runif(1000)
 #'
-#' 		cbi_enmSdm <- contBoyce(pres, bg)
-#' 		cbi_ecospat <- ecospat.boyce(bg, pres, PEplot=FALSE)$Spearman.cor
+#'    cbi_enmSdm <- contBoyce(pres, bg)
+#'    cbi_ecospat <- ecospat.boyce(bg, pres, PEplot=FALSE)$Spearman.cor
 #'
-#' 		results <- rbind(
-#' 			results,
-#' 			data.frame(
-#' 				performance = rep(perform, 2),
-#' 				method = c('enmSdm', 'ecospat'),
-#' 				cbi = c(cbi_enmSdm, cbi_ecospat)
-#' 			)
-#' 		)
+#'    results <- rbind(
+#'      results,
+#'      data.frame(
+#'        performance = rep(perform, 2),
+#'        method = c('enmSdm', 'ecospat'),
+#'        cbi = c(cbi_enmSdm, cbi_ecospat)
+#'      )
+#'    )
 #'
 #' 	}
 #'
 #' }
 #'
 #' results$performance[results$performance == 1] <- 'poor'
-#' results$performance[results$performance == 2] <- 'OK'
-#' results$performance[results$performance == 3] <- 'good'
+#' results$performance[results$performance == 1.5] <- 'OK'
+#' results$performance[results$performance == 2] <- 'good'
 #'
 #' results$category <- paste0(results$method, '\n', results$performance)
 #'
