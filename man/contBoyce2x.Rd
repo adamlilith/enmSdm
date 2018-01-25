@@ -23,7 +23,7 @@ contBoyce2x(pres, bg, numClasses = 10, presWeight = rep(1, length(pres)),
 
 \item{na.rm}{Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.}
 
-\item{autoWindow}{Logical. If TRUE then calculate bin boundaries starting at mininum predicted value and ending at maximum predicted value (default). If FALSE calculate bin boundaries starting at 0 and ending at 1.}
+\item{autoWindow}{Logical. If TRUE then calculate bin boundaries starting at minimum predicted value and ending at maximum predicted value (default). If FALSE calculate bin boundaries starting at 0 and ending at 1.}
 
 \item{method}{Character. Type of correlation to calculate. The default is \code{'spearman'}, the Spearman rank correlation coefficient used by Boyce et al. (2002) and Hirzel et al. (2006), which is the traditional CBI. In contrast, \code{'pearson'} or \code{'kendall'} can be used instead.  See [stats::cor()] for more details.}
 
@@ -36,7 +36,7 @@ Numeric value.
 This function calculates the Continuous Boyce Index (CBI), a measure of model accuracy for presence-only test data. Overlapping bins are placed such that any given point (prediction) along [0, 1] is covered by at most 2 bins. See the function \code{\link[enmSdm]{contBoyce}} for a version that allows coverage by 2 or more bins.
 }
 \details{
-The CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicte the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatrively correlated with the true probabilty of presence.
+The CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicte the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probabilty of presence.
 }
 \examples{
 set.seed(57)
@@ -51,7 +51,7 @@ contBoyce(pres, bg, presWeight=presWeight)
 \references{
 Boyce, M.S., Vernier, P.R., Nielsen, S.E., and Schmiegelow, F.K.A.  2002.  Evaluating resource selection functions.  \emph{Ecological Modeling} 157:281-300)
 
-Hirzel, A.H., Le Lay, G., Helfer, V., Randon, C., and Guisan, A.  2006.  Evaluating the ability of habitat suitabilioty models to predict species presences.  \emph{Ecological Modeling} 199:142-152.
+Hirzel, A.H., Le Lay, G., Helfer, V., Randon, C., and Guisan, A.  2006.  Evaluating the ability of habitat suitability models to predict species presences.  \emph{Ecological Modeling} 199:142-152.
 }
 \seealso{
 \code{\link[enmSdm]{contBoyce}}

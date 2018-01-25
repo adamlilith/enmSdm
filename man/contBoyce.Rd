@@ -25,7 +25,7 @@ contBoyce(pres, bg, numBins = 101, binWidth = 0.1, presWeight = rep(1,
 
 \item{method}{Character. Type of correlation to calculate. The default is \code{'spearman'}, the Spearman rank correlation coefficient used by Boyce et al. (2002) and Hirzel et al. (2006), which is the traditional CBI. In contrast, \code{'pearson'} or \code{'kendall'} can be used instead.  See [stats::cor()] for more details.}
 
-\item{dropZeros}{Logical. If TRUE then drop all bins in which the freqency of presences is 0.}
+\item{dropZeros}{Logical. If TRUE then drop all bins in which the frequency of presences is 0.}
 
 \item{graph}{Logical. If TRUE then plot P vs E and P/E versus bin.}
 
@@ -38,7 +38,7 @@ Numeric value.
 This function calculates the Continuous Boyce Index (CBI), a measure of model accuracy for presence-only test data.
 }
 \details{
-The CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicte the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probabilty of presence.
+The CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicate the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probabilty of presence.
 }
 \examples{
 set.seed(123)
