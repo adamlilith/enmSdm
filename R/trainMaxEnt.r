@@ -90,6 +90,7 @@ trainMaxEnt <- function(
 	}
 
 	dirCreate(scratchDir)
+	dirCreate(scratchDir, '/plots')
 
 	## collate all presences
 	allPres <- data[presentBg == 1, , drop=FALSE]
@@ -214,7 +215,7 @@ trainMaxEnt <- function(
 	# remove models with more parameters than data points
 	if (!anyway) tuning <- tuning[which(tuning$n >= tuning$K), ]
 
-	# order by AIc then if ties reg multipler then if ties by number of parameters
+	# order by AIc then if ties reg multiplier then if ties by number of parameters
 	if (nrow(tuning) > 0) {
 
 		tuning <- tuning[order(tuning$K, decreasing=FALSE), ]
@@ -293,6 +294,7 @@ trainMaxEnt <- function(
 	write.csv(NULL, paste0(scratchDir, '/species.lambdas'))
 	if (file.exists(paste0(scratchDir, '/presences'))) write.csv(NULL, paste0(scratchDir, '/presences'))
 	if (file.exists(paste0(scratchDir, '/absences'))) write.csv(NULL, paste0(scratchDir, '/absences'))
+	unlink(paste0(scratchDir, '/plots'), recursive=TRUE, force=TRUE)
 	unlink(scratchDir, recursive=TRUE, force=TRUE)
 
 	# return stuff
