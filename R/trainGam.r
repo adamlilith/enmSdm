@@ -75,27 +75,13 @@ trainGam <- function(
 		if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
 		if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
 
-		# # initialize penalty for effective degrees of freedom... incrementing this until GAM converges
-		# initialGamma <- gamma
-
-		# # initialize starting basis degrees of freedom (=this value minus 1 for 'c' smooths), only for cases without model construction
-		# startBasisK <- 5 * max(8, length(preds) + ceiling(sqrt(length(preds))) )
-
-		# # remember starting basis df in case needs reset
-		# basisK <- startBasisK
-
-
-		# set GAM control parameters
-		mgcv::gam.control(outerPIsteps=10, maxit=1000, newton=list(conv.tol=1e-6, maxNstep=5, maxSstep=2, maxHalf=30)) # default
-		# mgcv::gam.control(outerPIsteps=10, maxit=100000, newton=list(conv.tol=1e-1, maxNstep=5, maxSstep=2, maxHalf=30))
-
 	#############
 	## weights ##
 	#############
 
 		# model weights
 		if (class(w)[1] == 'logical') {
-			w <- if (w & (family %in% c('binomial', 'quasibinomial'))) {
+			w <- if (w && (family %in% c('binomial', 'quasibinomial'))) {
 				c(rep(1, sum(data[ , resp])), rep(sum(data[ , resp]) / sum(data[ , resp] == 0), sum(data[ , resp] == 0)))
 			} else {
 				rep(1, nrow(data))
@@ -204,7 +190,7 @@ trainGam <- function(
 			# print AICc frame
 			if (verbose) {
 
-				omnibus::say('GAM construction results for each term tested:')
+				omnibus::say('GAM construction results for each term tested:', level=1)
 				print(gamFrame)
 				omnibus::say('')
 
@@ -332,7 +318,7 @@ trainGam <- function(
 
 	if (verbose) {
 
-		omnibus::say('Full model:', pre=1);
+		omnibus::say('Full model:', level=1);
 		print(summary(model))
 		flush.console()
 
@@ -359,7 +345,7 @@ trainGam <- function(
 
 		if ('model' %in% out) {
 
-			if (verbose) omnibus::say('Final model:')
+			if (verbose) omnibus::say('Final model:', level=1)
 
 			# get model with best AIC
 			thisFormula <- paste0(resp, ' ~ 1 + ', paste(names(tuning)[which(tuning[1, ] == '+')], sep=' + ', collapse=' + '))
