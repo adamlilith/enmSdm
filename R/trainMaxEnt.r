@@ -116,6 +116,8 @@ trainMaxEnt <- function(
 
 	if (verbose) say('Testing models with regularization multiplier:', post=0)
 
+	tuning <- data.frame()
+
 	# by BETA
 	for (thisRegMult in regMult) {
 
@@ -163,10 +165,10 @@ trainMaxEnt <- function(
 				...
 			)
 
-			bgSum <- sum(predBg)
+			rawSum <- sum(c(predPres, predBg), na.rm=TRUE)
 
 			## calculate log likelihood
-			ll <- sum(log(predPres / bgSum), na.rm=TRUE)
+			ll <- sum(log(predPres / rawSum), na.rm=TRUE)
 
 			## calculate number of parameters
 			K <- 0
@@ -202,11 +204,7 @@ trainMaxEnt <- function(
 				AICc=AICc
 			)
 
-			tuning <- if (exists('tuning', inherits=FALSE)) {
-				rbind(tuning, thisAicFrame)
-			} else {
-				thisAicFrame
-			}
+			tuning <- rbind(tuning, thisAicFrame)
 
 		} # next set of parameters
 

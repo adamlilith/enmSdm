@@ -4,13 +4,15 @@
 #' @param x1 Numeric. List of predictions from a model.
 #' @param x2 Numeric. List of predictions from another model.
 #' @param method Character list, indicates type of metric to calculate:
-#' * \code{meanDiff} mean difference between \code{x1} and \code{x2}
-#' * \code{meanAbsDiff} mean absolute difference between \code{x1} and \code{x2} (ie, \code{sum(abs(x1 - x2))})
-#' * \code{d} Schoener's \emph{D}
-#' * \code{i} Warren's \emph{I}
-#' * \code{esp} Godsoe's \emph{ESP}
-#' * \code{rho} Correlation between \code{x1} and \code{x2} (will apply \code{logitAdj()} first unless logit=FALSE).
-#' * \code{rankCor}  Pearson rank correlation.
+#' \itemize{
+#' \item \code{meanDiff} mean difference between \code{x1} and \code{x2}
+#' \item \code{meanAbsDiff} mean absolute difference between \code{x1} and \code{x2} (ie, \code{sum(abs(x1 - x2))})
+#' \item \code{d} Schoener's \emph{D}
+#' \item \code{i} Warren's \emph{I}
+#' \item \code{esp} Godsoe's \emph{ESP}
+#' \item \code{rho} Correlation between \code{x1} and \code{x2} (will apply \code{logitAdj()} first unless logit=FALSE).
+#' \item \code{rankCor}  Pearson rank correlation.
+#' }
 #' @param w Numeric list. Weights of predictions in \code{x1} and \code{x2}.
 #' @param logit Logical. Only used if \code{method} contains \code{rho}.  If TRUE, then \code{x1} and \code{x2} are first adjusted using \code{logitAdj()}. Use \code{...} to alter the default value of \code{epsilon} in \code{logitAdj()}.
 #' @param na.rm Logical.  If T\code{TRUE} then remove elements in \code{x1} and \code{2} that are \code{NA} in \emph{either} \code{x1} or \code{x2}.
