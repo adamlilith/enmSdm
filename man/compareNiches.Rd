@@ -14,13 +14,15 @@ compareNiches(x1, x2, method = c("meanDiff", "meanAbsDiff", "d", "i", "esp",
 \item{x2}{Numeric. List of predictions from another model.}
 
 \item{method}{Character list, indicates type of metric to calculate:
-* \code{meanDiff} mean difference between \code{x1} and \code{x2}
-* \code{meanAbsDiff} mean absolute difference between \code{x1} and \code{x2} (ie, \code{sum(abs(x1 - x2))})
-* \code{d} Schoener's \emph{D}
-* \code{i} Warren's \emph{I}
-* \code{esp} Godsoe's \emph{ESP}
-* \code{rho} Correlation between \code{x1} and \code{x2} (will apply \code{logitAdj()} first unless logit=FALSE).
-* \code{rankCor}  Pearson rank correlation.}
+\itemize{
+\item \code{meanDiff} mean difference between \code{x1} and \code{x2}
+\item \code{meanAbsDiff} mean absolute difference between \code{x1} and \code{x2} (ie, \code{sum(abs(x1 - x2))})
+\item \code{d} Schoener's \emph{D}
+\item \code{i} Warren's \emph{I}
+\item \code{esp} Godsoe's \emph{ESP}
+\item \code{rho} Correlation between \code{x1} and \code{x2} (will apply \code{logitAdj()} first unless logit=FALSE).
+\item \code{rankCor}  Pearson rank correlation.
+}}
 
 \item{w}{Numeric list. Weights of predictions in \code{x1} and \code{x2}.}
 

@@ -97,6 +97,8 @@ trainMaxNet <- function(
 	## MAIN ##
 	##########
 
+	tuning <- data.frame()
+	
 	# for each regularization multiplier
 	for (thisRegMult in regMult) {
 
@@ -164,10 +166,10 @@ trainMaxNet <- function(
 				...
 			)
 
-			bgSum <- sum(predBg)
+			rawSum <- sum(c(predPres, predBg), na.rm=TRUE)
 
 			## calculate log likelihood
-			ll <- sum(log(predPres / bgSum), na.rm=TRUE)
+			ll <- sum(log(predPres / rawSum), na.rm=TRUE)
 
 			## number of parameters
 			K <- length(model$betas)
@@ -185,8 +187,7 @@ trainMaxNet <- function(
 				AICc=AICc
 			)
 
-			if (exists('tuning', inherits=FALSE)) tuning <- rbind(tuning, thisAicFrame)
-			if (!exists('tuning', inherits=FALSE)) tuning <- thisAicFrame
+			tuning <- rbind(tuning, thisAicFrame)
 
 		} # next combination of class features
 

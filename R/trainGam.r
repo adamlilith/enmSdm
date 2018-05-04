@@ -11,7 +11,7 @@
 #' @param presPerTermInitial Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is TRUE.
 #' @param presPerTermFinal Positive integer. Minimum number of presence sites per term in initial starting model; used only if \code{select} is TRUE.
 #' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 31, so if this number is >31 and \code{select} is \code{TRUE} then it is forced to 31 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.
-#' @param interaction Character. Type of interaction term to use (\code{te}, \code{ts}, \code{s}, etc.). See \code{?te} (for example) for help on any one of these.
+#' @param interaction Character or \code{NULL}. Type of interaction term to use (\code{te}, \code{ts}, \code{s}, etc.). See \code{?te} (for example) for help on any one of these. If \code{NULL} then interactions are not used.
 #' @param w Either logical in which case TRUE causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign a weight of 1 to each datum.
 #' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm} or \code{glm} (depending on the value of \code{use}). If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
 #' @param verbose Logical. If TRUE then display intermediate results on the display device.
@@ -136,53 +136,57 @@ trainGam <- function(
 			} # next single-variable term
 
 			### TWO-variable terms
-			for (thisPred in preds[1:(length(preds)-1)]) { # for each predictor test two-variable terms
+			if (length(preds) > 1 & !is.null(interaction)) {
+				
+				for (thisPred in preds[1:(length(preds)-1)]) { # for each predictor test two-variable terms
 
-				for (thatPredictor in preds[ (which(preds==thisPred) + 1):length(preds) ]) { # for each second predictor test two-variable terms
+					for (thatPredictor in preds[ (which(preds==thisPred) + 1):length(preds) ]) { # for each second predictor test two-variable terms
 
-					# create term
-					term <- if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPredictor]) != 'factor') {
+						# create term
+						term <- if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPredictor]) != 'factor') {
 
-						term <- paste0(interaction, '(', thisPred, ', ', thatPredictor, ', bs=\'cs\')')
+							term <- paste0(interaction, '(', thisPred, ', ', thatPredictor, ', bs=\'cs\')')
 
-					} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPredictor]) != 'factor') {
+						} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPredictor]) != 'factor') {
 
-						paste0(interaction, '(', thatPredictor, ', by=', thisPred, ', bs=\'cs\')')
+							paste0(interaction, '(', thatPredictor, ', by=', thisPred, ', bs=\'cs\')')
 
-					} else if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPredictor]) == 'factor') {
+						} else if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPredictor]) == 'factor') {
 
-						paste0(interaction, '(', thisPred, ', by=', thatPredictor, ', bs=\'cs\')')
+							paste0(interaction, '(', thisPred, ', by=', thatPredictor, ', bs=\'cs\')')
 
-					} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPredictor]) == 'factor') {
+						} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPredictor]) == 'factor') {
 
-						paste0(thisPred, ' * ', thatPredictor)
+							paste0(thisPred, ' * ', thatPredictor)
 
-					}
+						}
 
-					thisAic <- AIC(
-						mgcv::gam(
-							formula=as.formula(paste0(form, ' + ', term)),
-							family=family,
-							data=data,
-							method='ML',
-							optimizer=c('outer', 'newton'),
-							scale=-1,
-							select=TRUE,
-							gamma=gamma,
-							weights=w
+						thisAic <- AIC(
+							mgcv::gam(
+								formula=as.formula(paste0(form, ' + ', term)),
+								family=family,
+								data=data,
+								method='ML',
+								optimizer=c('outer', 'newton'),
+								scale=-1,
+								select=TRUE,
+								gamma=gamma,
+								weights=w
+							)
 						)
-					)
 
-					# remember
-					gamFrame <- if (exists('gamFrame')) {
-						rbind(gamFrame, data.frame(term=term, AIC=thisAic))
-					} else {
-						data.frame(term=term, AIC=thisAic)
-					}
+						# remember
+						gamFrame <- if (exists('gamFrame')) {
+							rbind(gamFrame, data.frame(term=term, AIC=thisAic))
+						} else {
+							data.frame(term=term, AIC=thisAic)
+						}
 
-				}  # for each second predictor test two-variable terms
+					}  # for each second predictor test two-variable terms
 
-			} # for each predictor test two-variable terms
+				} # for each predictor test two-variable terms
+				
+			} # if interactions
 
 			# sort by AIC
 			gamFrame <- gamFrame[order(gamFrame$AIC), ]
@@ -225,7 +229,7 @@ trainGam <- function(
 			}
 
 			# interaction terms
-			if (length(preds) > 1) {
+			if (length(preds) > 1 & !is.null(interaction)) {
 
 				for (thisPred in preds[1:(length(preds) - 1)]) { # for each initial predictor
 
