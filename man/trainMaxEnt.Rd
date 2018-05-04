@@ -19,9 +19,9 @@ trainMaxEnt(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
 
 \item{regMult}{Numeric vector. Values of the master regularization parameters (called \code{beta} in some publications) to test.}
 
-\item{classes}{Character list. Names of feature classes to use (either \code{default} to use \code{lpqh} or any combination of \code{lpqht}), where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quardatic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.}
+\item{classes}{Character list. Names of feature classes to use (either \code{default} to use \code{lpqh} or any combination of \code{lpqht}), where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.}
 
-\item{testClasses}{Logical.  If TRUE then test all possible combinations of classes (note that all tested models will at least have linear features). If FALSE then use the classes provided (these will not varu between models).}
+\item{testClasses}{Logical.  If \code{TRUE} then test all possible combinations of classes (note that all tested models will at least have linear features). If \code{FALSE} then use the classes provided (these will not vary between models).}
 
 \item{forceLinear}{Logical. If TRUE then require any tested models to include at least linear features.}
 
@@ -29,7 +29,7 @@ trainMaxEnt(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
 
 \item{args}{Character list. Options to pass to \code{maxent()}'s \code{args} argument. (Do not include \code{l}, \code{p}, \code{q}, \code{h}, \code{t}, \code{betamultiplier}, or \code{jackknife}!)}
 
-\item{out}{Character. Indicates type of value returned. If \code{model} then returns an object of class \code{maxnet}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
+\item{out}{Character. Indicates type of value returned. If \code{model} then returns an object of class \code{MaxEnt}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
 
 \item{anyway}{Logical. If no model has fewer coefficients than predictors, return the model with the lowest AICc anyway.}
 

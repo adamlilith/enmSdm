@@ -5,12 +5,12 @@
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param regMult Numeric vector. Values of the master regularization parameters (called \code{beta} in some publications) to test.
-#' @param classes Character list. Names of feature classes to use (either \code{default} to use \code{lpqh} or any combination of \code{lpqht}), where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quardatic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.
-#' @param testClasses Logical.  If TRUE then test all possible combinations of classes (note that all tested models will at least have linear features). If FALSE then use the classes provided (these will not varu between models).
+#' @param classes Character list. Names of feature classes to use (either \code{default} to use \code{lpqh} or any combination of \code{lpqht}), where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.
+#' @param testClasses Logical.  If \code{TRUE} then test all possible combinations of classes (note that all tested models will at least have linear features). If \code{FALSE} then use the classes provided (these will not vary between models).
 #' @param scratchDir Character. Directory to which to write temporary files. Leave as NULL to create a temporary folder in the current working directory.
 #' @param forceLinear Logical. If TRUE then require any tested models to include at least linear features.
 #' @param jackknife Logical. If TRUE the the returned model will be also include jackknife testing of variable importance.
-#' @param out Character. Indicates type of value returned. If \code{model} then returns an object of class \code{maxnet}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
+#' @param out Character. Indicates type of value returned. If \code{model} then returns an object of class \code{MaxEnt}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
 #' @param args Character list. Options to pass to \code{maxent()}'s \code{args} argument. (Do not include \code{l}, \code{p}, \code{q}, \code{h}, \code{t}, \code{betamultiplier}, or \code{jackknife}!)
 #' @param anyway Logical. If no model has fewer coefficients than predictors, return the model with the lowest AICc anyway.
 #' @param verbose Logical. If TRUE report progress and AICc table.

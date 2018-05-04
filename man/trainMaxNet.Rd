@@ -18,7 +18,7 @@ trainMaxNet(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
 
 \item{regMult}{Numeric vector. Values of the master regularization parameters (called \code{beta} in some publications) to test.}
 
-\item{classes}{Character list. Names of feature classes to use (either \code{default} to use \code{lpqh} or any combination of \code{lpqht}), where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quardatic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.}
+\item{classes}{Character list. Names of feature classes to use (either \code{default} to use \code{lpqh} or any combination of \code{lpqht}), where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.}
 
 \item{testClasses}{Logical.  If TRUE then test all possible combinations of classes (note that all tested models will at least have linear features). If FALSE then use the classes provided (these will not vary between models).}
 
@@ -34,7 +34,7 @@ trainMaxNet(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
 If \code{out = 'model'} this function returns an object of class \code{maxnet}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log-likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{maxnet} object and the data frame.
 }
 \description{
-This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes.  See Warren, D.L. and S.N. Siefert.  2011.  Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria.  \emph{Ecological Applications} 21:335-342.  The function returns the best model and/or a data frame with AICc for each value of the multipler and combination of classes. Here, "best" is defined as the model with the lowest AICc, with ties broken by preferences for: lowest number of estimated parameters, and highest regularization multplier.
+This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes.  See Warren, D.L. and S.N. Siefert.  2011.  Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria.  \emph{Ecological Applications} 21:335-342.  The function returns the best model and/or a data frame with AICc for each value of the multipler and combination of classes. Here, "best" is defined as the model with the lowest AICc, with ties broken by preferences for: lowest number of estimated parameters, and highest regularization multiplier.
 }
 \examples{
 set.seed(123)
