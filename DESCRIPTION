@@ -1,14 +1,15 @@
 Package: enmSdm
+Type: Package
 Title: Tools for modeling species niches and distributions
-Version: 0.3.0.0
-Date: 2018-05-04
-=======
+Version: 0.3.0.1
+Date: 2018-06-21
 Author: Adam B. Smith <adam@earthSkySea.org>
 Maintainer: Adam B. Smith <adam.smith@mobot.org>
-Description: This package contains tools for modeling the distributions and
-    niches of species or species-like entities. Its main features are a set of
-    functions named \code{train~~~} which automatically calibrate models using AICc,
-    cross-validated deviance, or other metrics (depending on the algorithm).
+Description: This package contains tools for modeling the distributions
+    and niches of species or species-like entities. Its main features
+    are a set of functions named \code{train~~~} which automatically
+    calibrate models using AICc, cross-validated deviance, or other
+    metrics (depending on the algorithm).
 Depends:
 	omnibus
 Imports:
