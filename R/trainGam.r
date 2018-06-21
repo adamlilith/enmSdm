@@ -140,24 +140,24 @@ trainGam <- function(
 				
 				for (thisPred in preds[1:(length(preds)-1)]) { # for each predictor test two-variable terms
 
-					for (thatPredictor in preds[ (which(preds==thisPred) + 1):length(preds) ]) { # for each second predictor test two-variable terms
+					for (thatPred in preds[ (which(preds==thisPred) + 1):length(preds) ]) { # for each second predictor test two-variable terms
 
 						# create term
-						term <- if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPredictor]) != 'factor') {
+						term <- if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPred]) != 'factor') {
 
-							term <- paste0(interaction, '(', thisPred, ', ', thatPredictor, ', bs=\'cs\')')
+							term <- paste0(interaction, '(', thisPred, ', ', thatPred, ', bs=\'cs\')')
 
-						} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPredictor]) != 'factor') {
+						} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPred]) != 'factor') {
 
-							paste0(interaction, '(', thatPredictor, ', by=', thisPred, ', bs=\'cs\')')
+							paste0(interaction, '(', thatPred, ', by=', thisPred, ', bs=\'cs\')')
 
-						} else if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPredictor]) == 'factor') {
+						} else if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPred]) == 'factor') {
 
-							paste0(interaction, '(', thisPred, ', by=', thatPredictor, ', bs=\'cs\')')
+							paste0(interaction, '(', thisPred, ', by=', thatPred, ', bs=\'cs\')')
 
-						} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPredictor]) == 'factor') {
+						} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPred]) == 'factor') {
 
-							paste0(thisPred, ' * ', thatPredictor)
+							paste0(thisPred, ' * ', thatPred)
 
 						}
 
@@ -231,23 +231,30 @@ trainGam <- function(
 			# interaction terms
 			if (length(preds) > 1 & !is.null(interaction)) {
 
-				for (thisPred in preds[1:(length(preds) - 1)]) { # for each initial predictor
+				numPreds <- length(preds)
+			
+				for (countPred1 in 1:(numPreds - 1)) { # for each initial predictor
 
-					for (thatPredictor in preds[2:length(preds)]) {
+					thisPred <- preds[countPred1]
+				
+					for (countPred2 in (countPred1 + 1):numPreds) {
+					
+						thatPred <- preds[countPred2]
 
-						form <- if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPredictor]) != 'factor') {
-							paste0( form, ' + ', interaction, '(', thisPred, ', ', thatPredictor, ')')
-						} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPredictor]) != 'factor') {
-							paste0( form, ' + ', interaction, '(', thatPredictor, ', by=', thisPred, ')')
-						} else if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPredictor]) == 'factor') {
-							paste0( form, ' + ', interaction, '(', thisPred, ', by=', thatPredictor, ')')
-						} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPredictor]) == 'factor') {
-							paste0(form, ' + ', thisPred, ' * ', thatPredictor)
+						form <- if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPred]) != 'factor') {
+							paste0( form, ' + ', interaction, '(', thisPred, ', ', thatPred, ')')
+						} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPred]) != 'factor') {
+							paste0( form, ' + ', interaction, '(', thatPred, ', by=', thisPred, ')')
+						} else if (class(data[ , thisPred]) != 'factor' & class(data[ , thatPred]) == 'factor') {
+							paste0( form, ' + ', interaction, '(', thisPred, ', by=', thatPred, ')')
+						} else if (class(data[ , thisPred]) == 'factor' & class(data[ , thatPred]) == 'factor') {
+							paste0(form, ' + ', thisPred, ' * ', thatPred)
 						}
 
 					}
 
 				}
+				
 			}
 
 		} # if not doing automated model construction

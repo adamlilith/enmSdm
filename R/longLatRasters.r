@@ -21,10 +21,12 @@ longLatRasters <- function(
 	...
 ) {
 
+	x <- x[[1]]
+
 	# get mask raster
 	if (!is.null(m) && class(m) == 'logical') {
 		if (m) {
-			m <- x[[1]] * 0 + 1
+			m <- x * 0 + 1
 		} else if (!m) {
 			m[] <- 1
 		}
@@ -33,7 +35,7 @@ longLatRasters <- function(
 		m[] <- 1
 	}
 
-	x <- x[[1]]
+	
 
 	##########
 	## MAIN ##
