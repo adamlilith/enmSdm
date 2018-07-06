@@ -67,7 +67,15 @@ y <- as.integer(y > 10)
 x <- cbind(y, x)
 x <- as.data.frame(x)
 names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
-out <- trainBrt(x, treeComplexity=c(1, 3), learningRate=c(0.01, 0.001), bagFraction=0.6, maxTrees=1000, verbose=TRUE, out=c('tuning', 'model'))
+out <- trainBrt(
+    x,
+    treeComplexity=c(1, 3),
+    learningRate=c(0.01, 0.001),
+    bagFraction=0.6,
+    maxTrees=1000,
+    out=c('tuning', 'model'),
+    verbose=TRUE
+)
 plot(out$model)
 out$tuning
 }

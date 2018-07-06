@@ -29,12 +29,12 @@ makeLarsData <- function(
 	data,
 	resp,
 	preds,
-	scale,
-	quadratic,
-	cubic,
-	interaction,
-	interQuad,
-	na.rm=FALSE
+	scale = TRUE,
+	quadratic = TRUE,
+	cubic = TRUE,
+	interaction = TRUE,
+	interQuad = TRUE,
+	na.rm = FALSE
 ) {
 
 	### illogical feature requests
@@ -55,36 +55,36 @@ makeLarsData <- function(
 	} else {
 		y <- NULL
 	}
-	
+
 	if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
 	data <- data[ , preds, drop=FALSE]
 
 	### remove NAs
 	if (na.rm) {
-	
+
 		yNa <- if (is.null(y)) {
 			NULL
 		} else {
 			which(is.na(y))
 		}
-		
-		predsNa <- naRows(data)
-		
+
+		predsNa <- omnibus::naRows(data)
+
 		if (length(yNa) > 0) {
 			y <- y[-yNa]
 			data <- data[-yNa, ]
 		}
-	
+
 		if (length(predsNa) > 0) {
 			y <- y[-predsNa]
 			data <- data[-predsNa, ]
 		}
-		
+
 	}
-	
+
 	### rescale
 	scales <- list()
-	
+
 	# if user supplies scale values, scale data by these
 	if (class(scale) == 'list') {
 
@@ -92,9 +92,9 @@ makeLarsData <- function(
 		data <- as.data.frame(base::scale(data, center=scale$`scaled:center`, scale=scale$`scaled:scale`))
 		scales$`scaled:center` <- scale$`scaled:center`
 		scales$`scaled:scale` <- scale$`scaled:scale`
-	
+
 	} else if (class(scale) == 'logical') {
-	
+
 		# automatically scale
 		if (scale) {
 
@@ -102,24 +102,24 @@ makeLarsData <- function(
 			scales$`scaled:center` <- attributes(data)$`scaled:center`
 			scales$`scaled:scale` <- attributes(data)$`scaled:scale`
 			data <- as.data.frame(data)
-			
+
 			# remove variables with no variation
 			if (any(scales$`scaled:scale` == 0)) {
-				
+
 				zeroVar <- names(scales$`scaled:scale`[scales$`scaled:scale` == 0])
-				
+
 				scales$`scaled:center` <- scales$`scaled:center`[-which(names(scales$`scaled:center`) %in% zeroVar), drop=FALSE]
 				scales$`scaled:scale` <- scales$`scaled:scale`[-which(names(scales$`scaled:scale`) %in% zeroVar), drop=FALSE]
 				data <- data[ , -which(names(data) %in% zeroVar), drop=FALSE]
 				preds <- preds[-which(preds %in% zeroVar)]
-				
+
 				if (ncol(data) == 1 & interaction) interaction <- FALSE
 				if (ncol(data) == 1 & interQuad) interQuad <- FALSE
-				
+
 				warning(paste0('Removing variables from predictor set because they have 0 variance: ', paste(zeroVar, collapse=' ')))
-				
+
 			}
-			
+
 		# no scaling
 		} else {
 			scales$`scaled:center` <- rep(0, ncol(data))
@@ -133,7 +133,7 @@ makeLarsData <- function(
 	rownames(inCol) <- 1:nrow(inCol)
 	colnames(inCol) <- preds
 	diag(inCol) <- TRUE
-	
+
 	### define linear groups (one variable per group)
 	groups <- list()
 	for (i in seq_along(preds)) groups[[i]] <- preds[i]
@@ -152,7 +152,7 @@ makeLarsData <- function(
 			newPred <- paste0(thisPred, '_pow2')
 			names(add) <- newPred
 			data <- cbind(data, add)
-			
+
 			# record which predictor(s) occur in the new data column
 			thisInCol <- matrix(preds %in% thisPred, ncol=length(preds))
 			rownames(thisInCol) <- ncol(data)
@@ -265,7 +265,7 @@ makeLarsData <- function(
 			}
 		}
 	}
-	
+
 	out <- list()
 	out$resp <- resp
 	out$preds <- preds
@@ -280,5 +280,5 @@ makeLarsData <- function(
 	out$features$interQuad <- interQuad
 	class(out) <- c(class(out), 'larsData')
 	out
-	
+
 }
