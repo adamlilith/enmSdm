@@ -10,11 +10,11 @@ geoThin(x, minDist, longLat = NULL, distFunct = NULL, verbose = FALSE,
 \arguments{
 \item{x}{Data frame, matrix, SpatialPoints, or SpatialPointsDataFrame object.}
 
-\item{minDist}{Numeric. Minimum distance needed between points to retain them. Points falling < this distance will be discarded. if \code{distFunct} is \code{distCosine} then this should be in thesame units as \code{f} (see [geosphere::distCosine()] and related "\code{dist}" functions).}
+\item{minDist}{Numeric. Minimum distance needed between points to retain them. Points falling < this distance will be discarded. If \code{distFunct} is \code{distCosine} then this should be in the same units as \code{f} (see \code{link[geosphere]{distCosine}} and related "\code{dist}" functions).}
 
 \item{distFunct}{Either a function or \code{NULL}. If \code{NULL} then \code{\link[geosphere]{distCosine}} is used to calculate distances.  More accurate distances can be obtained by using other functions (see \code{\link[geosphere]{distHaversine}} and references therein). Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.}
 
-\item{verbose}{Logical. If TRUE then display progress.}
+\item{verbose}{Logical. If \code{TRUE} then display progress.}
 
 \item{na.rm}{Logical. If TRUE then remove coordinates with \code{NA}s first.}
 
