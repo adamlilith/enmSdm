@@ -89,8 +89,8 @@ trainMaxEnt <- function(
 		base::tempfile(pattern='/_maxentTempFiles/', tmpdir=scratchDir)
 	}
 
-	dirCreate(scratchDir)
-	dirCreate(scratchDir, '/plots')
+	omnibus::dirCreate(scratchDir)
+	omnibus::dirCreate(scratchDir, '/plots')
 
 	## collate all presences
 	allPres <- data[presentBg == 1, , drop=FALSE]
@@ -114,7 +114,7 @@ trainMaxEnt <- function(
 	## MAIN ##
 	##########
 
-	if (verbose) say('Testing models with regularization multiplier:', post=0)
+	if (verbose) omnibus::say('Testing models with regularization multiplier:', post=0)
 
 	tuning <- data.frame()
 
