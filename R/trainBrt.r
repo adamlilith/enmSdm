@@ -39,7 +39,15 @@
 #' x <- cbind(y, x)
 #' x <- as.data.frame(x)
 #' names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
-#' out <- trainBrt(x, treeComplexity=c(1, 3), learningRate=c(0.01, 0.001), bagFraction=0.6, maxTrees=1000, verbose=TRUE, out=c('tuning', 'model'))
+#' out <- trainBrt(
+#'     x,
+#'     treeComplexity=c(1, 3),
+#'     learningRate=c(0.01, 0.001),
+#'     bagFraction=0.6,
+#'     maxTrees=1000,
+#'     out=c('tuning', 'model'),
+#'     verbose=TRUE
+#' )
 #' plot(out$model)
 #' out$tuning
 #' }
@@ -71,7 +79,7 @@ trainBrt <- function(
 		# data$DUMMY <- 1
 		# preds <- c(preds, 'DUMMY')
 	# }
-	
+
 	# response and predictors
 	if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
 	if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
@@ -91,7 +99,7 @@ trainBrt <- function(
 
 	# initialize tuning table
 	tuning <- data.frame()
-	
+
 	# initialize lowest cross-validation deviance
 	lowestDeviance <- Inf
 
@@ -107,7 +115,7 @@ trainBrt <- function(
 		for (thisTc in treeComplexity) {
 
 			tempTc <- thisTc
-		
+
 			# by BAG FRACTION
 			for (thisBF in bagFraction) {
 
@@ -120,13 +128,13 @@ trainBrt <- function(
 					tempTc <- thisTc
 					tempMaxTrees <- thisMaxTrees
 					tempStepSize <- 50 # default for n.trees in gbm.step
-				
+
 					# by TRY
 					numTries <- 0
 					while (numTries <= tries & !converged) {
 
 						numTries <- numTries + 1
-					
+
 						# try with different parameter combinations
 						if (numTries > 1 && !is.null(tryBy)) {
 
@@ -134,7 +142,7 @@ trainBrt <- function(
 							if ('treeComplexity' %in% tryBy) tempTc <- max(1, tempTc + ifelse(runif(1) > 0.5, 1, -1))
 							if ('maxTrees' %in% tryBy) tempMaxTrees <- round(1.2 * tempMaxTrees)
 							if ('stepSize' %in% tryBy) tempStepSize <- round(0.8 * tempStepSize)
-							
+
 						}
 
 						# display parameters
@@ -176,11 +184,11 @@ trainBrt <- function(
 								bestMaxTrees <- tempMaxTrees
 								bestStepSize <- tempStepSize
 							}
-							
+
 						} else {
 							dev <- NA
 						}
-						
+
 						if (verbose) omnibus::say('| CV deviance: ', sprintf('%.4f', dev))
 
 						# save tuning table
@@ -197,16 +205,16 @@ trainBrt <- function(
 								deviance = dev
 							)
 						)
-					
+
 					} # while trying to train model
 
 					tempLr <- thisLr
 					tempTc <- thisTc
 					tempMaxTrees <- thisMaxTrees
 					tempStepSize <- 50
-					
+
 				} # next max number of trees
-				
+
 			} # next bag fraction
 
 		} # next tree complexity
@@ -227,15 +235,15 @@ trainBrt <- function(
 		print(tuning)
 		omnibus::say('')
 	}
-	
+
 	### get best model with >1000 trees
 	if (tuning$usable[1] & nrow(tuning) > 1) {
 
 		# if did not remember best model
 		if (tuning$treeComplexity[1] != bestTc | tuning$learningRate[1] != bestLr | tuning$bagFraction[1] != bestBF | tuning$maxTrees[1] != bestMaxTrees | tuning$stepSize[1] != bestStepSize) {
-		
+
 			omnibus::say('Training best model...')
-		
+
 			# train model... using tryCatch because model may not converge
 			model <- dismo::gbm.step(
 				data=data,
@@ -254,11 +262,11 @@ trainBrt <- function(
 				site.weights=w,
 				...
 			)
-			
+
 		}
-		
+
 	}
-	
+
 	# return
 	if ('model' %in% out & 'tuning' %in% out) {
 		out <- list()

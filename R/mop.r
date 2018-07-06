@@ -35,7 +35,7 @@ mop <- function(
 	# calculate distances
 	if (cores == 1) {
 
-		dists <- pairDist(set1, set2, na.rm=na.rm)
+		dists <- omnibus::pairDist(set1, set2, na.rm=na.rm)
 
 	} else {
 

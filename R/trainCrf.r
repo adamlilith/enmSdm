@@ -8,7 +8,7 @@
 #' @param w Either logical in which case TRUE causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign a weight of 1 to each datum.
 #' @param ... Arguments to pass to [party::cforest()] function.
 #' @return Object of class \code{RandomForest}.
-#' @seealso \code{\link[party]{cforest}}, \code{\link{trainRf}}
+#' @seealso \code{cforest} (in the \pkg{party} package), \code{\link{trainRf}}
 #' @examples
 #' set.seed(123)
 #' x <- matrix(rnorm(n = 6*100), ncol = 6)

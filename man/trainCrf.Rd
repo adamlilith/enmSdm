@@ -46,5 +46,5 @@ model <- trainCrf(x)
 predict(model, newdata=x)
 }
 \seealso{
-\code{\link[party]{cforest}}, \code{\link{trainRf}}
+\code{cforest} (in the \pkg{party} package), \code{\link{trainRf}}
 }

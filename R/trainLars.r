@@ -132,7 +132,7 @@ trainLars <- function(
 	alphaTable <- data.frame(alpha=alphas, lambda=NA, cve=NA, cvse=NA)
 	for (i in 1:nrow(alphaTable)) {
 
-		if (verbose) say('Training LARS model for alpha = ', alphaTable$alpha[i], '.')
+		if (verbose) omnibus::say('Training LARS model for alpha = ', alphaTable$alpha[i], '.')
 
 		model <- grpregOverlap::cv.grpregOverlap(X=X, y=y, group=x$groups, alpha=alphaTable$alpha[i], ...)
 		# model <- grpregOverlap::cv.grpregOverlap(X=X, y=y, group=x$groups, alpha=alphaTable$alpha[i], family='binomial', penalty='cMCP', nfolds=3)
@@ -143,7 +143,7 @@ trainLars <- function(
 	}
 
 	bestAlpha <- alphaTable$alpha[which.min(alphaTable$cve)]
-	if (verbose) say('Best alpha = ', bestAlpha, '.')
+	if (verbose) omnibus::say('Best alpha = ', bestAlpha, '.')
 
 	# train final model
 	model <- grpregOverlap::cv.grpregOverlap(X=X, y=y, group=x$groups, alpha=bestAlpha, ...)
