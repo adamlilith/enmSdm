@@ -1,14 +1,14 @@
 #' Convert coordinates from TROPICOS records to decimal degrees.
 #'
-#' The [TROPICOS](http://www.tropicos.org/) plant specimen database of the Missouri Botanical Garden returns records in degrees-minutes-seconds format with symbols for degrees, minutes, second, and hemisphere.  This function converts this format to signed decimal degrees format.  By default, values surrounded by square brackets (\code{[]}) are returned as \code{NA} because they are geolocated to the center of a political unit (usually county or equivalent).
+#' The TROPICOS (http://www.tropicos.org/) plant specimen database of the Missouri Botanical Garden returns records in degrees-minutes-seconds format with symbols for degrees, minutes, second, and hemisphere.  This function converts this format to signed decimal degrees format.  By default, values surrounded by square brackets (\code{[]}) are returned as \code{NA} because they are geolocated to the center of a political unit (usually county or equivalent).
 #' @param long Character list, longitudes in TROPICOS format.
 #' @param lat Character list, latitudes in TROPICOS format.
 #' @param returnApprox Logical, if \code{TRUE} then approximate coordinates (surrounded by square brackets in TROPICOS format) are converted. If \code{FALSE} (default), then \code{NA} is returned.
 #' @return A data five-column frame. The first two columns are the original TROPICOS coordinates, the next two the converted coordinates, and the last a flag to indicate if the TROPICOS coordinates were approximate (\code{TRUE}) or "exact" (\code{FALSE}).
 #' @seealso \code{\link[enmSdm]{dmsToDecimal}}
 #' @examples
-#' long <- c("078°14'05\"\"W", "091°49'39\"\"W", NA, "[091°53'38\"\"W]")
-#' lat <- c("39°40'41\"\"N", "36°34'14\"\"S", NA, "[36°46'14\"\"N]")
+#' long <- c("078Â°14'05\"\"W", "091Â°49'39\"\"W", NA, "[091Â°53'38\"\"W]")
+#' lat <- c("39Â°40'41\"\"N", "36Â°34'14\"\"S", NA, "[36Â°46'14\"\"N]")
 #' convertTropicosCoords(long, lat)
 #' convertTropicosCoords(long, lat, TRUE)
 #' @export
@@ -56,8 +56,8 @@ convertTropicosCoords <- function(
 
 			}
 
-			thisLong <- strsplit(thisLong, split='°')[[1]]
-			thisLat <- strsplit(thisLat, split='°')[[1]]
+			thisLong <- strsplit(thisLong, split='Â°')[[1]]
+			thisLat <- strsplit(thisLat, split='Â°')[[1]]
 
 			thisLong <- unlist(strsplit(thisLong, split='\''))
 			thisLat <- unlist(strsplit(thisLat, split='\''))
