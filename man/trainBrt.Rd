@@ -2,7 +2,7 @@
 % Please edit documentation in R/trainBrt.r
 \name{trainBrt}
 \alias{trainBrt}
-\title{Train a boosted regresion tree (generalied boosting machine) model}
+\title{Calibrate a boosted regresion tree (generalied boosting machine) model}
 \usage{
 trainBrt(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
   family = "bernoulli", learningRate = c(1e-04, 0.001, 0.01),

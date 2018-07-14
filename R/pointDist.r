@@ -1,4 +1,4 @@
-#' Calculate distance matrix between geographic points.
+#' Calculate distance matrix between geographic points
 #'
 #' This function calculates a distance matrix between points. It is similar to the \code{dist()} function except that it does its calculations in geographic space.
 #' @param x A data frame, matrix, \code{SpatialPoints}, or \code{SpatialPointsDataFrame} object. If a data frame or matrix then the coordinate reference system is assumed to be unprojected (WGS84).

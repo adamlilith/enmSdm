@@ -2,7 +2,7 @@
 % Please edit documentation in R/getCRS.r
 \name{getCRS}
 \alias{getCRS}
-\title{Returns a "proj4" string (i.e., a coordinate reference system descriptor) for a particular datum and projection}
+\title{Return a "proj4" string for a datum and projection}
 \usage{
 getCRS(x, asCRS = FALSE)
 }

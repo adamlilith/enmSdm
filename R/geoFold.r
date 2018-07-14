@@ -1,4 +1,4 @@
-#' Assigns geographically-divided k-folds
+#' Assign geographically-distinct k-folds
 #'
 #' This function assigns geographically-divided k-folds ("g-folds") using partitioning around mediods (PAM) algorithm. The user can specify the number of folds to create, and optionally, the minimum size of any fold plus the minimum number of sites NOT in any fold (good for ensuring each fold has enough sites for testing and training).
 #' @param x A data frame, matrix, \code{SpatialPoints}, or \code{SpatialPointsDataFrame} object. If a data frame or matrix then the coordinate reference system is assumed to be unprojected (WGS84).

@@ -265,10 +265,10 @@ trainMaxEnt <- function(
 
 				params <- c(
 					paste0('betamultiplier=1'),
-					paste0('linear=', tolower(grepl(pattern='l', classes) | classses == 'default')),
-					paste0('quadratic=', tolower(grepl(pattern='q', classes) | classses == 'default')),
-					paste0('product=', tolower(grepl(pattern='p', classes) | classses == 'default')),
-					paste0('hinge=', tolower(grepl(pattern='h', classes) | classses == 'default')),
+					paste0('linear=', tolower(grepl(pattern='l', classes) | classes == 'default')),
+					paste0('quadratic=', tolower(grepl(pattern='q', classes) | classes == 'default')),
+					paste0('product=', tolower(grepl(pattern='p', classes) | classes == 'default')),
+					paste0('hinge=', tolower(grepl(pattern='h', classes) | classes == 'default')),
 					paste0('threshold=', tolower(grepl(pattern='t', classes))),
 					paste0('jackknife=', tolower(jackknife))
 				)

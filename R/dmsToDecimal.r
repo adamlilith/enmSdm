@@ -12,7 +12,6 @@
 #' dmsToDecimal(90, 11, 52.1, FALSE) # longitude of St. Louis, Missouri, USA
 #' dmsToDecimal(90, 11, 52.1, 'W') # longitude of St. Louis, Missouri, USA
 #' @export
-
 dmsToDecimal <- function(dd, mm, ss, hemis) {
 
 	sgn <- if ((class(hemis) == 'logical' && !hemis) | (hemis == 'S' | hemis == 'W')) {
@@ -21,6 +20,7 @@ dmsToDecimal <- function(dd, mm, ss, hemis) {
 		1
 	}
 		
-	sgn * (dd + mm / 60 + ss / 3600)
+	out <- sgn * (dd + mm / 60 + ss / 3600)
+	out
 	
 }

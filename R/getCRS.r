@@ -1,4 +1,4 @@
-#' Returns a "proj4" string (i.e., a coordinate reference system descriptor) for a particular datum and projection
+#' Return a "proj4" string for a datum and projection
 #'
 #' This function returns the "proj4" string for a particular datum and possily projection. It is intended to be easier to use than looking up particular proj4 strings (i.e., on the web).
 #' @param x Character. Name of proj4 string to return. Possible values include:

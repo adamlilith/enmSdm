@@ -2,7 +2,7 @@
 % Please edit documentation in R/geoThinApprox.r
 \name{geoThinApprox}
 \alias{geoThinApprox}
-\title{Thins a geographic points such that none are within a minimum distance of their nearest neighbor}
+\title{Thin geographic points stochastically}
 \usage{
 geoThinApprox(x, minDist, longLat = NULL, distFunct = NULL,
   verbose = FALSE, ...)

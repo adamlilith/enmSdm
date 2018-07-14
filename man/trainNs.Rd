@@ -2,7 +2,7 @@
 % Please edit documentation in R/trainNs.r
 \name{trainNs}
 \alias{trainNs}
-\title{Model construction and model selection for a natural splines model.}
+\title{Calibrate a natural splines model}
 \usage{
 trainNs(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
   family = "binomial", df = NULL, construct = TRUE, select = TRUE,

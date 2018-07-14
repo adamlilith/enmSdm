@@ -1,4 +1,4 @@
-#' Model construction and model selection for generalized additive models (GAMs)
+#' Calibrate a generalized additive model (GAM)
 #'
 #' This function constructs a GAM piece-by-piece by first calculating AICc for all models with univariate and bivariate (interaction) terms. It then creates a "full" model with the highest-ranked uni/bivariate terms then implements an all-subsets model selection routine.
 #' @param data Data frame.  Must contain fields with same names as in \code{preds} object.

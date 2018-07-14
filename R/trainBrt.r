@@ -1,4 +1,4 @@
-#' Train a boosted regresion tree (generalied boosting machine) model
+#' Calibrate a boosted regresion tree (generalied boosting machine) model
 #'
 #' This function is a wrapper for \code{gbm.step()}. It returns the model with best combination of learning rate, tree depth, and bag fraction based on cross-validated deviance. Models with >=1000 trees are preferred over those with lower deviance.
 #' @param data data frame with first column being response

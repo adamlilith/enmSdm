@@ -2,7 +2,7 @@
 % Please edit documentation in R/geoThin.r
 \name{geoThin}
 \alias{geoThin}
-\title{Thin geographic points such that none are within a minimum distance of any other}
+\title{Thin geographic points (mostly) deterministically}
 \usage{
 geoThin(x, minDist, longLat = NULL, distFunct = NULL, verbose = FALSE,
   na.rm = TRUE, ...)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/sampleRastStrat.r
 \name{sampleRastStrat}
 \alias{sampleRastStrat}
-\title{Sample random points from a raster in manner stratified by raster values with/without replacement.}
+\title{Sample random points in a stratfied manner from a raster with/out replacement}
 \usage{
 sampleRastStrat(x, n, adjArea = TRUE, replace = TRUE)
 }

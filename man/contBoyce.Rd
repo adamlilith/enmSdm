@@ -2,7 +2,7 @@
 % Please edit documentation in R/contBoyce.r
 \name{contBoyce}
 \alias{contBoyce}
-\title{The Continuous Boyce Index (CBI) with optional weighting.}
+\title{Calculate the Continuous Boyce Index (CBI) with weighting}
 \usage{
 contBoyce(pres, bg, numBins = 101, binWidth = 0.1, presWeight = rep(1,
   length(pres)), bgWeight = rep(1, length(bg)), autoWindow = TRUE,

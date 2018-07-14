@@ -2,7 +2,7 @@
 % Please edit documentation in R/predictLars.r
 \name{predictLars}
 \alias{predictLars}
-\title{Predict Least Angle Regression (LARS) model trained using cross-validation including higher-order terms}
+\title{Predict using Least Angle Regression (LARS) model}
 \usage{
 predictLars(object, newdata, type = c("link", "response"), preds = NULL,
   failOnMissing = FALSE, ...)

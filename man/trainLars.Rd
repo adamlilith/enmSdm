@@ -2,7 +2,7 @@
 % Please edit documentation in R/trainLars.r
 \name{trainLars}
 \alias{trainLars}
-\title{Model construction for Least Angle Regression (LARS) using cross-validation including higher-order terms}
+\title{Model construction for Least Angle Regression (LARS) model}
 \usage{
 trainLars(data, resp = 1, preds = 2:ncol(data), alphas = c(0.01, seq(0.1,
   1, by = 0.1)), scale = TRUE, quadratic = TRUE, cubic = TRUE,

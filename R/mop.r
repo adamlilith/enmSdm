@@ -1,4 +1,4 @@
-#' Identify sites in two sets based on mobility-oriented parity (MOP).
+#' Identify similar points in two sets using mobility-oriented parity (MOP)
 #'
 #' This function takes two data frames or matrices that represent the environment of sites measured in univariate or multivariate space and returns the \emph{x}-th percentile of sites in each set that are closest to each other in Euclidean space. Note that in many cases it is advisable to first transform the raw environmental values using, for example, PCA.  MOP was first presented formally in Owens, H.L., Campbell, L.P., Dornak, L.L., Saupe, E.E., Barve, N., Soberón, Ingenloff, K., Lira-Noriega, A., Hensz, C., Myers, C.E., and Peterson, A.T.  2013.  Constraints on interpretation of ecological niche models by limited environmental ranges on calibration area.  \emph{Ecological Modeling} 263:10-18.
 #' @param set1 Data frame or matrix one or more columns wide.

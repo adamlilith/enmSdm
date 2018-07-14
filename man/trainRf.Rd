@@ -2,7 +2,7 @@
 % Please edit documentation in R/trainRf.r
 \name{trainRf}
 \alias{trainRf}
-\title{Train a random forest model.}
+\title{Calibrate a random forest model}
 \usage{
 trainRf(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
   family = "binomial", w = TRUE, verbose = FALSE, ...)

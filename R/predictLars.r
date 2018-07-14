@@ -1,4 +1,4 @@
-#' Predict Least Angle Regression (LARS) model trained using cross-validation including higher-order terms
+#' Predict using Least Angle Regression (LARS) model
 #'
 #' This function makes calculates predictions from a \code{grpregOverlap} object constructed using the \code{\link{trainLars}} function..
 #' @param object Object of classes \code{larsModel} and \code{cv.grpregOverlapMulti}.

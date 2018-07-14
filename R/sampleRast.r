@@ -1,4 +1,4 @@
-#' Sample random points from a raster with/out replacement.
+#' Sample random points from a raster with/out replacement
 #'
 #' This function returns coordinates randomly located on a raster where cells can be sampled more than once if desired (sampled with replacement) and where the probability of selection is proportinate to the cell value (plus maybe cell area--both if desired).
 #' @param x Raster* object.

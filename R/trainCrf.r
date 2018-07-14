@@ -1,4 +1,4 @@
-#' Train a conditional random forest model.
+#' Calibrate a conditional random forest model.
 #'
 #' This function trains a  conditional random forest model. It is nearly identical to the \code{\link[party]{cforest }} function in the \pkg{party} package but is included for constistancy with \code{\link{trainGlm}}, \code{\link{trainGam}}, and similar functions.
 #' @param data Data frame.

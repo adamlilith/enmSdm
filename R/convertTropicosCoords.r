@@ -1,4 +1,4 @@
-#' Convert coordinates from TROPICOS records to decimal degrees.
+#' Convert coordinates from TROPICOS records to decimal degrees
 #'
 #' The TROPICOS (http://www.tropicos.org/) plant specimen database of the Missouri Botanical Garden returns records in degrees-minutes-seconds format with symbols for degrees, minutes, second, and hemisphere.  This function converts this format to signed decimal degrees format.  By default, values surrounded by square brackets (\code{[]}) are returned as \code{NA} because they are geolocated to the center of a political unit (usually county or equivalent).
 #' @param long Character list, longitudes in TROPICOS format.
@@ -23,8 +23,8 @@ convertTropicosCoords <- function(
 	# convert each coordinate set
 	for (i in 1:nrow(out)) {
 
-		thisLong <- out$tropicosLong[i]
-		thisLat <- out$tropicosLat[i]
+		thisLong <- as.character(out$tropicosLong[i])
+		thisLat <- as.character(out$tropicosLat[i])
 
 		# if NA
 		if (is.na(thisLong) | is.na(thisLat)) {
@@ -56,17 +56,14 @@ convertTropicosCoords <- function(
 
 			}
 
-			thisLong <- strsplit(thisLong, split='°')[[1]]
-			thisLat <- strsplit(thisLat, split='°')[[1]]
-
-			thisLong <- unlist(strsplit(thisLong, split='\''))
-			thisLat <- unlist(strsplit(thisLat, split='\''))
-
-			thisLong <- unlist(strsplit(thisLong, split='\"'))
-			thisLat <- unlist(strsplit(thisLat, split='\"'))
-
-			thisLong <- dmsToDecimal(as.numeric(thisLong[1]), as.numeric(thisLong[2]), as.numeric(thisLong[3]), thisLong[5])
-			thisLat <- dmsToDecimal(as.numeric(thisLat[1]), as.numeric(thisLat[2]), as.numeric(thisLat[3]), thisLat[5])
+			thisLongDms <- c(substr(thisLong, 1, 3), substr(thisLong, 5, 6), substr(thisLong, 8, 9))
+			thisLatDms <- c(substr(thisLat, 1, 2), substr(thisLat, 4, 5), substr(thisLat, 7, 8))
+			
+			hemisLong <- substr(thisLong, nchar(thisLong), nchar(thisLong))
+			hemisLat <- substr(thisLat, nchar(thisLat), nchar(thisLat))
+			
+			thisLong <- dmsToDecimal(dd=as.numeric(thisLongDms[1]), mm=as.numeric(thisLongDms[2]), ss=as.numeric(thisLongDms[3]), hemis=hemisLong)
+			thisLat <- dmsToDecimal(dd=as.numeric(thisLatDms[1]), mm=as.numeric(thisLatDms[2]), ss=as.numeric(thisLatDms[3]), hemis=hemisLat)
 
 			out$longitude[i] <- thisLong
 			out$latitude[i] <- thisLat
@@ -75,6 +72,15 @@ convertTropicosCoords <- function(
 
 	}
 
+	# mask approximate coordinates
+	if (!returnApprox && any(out$approximate)) {
+
+		nas <- cbind(NA, NA)
+		nas <- nas[rep(1, sum(out$approximate, na.rm=TRUE)), ]
+		out[out$approximate & !is.na(out$approximate), c('longitude', 'latitude')] <- nas
+	
+	}
+	
 	out
 
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/geoFold.r
 \name{geoFold}
 \alias{geoFold}
-\title{Assigns geographically-divided k-folds}
+\title{Assign geographically-distinct k-folds}
 \usage{
 geoFold(x, k, minIn = NULL, minOut = NULL, longLat = NULL,
   distFunct = NULL, swaps = NULL, ...)

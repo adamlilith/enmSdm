@@ -2,7 +2,7 @@
 % Please edit documentation in R/convertTropicosCoords.r
 \name{convertTropicosCoords}
 \alias{convertTropicosCoords}
-\title{Convert coordinates from TROPICOS records to decimal degrees.}
+\title{Convert coordinates from TROPICOS records to decimal degrees}
 \usage{
 convertTropicosCoords(long, lat, returnApprox = FALSE)
 }
