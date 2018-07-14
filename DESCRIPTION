@@ -1,8 +1,8 @@
 Package: enmSdm
 Type: Package
 Title: Tools for modeling species niches and distributions
-Version: 0.3.1.0
-Date: 2018-07-06
+Version: 0.3.2.0
+Date: 2018-07-13
 Author: Adam B. Smith <adam@earthSkySea.org>
 Maintainer: Adam B. Smith <adam@earthSkySea.org>
 Description: This package contains tools for modeling the distributions
@@ -11,13 +11,15 @@ Description: This package contains tools for modeling the distributions
     calibrate models using AICc, cross-validated deviance, or other
     metrics (depending on the algorithm).
 Depends:
-	omnibus
+	dismo,
+	geosphere,
+	omnibus,
+	raster,
+	sp
 Imports:
 	boot,
 	brglm,
 	cluster,
-	dismo,
-	geosphere,
 	grpreg,
 	grpregOverlap,
 	maxnet,
@@ -25,11 +27,9 @@ Imports:
 	MuMIn,
 	party,
 	randomForest,
-	raster,
 	rgdal,
 	rgeos,
 	rJava,
-	sp,
 	scales,
 	splines,
 	stats

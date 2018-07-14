@@ -2,7 +2,7 @@
 % Please edit documentation in R/mop.r
 \name{mop}
 \alias{mop}
-\title{Identify sites in two sets based on mobility-oriented parity (MOP).}
+\title{Identify similar points in two sets using mobility-oriented parity (MOP)}
 \usage{
 mop(set1, set2, p, index = FALSE, cores = 1, na.rm = FALSE)
 }

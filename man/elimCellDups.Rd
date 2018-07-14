@@ -2,7 +2,7 @@
 % Please edit documentation in R/elimCellDups.r
 \name{elimCellDups}
 \alias{elimCellDups}
-\title{Thin spatial points so that no more than one point falls within each cell of a reference raster}
+\title{Thin spatial points so that no more than one point falls within each cell of a raster}
 \usage{
 elimCellDups(x, r, longLat = NULL, priority = NULL)
 }

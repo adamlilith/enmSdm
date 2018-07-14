@@ -1,4 +1,4 @@
-#' Thin spatial points so that no more than one point falls within each cell of a reference raster
+#' Thin spatial points so that no more than one point falls within each cell of a raster
 #'
 #' This function thins spatial points such that no more than one point falls within each cell of a reference raster. if more than one point falls in a cell the first point in the input data is retained unless the user specifies a priority for keeping points.
 #' @param x Data frame, matrix, or SpatialPoints* object.

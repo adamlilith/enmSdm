@@ -2,7 +2,7 @@
 % Please edit documentation in R/aucWeighted.r
 \name{aucWeighted}
 \alias{aucWeighted}
-\title{Calculate AUC with optional weighting}
+\title{Calculate weighted AUC}
 \usage{
 aucWeighted(pres, bg, presWeight = rep(1, length(pres)), bgWeight = rep(1,
   length(bg)), na.rm = FALSE)
@@ -44,5 +44,5 @@ bgWeight <- sqrt(bg)
 aucWeighted(pres, bg, presWeight=presWeight, bgWeight=bgWeight)
 }
 \seealso{
-\code{\link{Fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evalulate}}
+\code{\link{Fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}
 }

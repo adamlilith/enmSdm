@@ -1,4 +1,4 @@
-#' Add columns to a data matrix to represent polynomial and interaction terms.
+#' Add columns to a data matrix to represent polynomial and interaction terms
 #'
 #' This function adds columns to a data matrix representing quadratic, cubic, 2-way-interaction, and linear:quadratic interactions. It is especially useful for preparing a data matrix for \code{\link{trainLars}} or \code{\link{predictLars}}.
 #' @param data Data frame.

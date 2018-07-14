@@ -1,4 +1,4 @@
-#' Model construction and model selection for a natural splines model.
+#' Calibrate a natural splines model
 #'
 #' This function constructs a natural-spline model piece-by-piece by first calculating AICc for all models with univariate and bivariate (interaction) terms. It then creates a "full" model with the highest-ranked uni/bivariate terms then implements an all-subsets model selection routine.
 #' @param data Data frame.  Must contain fields with same names as in \code{preds} object.

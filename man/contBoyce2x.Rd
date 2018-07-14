@@ -2,7 +2,7 @@
 % Please edit documentation in R/contBoyce2x.r
 \name{contBoyce2x}
 \alias{contBoyce2x}
-\title{The Continuous Boyce Index (CBI) with optional weighting (2X-coverage version).}
+\title{Calculate the Continuous Boyce Index (CBI) with weighting (2X-coverage version)}
 \usage{
 contBoyce2x(pres, bg, numClasses = 10, presWeight = rep(1, length(pres)),
   bgWeight = rep(1, length(bg)), upweightTails = TRUE, na.rm = FALSE,

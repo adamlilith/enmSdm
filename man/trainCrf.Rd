@@ -2,7 +2,7 @@
 % Please edit documentation in R/trainCrf.r
 \name{trainCrf}
 \alias{trainCrf}
-\title{Train a conditional random forest model.}
+\title{Calibrate a conditional random forest model.}
 \usage{
 trainCrf(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
   family = "binomial", w = ifelse(family == "binomial", TRUE, FALSE), ...)

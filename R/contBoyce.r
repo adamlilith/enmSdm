@@ -1,4 +1,4 @@
-#' The Continuous Boyce Index (CBI) with optional weighting.
+#' Calculate the Continuous Boyce Index (CBI) with weighting
 #'
 #' This function calculates the Continuous Boyce Index (CBI), a measure of model accuracy for presence-only test data.
 #' @param pres Numeric list. Predicted values at test presences

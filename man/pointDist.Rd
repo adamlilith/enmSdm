@@ -2,7 +2,7 @@
 % Please edit documentation in R/pointDist.r
 \name{pointDist}
 \alias{pointDist}
-\title{Calculate distance matrix between geographic points.}
+\title{Calculate distance matrix between geographic points}
 \usage{
 pointDist(x, y = NULL, distFunct = NULL, longLat = NULL, ...)
 }

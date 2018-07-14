@@ -2,7 +2,7 @@
 % Please edit documentation in R/predictMaxEnt.r
 \name{predictMaxEnt}
 \alias{predictMaxEnt}
-\title{Predict a MaxEnt model object (with optional feature-level permutation).}
+\title{Predict a MaxEnt model object (with optional feature-level permutation)}
 \usage{
 predictMaxEnt(x, data, type = "cloglog", perm = NULL, permLinear = NULL,
   permQuad = NULL, permHinge = NULL, permThresh = NULL, permProd = NULL,

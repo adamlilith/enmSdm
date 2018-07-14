@@ -2,7 +2,7 @@
 % Please edit documentation in R/trainGlm.r
 \name{trainGlm}
 \alias{trainGlm}
-\title{Model construction and model selection for generalized linear models (GLMs)}
+\title{Calibrate a generalized linear model (GLM)}
 \usage{
 trainGlm(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
   family = "binomial", use = "brglm", tooBig = 1e+07, construct = TRUE,

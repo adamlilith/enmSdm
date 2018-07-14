@@ -1,4 +1,4 @@
-#' Calculate the Fpb measure of model accuracy
+#' Calculate the Fpb measure of model accuracy across multiple thresholds
 #'
 #' This function calculates Li and Guo's Fpb measure of model accuracy for test presences and randomly located background sites.
 #' @param tr Numeric value or numeric vector within the range [0, 1]. Threshold value(s) at which to calculate Fpb.

@@ -1,4 +1,4 @@
-#' The Continuous Boyce Index (CBI) with optional weighting (2X-coverage version).
+#' Calculate the Continuous Boyce Index (CBI) with weighting (2X-coverage version)
 #'
 #' This function calculates the Continuous Boyce Index (CBI), a measure of model accuracy for presence-only test data. Overlapping bins are placed such that any given point (prediction) along [0, 1] is covered by at most 2 bins. See the function \code{\link[enmSdm]{contBoyce}} for a version that allows coverage by 2 or more bins.
 #' @param pres Numeric list. Predicted values at test presences

@@ -1,4 +1,4 @@
-#' Sample random points from a raster in manner stratified by raster values with/without replacement.
+#' Sample random points in a stratfied manner from a raster with/out replacement
 #'
 #' This function is a robust version of \code{sampleStratified()} in the \code{raster} package where sampling can be performed with replacement in each stratum. Each unique value in a raster is identified as a stratum. Each stratum is sampled a given number of times.
 #' @param x Raster* object.

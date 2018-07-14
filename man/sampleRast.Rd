@@ -2,7 +2,7 @@
 % Please edit documentation in R/sampleRast.r
 \name{sampleRast}
 \alias{sampleRast}
-\title{Sample random points from a raster with/out replacement.}
+\title{Sample random points from a raster with/out replacement}
 \usage{
 sampleRast(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE)
 }

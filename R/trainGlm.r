@@ -1,4 +1,4 @@
-#' Model construction and model selection for generalized linear models (GLMs)
+#' Calibrate a generalized linear model (GLM)
 #'
 #' This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc.
 #' @param data Data frame.  Must contain fields with same names as in \code{preds} object.

@@ -1,4 +1,4 @@
-#' Train a random forest model.
+#' Calibrate a random forest model
 #'
 #' This function trains a random forest model. It first finds the optimal value for \code{mtry} (number of variables sampled as candidates at each split). It then calls the function  \code{\link[randomForest]{randomForest}} from the \pkg{randomForest} package.
 #' @param data Data frame.

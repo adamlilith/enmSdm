@@ -2,7 +2,7 @@
 % Please edit documentation in R/makeLarsData.r
 \name{makeLarsData}
 \alias{makeLarsData}
-\title{Add columns to a data matrix to represent polynomial and interaction terms.}
+\title{Add columns to a data matrix to represent polynomial and interaction terms}
 \usage{
 makeLarsData(data, resp, preds, scale = TRUE, quadratic = TRUE,
   cubic = TRUE, interaction = TRUE, interQuad = TRUE, na.rm = FALSE)

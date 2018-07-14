@@ -1,4 +1,4 @@
-#' Thins a geographic points such that none are within a minimum distance of their nearest neighbor
+#' Thin geographic points stochastically
 #'
 #' This function thins a set of geographic points so of the remainder, none are closer than a given distance. The function is nearly the same as \code{thin.algorithm()} in the \code{spThin} package, except that it accepts a data frame, matrix, SpatialPoints, or SpatialPointsDataFrame as a main argument and the user can specify the distance function to be used.  Its key advantage over \code{thin.algorithm()} is that 1) it returns the points plus any associated data, whereas that function only returns points; and 2) it is faster, especially for large data sets.
 #' @param x Data frame, matrix, or SpatialPoints* object. See \code{Details} for further information on the coordinate reference system.
