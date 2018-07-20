@@ -11,13 +11,13 @@ coordPrecision(x, distFunct = NULL, ...)
 
 \item{distFunct}{Either a function or \code{NULL}. If \code{NULL} then \code{\link[geosphere]{distVincentyEllipsoid}} is used to calculate distances. Other "dist" functions (e.g., \code{\link[geosphere]{distGeo}}) can be used.  Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.}
 
-\item{...}{Arguments to pass to \code{distVincentyEllipsoid}. Note that if \xode{x} is a matrix or data frame a coordinate reference system may be passed using \code{crs = <proj4 string code} or \code{crs = <object of class CRS (see sp package)>}. Otherwise WGS84 is assumed.}
+\item{...}{Arguments to pass to \code{distVincentyEllipsoid}. Note that if \code{x} is a matrix or data frame a coordinate reference system may be passed using \code{crs = <proj4 string code} or \code{crs = <object of class CRS (see sp package)>}. Otherwise WGS84 is assumed.}
 }
 \value{
 Numeric values (by default in units of meters).
 }
 \description{
-This function calcualates the maximum precision of geographic coordinates in decimal-degrees format. Coordinate precision is the maximum distance between any point defined by increasing/decreasing the value of each longitude/latitude pair by one more digit past the decimal place then increasing/decreasing this value by 5. For example, if the longitude is 82.3 and latitude 45.75 then the precision is the distance between the point pairs (82.25, 45.745) and (82.35, 45.755).
+This function calculates the maximum precision of geographic coordinates in decimal-degrees format. Coordinate precision is the maximum distance between any point defined by increasing/decreasing the value of each longitude/latitude pair by one more digit past the decimal place then increasing/decreasing this value by 5. For example, if the longitude is 82.3 and latitude 45.75 then the precision is the distance between the point pairs (82.25, 45.745) and (82.35, 45.755).
 }
 \examples{
 # coarse-precision cases
