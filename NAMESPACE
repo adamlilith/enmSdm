@@ -5,7 +5,7 @@ importFrom('stats', 'AIC', 'as.dist', 'as.formula', 'coef',
              'runif', 'sd', 'terms')
 importFrom('utils', 'flush.console', 'setTxtProgressBar',
 	'txtProgressBar', 'write.csv')
-export(Fpb)
+
 export(aucWeighted)
 export(compareNiches)
 export(compareResponse)
@@ -15,6 +15,7 @@ export(convertTropicosCoords)
 export(coordPrecision)
 export(dmsToDecimal)
 export(elimCellDups)
+export(Fpb)
 export(geoFold)
 export(geoThin)
 export(geoThinApprox)
