@@ -1,4 +1,4 @@
-#' Calibrate a conditional random forest model.
+#' Calibrate a conditional random forest model
 #'
 #' This function trains a  conditional random forest model. It is nearly identical to the \code{\link[party]{cforest }} function in the \pkg{party} package but is included for constistancy with \code{\link{trainGlm}}, \code{\link{trainGam}}, and similar functions.
 #' @param data Data frame.
@@ -42,9 +42,6 @@ trainCrf <- function(
 	if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
 	if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
 
-	# get just desired columns
-	data <- data[ , c(resp, preds)]
-
 	# model weights
 	if (length(w) == 1 && class(w) == 'logical') {
 		w <- if (w & family == 'binomial') {
@@ -56,8 +53,17 @@ trainCrf <- function(
 		w <- data[ , w]
 	}
 
+	# get just desired columns
+	data <- data[ , c(resp, preds)]
+
 	# binomial response
-	if (family == 'binomial') data[ , resp] <- factor(data[ , resp], levels=0:1)
+	if (family == 'binomial') {
+		data[1, resp] <- if (data[1, resp] == 0) {
+			factor(data[ , resp], levels=0:1)
+		} else if (data[1, resp] == 1) {
+			factor(data[ , resp], levels=1:0)
+		}
+	}
 
 	# formula
 	form <- as.formula(paste(resp, '~ .'))

@@ -226,6 +226,8 @@ trainMaxEnt <- function(
 		tuning$relLike <- exp(-0.5 * tuning$deltaAICc)
 		tuning$aicWeight <- tuning$relLike / sum(tuning$relLike)
 
+		rownames(tuning) <- 1:nrow(tuning)
+	
 	}
 
 	if (verbose) {

@@ -1,8 +1,8 @@
 Package: enmSdm
 Type: Package
 Title: Tools for modeling species niches and distributions
-Version: 0.3.2.1
-Date: 2018-07-20
+Version: 0.3.2.2
+Date: 2018-08-03
 Author: Adam B. Smith <adam@earthSkySea.org>
 Maintainer: Adam B. Smith <adam@earthSkySea.org>
 Description: This package contains tools for modeling the distributions
