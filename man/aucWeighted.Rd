@@ -4,8 +4,8 @@
 \alias{aucWeighted}
 \title{Calculate weighted AUC}
 \usage{
-aucWeighted(pres, bg, presWeight = rep(1, length(pres)), bgWeight = rep(1,
-  length(bg)), na.rm = FALSE)
+aucWeighted(pres, bg, presWeight = rep(1, length(pres)),
+  bgWeight = rep(1, length(bg)), na.rm = FALSE)
 }
 \arguments{
 \item{pres}{Predictions at presence sites.}

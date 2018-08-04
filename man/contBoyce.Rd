@@ -4,9 +4,10 @@
 \alias{contBoyce}
 \title{Calculate the Continuous Boyce Index (CBI) with weighting}
 \usage{
-contBoyce(pres, bg, numBins = 101, binWidth = 0.1, presWeight = rep(1,
-  length(pres)), bgWeight = rep(1, length(bg)), autoWindow = TRUE,
-  method = "spearman", dropZeros = TRUE, graph = FALSE, na.rm = FALSE)
+contBoyce(pres, bg, numBins = 101, binWidth = 0.1,
+  presWeight = rep(1, length(pres)), bgWeight = rep(1, length(bg)),
+  autoWindow = TRUE, method = "spearman", dropZeros = TRUE,
+  graph = FALSE, na.rm = FALSE)
 }
 \arguments{
 \item{pres}{Numeric list. Predicted values at test presences}

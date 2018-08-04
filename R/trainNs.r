@@ -109,7 +109,8 @@ trainNs <- function(
 
 			thisThisForm <- paste0(form, ' + ', term)
 
-			thisAic <- AIC(stats::glm(stats::as.formula(thisThisForm), family=family, data=data, weights=w, ...))
+			thisModel <- stats::glm(stats::as.formula(thisThisForm), family=family, data=data, weights=w, method='brglmFit', ...)
+			thisAic <- AIC(thisModel)
 
 			# remember
 			tuning <- if (exists('tuning')) {
@@ -138,7 +139,7 @@ trainNs <- function(
 		# for each set of presences > min num required, add a term
 		if (floor(sum(data[ , resp]) / presPerTermInitial ) - 1 > 1 & initialTerms > 1) {
 
-			termsToAdd <- 2:min(initialTerms, c(floor(sum(data[ , resp]) / presPerTermInitial ) - 1, nrow(tuning) - 1))
+			termsToAdd <- 2:max(2, min(initialTerms, c(floor(sum(data[ , resp]) / presPerTermInitial ) - 1, nrow(tuning) - 1)))
 
 			form <- paste0(form, ' + ', paste0(tuning$term[termsToAdd], collapse=' + '))
 
@@ -168,13 +169,13 @@ trainNs <- function(
 	###########################################################################
 
 	# get GAM model... using automated scale selection with weights so influence of absences equals influence of presences... using tryCatch because sometimes for variables with too little variation the default df of the basis is too high, in which case it is reduced and attempted again (for univariate and bivariate models only)
-	model <- stats::glm(stats::as.formula(form), family=family, data=data, weights=w, na.action='na.fail', ...)
+	model <- stats::glm(stats::as.formula(form), family=family, data=data, weights=w, na.action='na.fail', method='brglmFit', ...)
 
 	if (verbose) {
 
 		omnibus::say('Starting full model:')
 		print(summary(model))
-		flush.console()
+		say('')
 
 	}
 

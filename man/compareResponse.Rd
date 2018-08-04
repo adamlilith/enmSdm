@@ -4,9 +4,9 @@
 \alias{compareResponse}
 \title{Compare two response curves along one or more predictors}
 \usage{
-compareResponse(pred1, pred2, data, predictor = names(data), adjust = FALSE,
-  gap = Inf, smooth = FALSE, smoothN = 1000, smoothRange = c(0, 1),
-  graph = FALSE, ...)
+compareResponse(pred1, pred2, data, predictor = names(data),
+  adjust = FALSE, gap = Inf, smooth = FALSE, smoothN = 1000,
+  smoothRange = c(0, 1), graph = FALSE, ...)
 }
 \arguments{
 \item{pred1}{Numeric list. Predictions from first model along \code{data} (one value per row in \code{data}).}

@@ -4,8 +4,8 @@
 \alias{Fpb}
 \title{Calculate the Fpb measure of model accuracy across multiple thresholds}
 \usage{
-Fpb(pres, bg, tr = seq(0, 1, by = 0.1), presWeight = rep(1, length(pres)),
-  bgWeight = rep(1, length(bg)), na.rm = FALSE)
+Fpb(pres, bg, tr = seq(0, 1, by = 0.1), presWeight = rep(1,
+  length(pres)), bgWeight = rep(1, length(bg)), na.rm = FALSE)
 }
 \arguments{
 \item{pres}{Numeric vector. Predictions at presences.}

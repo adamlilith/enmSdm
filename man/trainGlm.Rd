@@ -4,11 +4,12 @@
 \alias{trainGlm}
 \title{Calibrate a generalized linear model (GLM)}
 \usage{
-trainGlm(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
-  family = "binomial", use = "brglm", tooBig = 1e+07, construct = TRUE,
-  select = TRUE, quadratic = TRUE, cubic = TRUE, interaction = TRUE,
+trainGlm(data, resp = names(data)[1],
+  preds = names(data)[2:ncol(data)], family = "binomial",
+  tooBig = 1e+07, construct = TRUE, select = TRUE,
+  quadratic = TRUE, cubic = TRUE, interaction = TRUE,
   interQuad = TRUE, presPerTermInitial = 10, presPerTermFinal = 20,
-  initialTerms = 31, w = TRUE, out = "model", verbose = FALSE, ...)
+  initialTerms = 10, w = TRUE, out = "model", verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{Data frame.  Must contain fields with same names as in \code{preds} object.}
@@ -19,13 +20,11 @@ trainGlm(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
 
 \item{family}{Name of family for data error structure (see \code{?family}). Default is to use the 'binomial' family.}
 
-\item{use}{Character. Indicates the type of fitting function used to fit the GLM. \code{glm} uses the \code{glm()} function (actually the \code{glm.fit()} function). \code{brglm} uses the \code{brglm.fit()} function which helps in cases of complete seperation.}
-
 \item{tooBig}{Numeric. Used to catch errors when fitting a \code{brglm}. In some cases fitted coefficents are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.}
 
-\item{construct}{Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If FALSE then the "full" model consists of all terms allowed by \code{quadratic}, \code{cubic}, \code{interaction}, and \code{interQuad}.}
+\item{construct}{Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic}, \code{cubic}, \code{interaction}, and \code{interQuad}.}
 
-\item{select}{Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed **after** model construction (if any).}
+\item{select}{Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).}
 
 \item{quadratic}{Logical. Used only if \code{construct} is TRUE. If TRUE then include quadratic terms in model construction stage for non-factor predictors.}
 
@@ -39,11 +38,11 @@ trainGlm(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
 
 \item{presPerTermFinal}{Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is TRUE.}
 
-\item{initialTerms}{Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 31, so if this number is >31 and \code{select} is \code{TRUE} then it is forced to 31 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.}
+\item{initialTerms}{Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 30, so if this number is >30 and \code{select} is \code{TRUE} then it is forced to 30 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.}
 
 \item{w}{Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign equal total weights to presences and contrast sites (\code{TRUE}).}
 
-\item{out}{Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm} or \code{glm} (depending on the value of \code{use}). If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
+\item{out}{Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
 
 \item{verbose}{Logical. If TRUE then display intermediate results on the display device.}
 

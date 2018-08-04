@@ -4,11 +4,12 @@
 \alias{trainBrt}
 \title{Calibrate a boosted regresion tree (generalied boosting machine) model}
 \usage{
-trainBrt(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
-  family = "bernoulli", learningRate = c(1e-04, 0.001, 0.01),
-  treeComplexity = c(9, 3, 1), bagFraction = 0.6, maxTrees = 4000,
-  tries = 5, tryBy = c("learningRate", "treeComplexity", "maxTrees",
-  "stepSize"), w = TRUE, out = "model", verbose = FALSE, ...)
+trainBrt(data, resp = names(data)[1],
+  preds = names(data)[2:ncol(data)], family = "bernoulli",
+  learningRate = c(1e-04, 0.001, 0.01), treeComplexity = c(9, 3, 1),
+  bagFraction = 0.6, maxTrees = 4000, tries = 5,
+  tryBy = c("learningRate", "treeComplexity", "maxTrees", "stepSize"),
+  w = TRUE, out = "model", verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{data frame with first column being response}

@@ -242,7 +242,7 @@ trainBrt <- function(
 		# if did not remember best model
 		if (tuning$treeComplexity[1] != bestTc | tuning$learningRate[1] != bestLr | tuning$bagFraction[1] != bestBF | tuning$maxTrees[1] != bestMaxTrees | tuning$stepSize[1] != bestStepSize) {
 
-			omnibus::say('Training best model...')
+			if (verbose) omnibus::say('Training best model...')
 
 			# train model... using tryCatch because model may not converge
 			model <- dismo::gbm.step(

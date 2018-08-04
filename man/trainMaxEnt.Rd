@@ -4,11 +4,11 @@
 \alias{trainMaxEnt}
 \title{Calibrate a Maxent (ver 3.3.3- or "maxent") model using AICc}
 \usage{
-trainMaxEnt(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
-  regMult = c(seq(0.5, 5, by = 0.5), 6:10, 12.5, 15, 17.5, 20),
-  classes = "default", testClasses = TRUE, forceLinear = TRUE,
-  jackknife = TRUE, args = "", out = "model", anyway = TRUE,
-  scratchDir = NULL, verbose = FALSE, ...)
+trainMaxEnt(data, resp = names(data)[1],
+  preds = names(data)[2:ncol(data)], regMult = c(seq(0.5, 5, by = 0.5),
+  6:10, 12.5, 15, 17.5, 20), classes = "default", testClasses = TRUE,
+  forceLinear = TRUE, jackknife = TRUE, args = "", out = "model",
+  anyway = TRUE, scratchDir = NULL, verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{Data frame or matrix. Environmental predictors (and no other fields) for presences and background sites.}
