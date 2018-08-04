@@ -5,19 +5,18 @@
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param family Name of family for data error structure (see \code{?family}). Default is to use the 'binomial' family.
-#' @param use Character. Indicates the type of fitting function used to fit the GLM. \code{glm} uses the \code{glm()} function (actually the \code{glm.fit()} function). \code{brglm} uses the \code{brglm.fit()} function which helps in cases of complete seperation.
 #' @param tooBig Numeric. Used to catch errors when fitting a \code{brglm}. In some cases fitted coefficents are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.
-#' @param construct Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If FALSE then the "full" model consists of all terms allowed by \code{quadratic}, \code{cubic}, \code{interaction}, and \code{interQuad}.
-#' @param select Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed **after** model construction (if any).
+#' @param construct Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic}, \code{cubic}, \code{interaction}, and \code{interQuad}.
+#' @param select Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).
 #' @param quadratic Logical. Used only if \code{construct} is TRUE. If TRUE then include quadratic terms in model construction stage for non-factor predictors.
 #' @param cubic Logical. Used only if \code{construct} is TRUE. If TRUE then include cubic terms in model construction stage for non-factor predictors.
 #' @param interaction Logical. Used only if \code{construct} is TRUE. If TRUE then include 2-way interaction terms (including interactions between factor predictors).
 #' @param interQuad Logical. Used only if \code{construct} is TRUE. If TRUE then include all possible interactions of the form 'x * y^2' unless 'y' is a factor.
 #' @param presPerTermInitial Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is TRUE.
 #' @param presPerTermFinal Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is TRUE.
-#' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 31, so if this number is >31 and \code{select} is \code{TRUE} then it is forced to 31 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.
+#' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 30, so if this number is >30 and \code{select} is \code{TRUE} then it is forced to 30 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.
 #' @param w Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign equal total weights to presences and contrast sites (\code{TRUE}).
-#' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm} or \code{glm} (depending on the value of \code{use}). If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
+#' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
 #' @param verbose Logical. If TRUE then display intermediate results on the display device.
 #' @param ... Arguments to pass to \code{brglm()} or \code{dredge()}.
 #' @return If \code{out = 'model'} this function returns an object of class \code{glm}. If \code{out = 'table'} this function returns a data frame with tuning parameters and AICc for each model tried. If \code{out = c('model', 'table'} then it returns a list object with the \code{glm} object and the data frame.
@@ -48,7 +47,6 @@ trainGlm <- function(
 	resp = names(data)[1],
 	preds = names(data)[2:ncol(data)],
 	family = 'binomial',
-	use = 'brglm',
 	tooBig = 10E6,
 	construct = TRUE,
 	select = TRUE,
@@ -58,7 +56,7 @@ trainGlm <- function(
 	interQuad = TRUE,
 	presPerTermInitial = 10,
 	presPerTermFinal = 20,
-	initialTerms = 31,
+	initialTerms = 10,
 	w = TRUE,
 	out = 'model',
 	verbose = FALSE,
@@ -70,9 +68,9 @@ trainGlm <- function(
 	#############
 
 	# force number of starting terms to 31 or less
-	if (select & initialTerms > 31) {
-		initialTerms <- 31
-		warning('initialTerms must be 31 or less. Forcing to 31.')
+	if (select & initialTerms > 30) {
+		initialTerms <- 30
+		warning('initialTerms must be 30 or fewer. Forcing to 30.')
 	}
 
 	# response and predictors
@@ -112,7 +110,7 @@ trainGlm <- function(
 		for (thisPred in preds) { # for each predictor test single-variable terms
 
 			# train model
-			thisModel <- brglm::brglm(formula=as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=ifelse(use == 'brglm', 'brglm.fit', 'glm.fit'), pl=ifelse(use == 'brglm', TRUE, FALSE))
+			thisModel <- glm(formula=as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method='brglmFit', ...)
 
 			# get AICc
 			thisAic <- AIC(thisModel)
@@ -146,7 +144,7 @@ trainGlm <- function(
 					term <- paste0(thisPred, ' + I(', thisPred, '^2)')
 
 					# train model
-					thisModel <- brglm::brglm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=ifelse(use == 'brglm', 'brglm.fit', 'glm.fit'), pl=ifelse(use == 'brglm', TRUE, FALSE))
+					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
 
 					# get AICc
 					thisAic <- AIC(thisModel)
@@ -179,7 +177,7 @@ trainGlm <- function(
 					term <- paste0(thisPred, ' + I(', thisPred, '^2) + I(', thisPred, '^3)')
 
 					# train model
-					thisModel <- brglm::brglm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=ifelse(use == 'brglm', 'brglm.fit', 'glm.fit'), pl=ifelse(use == 'brglm', TRUE, FALSE))
+					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
 
 					# get AICc
 					thisAic <- AIC(thisModel)
@@ -214,7 +212,7 @@ trainGlm <- function(
 					term <- paste0(thisPred, ' + ', thatPred, ' + ', thisPred, ':', thatPred)
 
 					# train model
-					thisModel <- brglm::brglm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=ifelse(use == 'brglm', 'brglm.fit', 'glm.fit'), pl=ifelse(use == 'brglm', TRUE, FALSE))
+					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
 
 					# get AICc
 					thisAic <- AIC(thisModel)
@@ -252,7 +250,7 @@ trainGlm <- function(
 					if (!is.na(term)) {
 
 						# train model
-						thisModel <- brglm::brglm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=ifelse(use == 'brglm', 'brglm.fit', 'glm.fit'), pl=ifelse(use == 'brglm', TRUE, FALSE))
+						thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
 
 						# get AICc
 						thisAic <- AIC(thisModel)
@@ -364,7 +362,7 @@ trainGlm <- function(
 	##################
 
 	# train (starting) GLM model
-	model <- brglm::brglm(formula=form, family=family, data=data, weights=w, method=ifelse(use == 'brglm', 'brglm.fit', 'glm.fit'), pl=ifelse(use == 'brglm', TRUE, FALSE), na.action=stats::na.fail)
+	model <- glm(formula=form, family=family, data=data, weights=w, na.action=stats::na.fail, method='brglmFit', ...)
 
 	if (verbose) {
 		omnibus::say('Full model:', pre=1);

@@ -58,9 +58,9 @@ trainCrf <- function(
 
 	# binomial response
 	if (family == 'binomial') {
-		data[1, resp] <- if (data[1, resp] == 0) {
+		data[ , resp] <- if (data[1, resp] == 0) {
 			factor(data[ , resp], levels=0:1)
-		} else if (data[1, resp] == 1) {
+		} else if (data[ , resp] == 1) {
 			factor(data[ , resp], levels=1:0)
 		}
 	}
@@ -72,8 +72,7 @@ trainCrf <- function(
 	model <- party::cforest(
 		formula=form,
 		data=data,
-		weights=w,
-		...
+		weights=w
 	)
 
 	model

@@ -4,10 +4,10 @@
 \alias{trainLars}
 \title{Model construction for Least Angle Regression (LARS) model}
 \usage{
-trainLars(data, resp = 1, preds = 2:ncol(data), alphas = c(0.01, seq(0.1,
-  1, by = 0.1)), scale = TRUE, quadratic = TRUE, cubic = TRUE,
-  interaction = TRUE, interQuad = TRUE, na.rm = FALSE, verbose = FALSE,
-  ...)
+trainLars(data, resp = 1, preds = 2:ncol(data), alphas = c(0.01,
+  seq(0.1, 1, by = 0.1)), scale = TRUE, quadratic = TRUE,
+  cubic = TRUE, interaction = TRUE, interQuad = TRUE,
+  na.rm = FALSE, verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{Data frame.}

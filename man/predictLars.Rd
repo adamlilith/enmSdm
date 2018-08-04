@@ -4,8 +4,8 @@
 \alias{predictLars}
 \title{Predict using Least Angle Regression (LARS) model}
 \usage{
-predictLars(object, newdata, type = c("link", "response"), preds = NULL,
-  failOnMissing = FALSE, ...)
+predictLars(object, newdata, type = c("link", "response"),
+  preds = NULL, failOnMissing = FALSE, ...)
 }
 \arguments{
 \item{object}{Object of classes \code{larsModel} and \code{cv.grpregOverlapMulti}.}

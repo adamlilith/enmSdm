@@ -4,9 +4,10 @@
 \alias{contBoyce2x}
 \title{Calculate the Continuous Boyce Index (CBI) with weighting (2X-coverage version)}
 \usage{
-contBoyce2x(pres, bg, numClasses = 10, presWeight = rep(1, length(pres)),
-  bgWeight = rep(1, length(bg)), upweightTails = TRUE, na.rm = FALSE,
-  autoWindow = TRUE, method = "spearman", graph = FALSE)
+contBoyce2x(pres, bg, numClasses = 10, presWeight = rep(1,
+  length(pres)), bgWeight = rep(1, length(bg)), upweightTails = TRUE,
+  na.rm = FALSE, autoWindow = TRUE, method = "spearman",
+  graph = FALSE)
 }
 \arguments{
 \item{pres}{Numeric list. Predicted values at test presences}

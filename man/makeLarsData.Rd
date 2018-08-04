@@ -5,7 +5,8 @@
 \title{Add columns to a data matrix to represent polynomial and interaction terms}
 \usage{
 makeLarsData(data, resp, preds, scale = TRUE, quadratic = TRUE,
-  cubic = TRUE, interaction = TRUE, interQuad = TRUE, na.rm = FALSE)
+  cubic = TRUE, interaction = TRUE, interQuad = TRUE,
+  na.rm = FALSE)
 }
 \arguments{
 \item{data}{Data frame.}

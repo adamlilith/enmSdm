@@ -4,9 +4,9 @@
 \alias{predictMaxEnt}
 \title{Predict a MaxEnt model object (with optional feature-level permutation)}
 \usage{
-predictMaxEnt(x, data, type = "cloglog", perm = NULL, permLinear = NULL,
-  permQuad = NULL, permHinge = NULL, permThresh = NULL, permProd = NULL,
-  permProdRule = NULL, ...)
+predictMaxEnt(x, data, type = "cloglog", perm = NULL,
+  permLinear = NULL, permQuad = NULL, permHinge = NULL,
+  permThresh = NULL, permProd = NULL, permProdRule = NULL, ...)
 }
 \arguments{
 \item{x}{Either a Maxent lambda object or a Maxent model object}
