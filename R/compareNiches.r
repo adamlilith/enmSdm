@@ -1,6 +1,6 @@
 #' Metrics of niche overlap
 #'
-#' This function calculates several metrics of niche overlap based on predictions for two species (or for the same species but different mdels) at the same sites.
+#' This function calculates several metrics of niche overlap based on predictions for two species (or for the same species but different models) at the same sites.
 #' @param x1 Numeric. List of predictions from a model.
 #' @param x2 Numeric. List of predictions from another model.
 #' @param method Character list, indicates type of metric to calculate:

@@ -1,6 +1,6 @@
 #' Calibrate a generalized linear model (GLM)
 #'
-#' This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc.
+#' This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias.
 #' @param data Data frame.  Must contain fields with same names as in \code{preds} object.
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
@@ -395,116 +395,116 @@ trainGlm <- function(
 		coeffOk <- apply(coeffOk, 1, function(y) all(y, na.rm=TRUE))
 		tuning <- subset(tuning, coeffOk, recalc.weights=TRUE, recalc.delta=TRUE)
 
-		# ### remove models that ignore marginality for polynomial terms
-		# ##############################################################
+		### remove models that ignore marginality for polynomial terms
+		##############################################################
 
-		# allModelsDf <- as.data.frame(tuning)
+		allModelsDf <- as.data.frame(tuning)
 
-		# modTerms <- terms(tuning)
-		# modTerms <- sort(modTerms[!(modTerms %in% '(Intercept)')])
+		modTerms <- terms(tuning)
+		modTerms <- sort(modTerms[!(modTerms %in% '(Intercept)')])
 
-		# for (countTerm in seq_along(modTerms)) {
+		for (countTerm in seq_along(modTerms)) {
 
-			# modTerm <- modTerms[countTerm]
+			modTerm <- modTerms[countTerm]
 
-			# # ensure QUADRATIC marginality
-			# if (substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^2)' & !grepl(modTerm, pattern=':')) {
+			# ensure QUADRATIC marginality
+			if (substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^2)' & !grepl(modTerm, pattern=':')) {
 
-				# # find column with linear modTerm that matches this quadratic modTerm
-				# linearTerm <- substr(modTerm, 3, nchar(modTerm) - 3)
+				# find column with linear modTerm that matches this quadratic modTerm
+				linearTerm <- substr(modTerm, 3, nchar(modTerm) - 3)
 
-				# badModel <- which(!is.na(allModelsDf[ , modTerm]) & is.na(allModelsDf[ , linearTerm]))
-				# goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
+				badModel <- which(!is.na(allModelsDf[ , modTerm]) & is.na(allModelsDf[ , linearTerm]))
+				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
 
-				# if (length(goodModel) > 0) {
-					# tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					# allModelsDf <- as.data.frame(tuning)
-				# }
+				if (length(goodModel) > 0) {
+					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
+					allModelsDf <- as.data.frame(tuning)
+				}
 
-			# }
+			}
 
-			# # ensure QUADRATIC with INTERACTION marginality
-			# quadFirst <- (substr(modTerm, 1, 2) == 'I(' & grepl(modTerm, pattern='\\^2)') & grepl(modTerm, pattern=':'))
-			# quadSecond <- (substr(modTerm, 1, 2) != 'I(' & substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^2)' & grepl(modTerm, pattern=':'))
-			# if (quadFirst | quadSecond) {
+			# ensure QUADRATIC with INTERACTION marginality
+			quadFirst <- (substr(modTerm, 1, 2) == 'I(' & grepl(modTerm, pattern='\\^2)') & grepl(modTerm, pattern=':'))
+			quadSecond <- (substr(modTerm, 1, 2) != 'I(' & substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^2)' & grepl(modTerm, pattern=':'))
+			if (quadFirst | quadSecond) {
 
-				# # find column with linear modTerm that matches this quadratic modTerm
-				# linearTerm <- substr(modTerm, regexpr('[(]', modTerm) + 1, regexpr('\\^2)', modTerm) - 1)
-				# secondTerm <- if (quadFirst) {
-					# substr(modTerm, regexpr(':', modTerm) + 1, nchar(modTerm))
-				# } else {
-					# substr(modTerm, 1, regexpr(':', modTerm) - 1)
-				# }
-				# quadTerm <- paste0('I(', linearTerm, '^2)')
-				# iaTerm1 <- paste0(linearTerm, ':', secondTerm)
-				# iaTerm2 <- paste0(secondTerm, ':', linearTerm)
-				# iaTerm <- if (iaTerm1 %in% modTerms) { iaTerm1 } else { iaTerm2 }
+				# find column with linear modTerm that matches this quadratic modTerm
+				linearTerm <- substr(modTerm, regexpr('[(]', modTerm) + 1, regexpr('\\^2)', modTerm) - 1)
+				secondTerm <- if (quadFirst) {
+					substr(modTerm, regexpr(':', modTerm) + 1, nchar(modTerm))
+				} else {
+					substr(modTerm, 1, regexpr(':', modTerm) - 1)
+				}
+				quadTerm <- paste0('I(', linearTerm, '^2)')
+				iaTerm1 <- paste0(linearTerm, ':', secondTerm)
+				iaTerm2 <- paste0(secondTerm, ':', linearTerm)
+				iaTerm <- if (iaTerm1 %in% modTerms) { iaTerm1 } else { iaTerm2 }
 
-				# badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , quadTerm]) | is.na(allModelsDf[ , iaTerm])))
-				# goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
+				badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , quadTerm]) | is.na(allModelsDf[ , iaTerm])))
+				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
 
-				# if (length(goodModel) > 0) {
-					# tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					# allModelsDf <- as.data.frame(tuning)
-				# }
+				if (length(goodModel) > 0) {
+					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
+					allModelsDf <- as.data.frame(tuning)
+				}
 
-			# }
+			}
 
-			# # ensure CUBIC marginality
-			# if (substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^3)' & !grepl(modTerm, pattern=':')) {
+			# ensure CUBIC marginality
+			if (substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^3)' & !grepl(modTerm, pattern=':')) {
 
-				# # find column with linear modTerm that matches this quadratic modTerm
-				# linearTerm <- substr(modTerm, 3, nchar(modTerm) - 3)
-				# quadraticTerm <- paste('I(', linearTerm, '^2)', sep='')
+				# find column with linear modTerm that matches this quadratic modTerm
+				linearTerm <- substr(modTerm, 3, nchar(modTerm) - 3)
+				quadraticTerm <- paste('I(', linearTerm, '^2)', sep='')
 
-				# badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , quadraticTerm])))
-				# goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
+				badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , quadraticTerm])))
+				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
 
-				# if (length(goodModel) > 0) {
-					# tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					# allModelsDf <- as.data.frame(tuning)
-				# }
+				if (length(goodModel) > 0) {
+					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
+					allModelsDf <- as.data.frame(tuning)
+				}
 
-			# }
+			}
 
-			# # ensure CUBIC with INTERACTION marginality
-			# cubicFirst <- (substr(modTerm, 1, 2) == 'I(' & grepl(modTerm, pattern='\\^3)') & grepl(modTerm, pattern=':'))
-			# cubicSecond <- (substr(modTerm, 1, 2) != 'I(' & substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^3)' & grepl(modTerm, pattern=':'))
-			# if (cubicFirst | cubicSecond) {
+			# ensure CUBIC with INTERACTION marginality
+			cubicFirst <- (substr(modTerm, 1, 2) == 'I(' & grepl(modTerm, pattern='\\^3)') & grepl(modTerm, pattern=':'))
+			cubicSecond <- (substr(modTerm, 1, 2) != 'I(' & substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^3)' & grepl(modTerm, pattern=':'))
+			if (cubicFirst | cubicSecond) {
 
-				# # find linear version of this term
-				# linearTerm <- substr(modTerm, regexpr('[(]', modTerm) + 1, regexpr('\\^3)', modTerm) - 1)
-				# secondTerm <- if (cubicFirst) {
-					# substr(modTerm, regexpr(':', modTerm) + 1, nchar(modTerm))
-				# } else {
-					# substr(modTerm, 1, regexpr(':', modTerm) - 1)
-				# }
-				# quadTerm <- paste0('I(', linearTerm, '^2)')
-				# cubicTerm <- paste0('I(', linearTerm, '^3)')
+				# find linear version of this term
+				linearTerm <- substr(modTerm, regexpr('[(]', modTerm) + 1, regexpr('\\^3)', modTerm) - 1)
+				secondTerm <- if (cubicFirst) {
+					substr(modTerm, regexpr(':', modTerm) + 1, nchar(modTerm))
+				} else {
+					substr(modTerm, 1, regexpr(':', modTerm) - 1)
+				}
+				quadTerm <- paste0('I(', linearTerm, '^2)')
+				cubicTerm <- paste0('I(', linearTerm, '^3)')
 
-				# # 2-way interacton term
-				# iaTerm1 <- paste0(linearTerm, ':', secondTerm)
-				# iaTerm2 <- paste0(secondTerm, ':', linearTerm)
-				# iaTerm <- if (iaTerm1 %in% modTerms) { iaTerm1 } else { iaTerm2 }
+				# 2-way interacton term
+				iaTerm1 <- paste0(linearTerm, ':', secondTerm)
+				iaTerm2 <- paste0(secondTerm, ':', linearTerm)
+				iaTerm <- if (iaTerm1 %in% modTerms) { iaTerm1 } else { iaTerm2 }
 
-				# # interaction-quadratic term
-				# quadTermIa1 <- paste0(secondTerm, ':I(', linearTerm, '^2)')
-				# quadTermIa2 <- paste0('I(', linearTerm, '^2):', secondTerm)
-				# quadTermIa <- if (quadTermIa1 %in% modTerms) { quadTermIa1 } else { quadTermIa2 }
+				# interaction-quadratic term
+				quadTermIa1 <- paste0(secondTerm, ':I(', linearTerm, '^2)')
+				quadTermIa2 <- paste0('I(', linearTerm, '^2):', secondTerm)
+				quadTermIa <- if (quadTermIa1 %in% modTerms) { quadTermIa1 } else { quadTermIa2 }
 
-				# badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , secondTerm]) | is.na(allModelsDf[ , quadTerm]) | is.na(allModelsDf[ , cubicTerm]) |  is.na(allModelsDf[ , iaTerm]) |  is.na(allModelsDf[ , quadTermIa])))
-				# goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
+				badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , secondTerm]) | is.na(allModelsDf[ , quadTerm]) | is.na(allModelsDf[ , cubicTerm]) |  is.na(allModelsDf[ , iaTerm]) |  is.na(allModelsDf[ , quadTermIa])))
+				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
 
-				# if (length(goodModel) > 0) {
-					# tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					# allModelsDf <- as.data.frame(tuning)
-				# }
+				if (length(goodModel) > 0) {
+					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
+					allModelsDf <- as.data.frame(tuning)
+				}
 
-			# }
+			}
 
-		# } # next term
+		} # next term
 
-		# if (any(is.na(tuning[ , '(Intercept)']))) tuning <- tuning[-which(is.na(tuning[ , '(Intercept)'])), ]
+		if (any(is.na(tuning[ , '(Intercept)']))) tuning <- tuning[-which(is.na(tuning[ , '(Intercept)'])), ]
 
 		if (verbose) {
 			omnibus::say('')
