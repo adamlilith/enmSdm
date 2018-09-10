@@ -1,3 +1,38 @@
 # enmSdm
+This package is a complement to the popular **dismo** package by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training species distribution models, and evaluating them.
 
-This package is a complement to the popular **dismo** package by Robert Hijmans. Its primary feature is a set of calibratuin functions for commonly-used species distribtion modeling algorithms all named with the prefix "train" like `trainGlm()`, `trainMaxEnt()`, and so on. It also has several functions useful for evaluating models including the `geoFold()` function which defines geographically distinct k-folds, `aucWeighted()`, `contBoyce()`, `Fpb()` for calculating AUC, the Continuous Boyce Index, and Fpb, respectively.  Several functions help in pre-processing data and bias correction including `elimCellDups()` for eliminating duplicate points in raster cells, `geoThin()` and `geoThinApprox()` for geographically thinning points, `longLatRasters()` for making longitude and latitude rasters, `mop()` for calculating mobility-oriented parity (a measure of multivariate distance), and `sampleRast()` and `sampleRastStat()` for sampling rasters with/out replacement and possibly in a stratified manner.  Finally, several function are helpful for evaluating niche overlap, including `compareNiches()`, `compareResponse()`, and `randGeoBySelf().
+## Data preperation ##
+* `geoFold`: Generate geographically distinct k-folds
+* `geoThin` and `geoThinApprox`: Geographically thin points
+
+## Model training ###
+* `trainBrt`: boosted regression trees (BRTs)
+* `trainCrf`: conditional regression trees (CRFs)
+* `trainGam`: generalized additive models (GAMs)
+* `trainGlm`: generalized linear models (GLMs)
+* `trainLars`: least-angle regression models (LARS)
+* `trainMaxEnt` and `trainMaxNet`: Maxent models
+* `trainNs`: splines
+* `trainRf`: random forests (RFs)  
+
+## Model evaluation ##
+* `aucWeighted`: AUC (with/out weights)
+* `contBoyce`: Continuous Boyce Index (with/out weights)
+* `Fpb`: Fpb
+
+## Niche overlap ##
+* `compareNiches`: Niche overlap metrics
+* `compareResponse`: Compare responses to a single variable
+* `randGeoBySelf`: Randomize points while respecting observed spatial autocorrelation structure between points
+* `mop`: Calculate mobility-oriented parity, a measure of multivariate distance
+
+## Geographic utility functions ##
+* `convertTropicosCoords`: Convert coordinates from the TROPICOS database
+* `coordPrecision`: Calculate maximum possible coordinate precision
+* `dmsToDecimal`: Convert degrees-minutes-seconds to decimal
+* `elimCellDups`: Eliminate duplicate points in each cell of a raster
+* `getCRS`: Return a proj4string (coordinate reference system string) using a nikname
+* `longLatRasters`: Generate rasters with values of longitude/latitude for cell values
+* `pointDist`: Geographic distance between set(s) of points
+* `sampleRast` and `sampleRastStrat`: Sample raster with/out replacement and possibly in a stratified manner
+* `xToCoords`: Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object
