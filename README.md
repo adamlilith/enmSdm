@@ -1,5 +1,5 @@
 # enmSdm
-This package is a complement to the popular **dismo** package by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training species distribution models, and evaluating them.
+This package is a complement to the popular **dismo** package by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating *species distribution models*, and comparing ecological niches.
 
 ## Data preperation ##
 * `geoFold`: Generate geographically distinct k-folds
