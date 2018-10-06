@@ -1,6 +1,6 @@
-#' Randomizes the location of geographic points while observing spatial autocorrelation structure
+#' Randomizes the location of geographic points while observing spatial autocorrelation structure between points
 #'
-#' This function randomizes the location of geographic points while retaining (more or less) the same distribution of pairwise distances between points (plus or minus a user-defined percent). The procedure is meant to generalized the "RTR" (rotate/translate/reflect) randomization procedure proposed by Nunes, L.A. and Pearson, R.G.  2017.  A null biogeographical test for assessing ecological niche evolution.  \emph{Journal of Biogeography} 44:1331-1343..
+#' This function randomizes the location of geographic points while retaining (more or less) the same distribution of pairwise distances between points (plus or minus a user-defined percent). The procedure is meant to generalized the "RTR" (rotate/translate/reflect) randomization procedure proposed by Nunes, L.A. and Pearson, R.G.  2017.  A null biogeographical test for assessing ecological niche evolution.  \emph{Journal of Biogeography} 44:1331-1343. The procedure in this function is actually adapted from the randomization procedure presented in Beale, C.M., J.J. Lennon, and A. Gimona.  2008.  Opening the climate envelope reveals no macroscale associations with climate in European birds. \emph{Proceedings of the National Academy of Sciences USA} 105:14908-14912.
 #' @param x Matrix, data frame, SpatialPoints, or SpatialPointsDataFrame object. If this is a matrix or data frame, the first two columns must represent longitude and latitude (in that order). If \code{x} is a matrix or data frame, the coordinates are assumed to be unprojected (WGS84) (a coordinate reference system proj4 string or \code{CRS} object can be passed into the function using \code{...}). If \code{x} is a SpatialPoints or SpatialPointsDataFrame and not in WGS84 or NAD83, then coordinates are projected to WGS84 (with a warning).
 #' @param rast Raster, RasterStack, or RasterBrick used to locate presences randomly. If this is a RasterStack or a RasterBrick then the first layer will be used (i.e., so cells with \code{NA} will not have points located within them).
 #' @param bins Integer > 1, number of overlapping bins across which to calculate distribution of pairwise distances between points. The range covered by bins starts at 0 and and at the largest observed pairwise distance + 0.5 * bin width. Default value is 20.
@@ -21,6 +21,7 @@
 #' par(fig=1, new=FALSE)
 #' points(rand, col='red')
 #' @export
+
 randGeoBySelf <- function(
 	x,
 	rast,

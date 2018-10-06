@@ -16,6 +16,7 @@
 #' @param presPerTermFinal Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is TRUE.
 #' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 30, so if this number is >30 and \code{select} is \code{TRUE} then it is forced to 30 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.
 #' @param w Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign equal total weights to presences and contrast sites (\code{TRUE}).
+#' @param method Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.
 #' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
 #' @param verbose Logical. If TRUE then display intermediate results on the display device.
 #' @param ... Arguments to pass to \code{brglm()} or \code{dredge()}.
@@ -58,6 +59,7 @@ trainGlm <- function(
 	presPerTermFinal = 20,
 	initialTerms = 10,
 	w = TRUE,
+	method = 'glm.fit',
 	out = 'model',
 	verbose = FALSE,
 	...
@@ -110,7 +112,7 @@ trainGlm <- function(
 		for (thisPred in preds) { # for each predictor test single-variable terms
 
 			# train model
-			thisModel <- glm(formula=as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method='brglmFit', ...)
+			thisModel <- glm(formula=as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method, ...)
 
 			# get AICc
 			thisAic <- AIC(thisModel)
@@ -122,8 +124,8 @@ trainGlm <- function(
 			if (all(!is.na(stats::coef(thisModel)))) {
 				if (all(abs(stats::coef(thisModel)) < tooBig)) {
 
-					glmFrame <- if (exists('glmFrame', inherits=FALSE)) {
-						rbind(glmFrame, data.frame(type='linear', term=thisPred, AICc=thisAic, terms=1))
+					tuning <- if (exists('tuning', inherits=FALSE)) {
+						rbind(tuning, data.frame(type='linear', term=thisPred, AICc=thisAic, terms=1))
 					} else {
 						data.frame(type='linear', term=thisPred, AICc=thisAic, terms=1)
 					}
@@ -135,7 +137,7 @@ trainGlm <- function(
 
 		## QUADRATIC terms
 		# if there are more than desired number of presences per term and initial model can have more than 1 term
-		if (quadratic & ((sampleSize / 2 >= presPerTermInitial & initialTerms >= 2) | (sampleSize / 2 >= presPerTermInitial & initialTerms >= 2))) {
+		if (quadratic && ((sampleSize / 2 >= presPerTermInitial & initialTerms >= 2) | (sampleSize / 2 >= presPerTermInitial & initialTerms >= 2))) {
 
 			for (thisPred in preds) { # for each predictor test single-variable terms
 
@@ -144,7 +146,7 @@ trainGlm <- function(
 					term <- paste0(thisPred, ' + I(', thisPred, '^2)')
 
 					# train model
-					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
+					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 					# get AICc
 					thisAic <- AIC(thisModel)
@@ -155,7 +157,7 @@ trainGlm <- function(
 					# remember if coefficients were stable
 					if (all(!is.na(coef(thisModel)))) {
 						if (all(abs(coef(thisModel)) < tooBig)) {
-							glmFrame <- rbind(glmFrame, data.frame(type='quadratic', term=term, AICc=thisAic, terms=2))
+							tuning <- rbind(tuning, data.frame(type='quadratic', term=term, AICc=thisAic, terms=2))
 						}
 					}
 
@@ -168,7 +170,7 @@ trainGlm <- function(
 		## CUBIC TERMS
 		# if there are more than desired number of presences per term and initial model can have more than 1 term
 
-		if (cubic & ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
+		if (cubic && ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
 
 			for (thisPred in preds) { # for each predictor test cubic terms
 
@@ -177,7 +179,7 @@ trainGlm <- function(
 					term <- paste0(thisPred, ' + I(', thisPred, '^2) + I(', thisPred, '^3)')
 
 					# train model
-					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
+					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 					# get AICc
 					thisAic <- AIC(thisModel)
@@ -188,7 +190,7 @@ trainGlm <- function(
 					# remember if coefficients were stable
 					if (all(!is.na(coef(thisModel)))) {
 						if (all(abs(coef(thisModel)) < tooBig)) {
-							glmFrame <- rbind(glmFrame, data.frame(type='cubic', term=term, AICc=thisAic, terms=3))
+							tuning <- rbind(tuning, data.frame(type='cubic', term=term, AICc=thisAic, terms=3))
 						}
 					}
 
@@ -200,7 +202,7 @@ trainGlm <- function(
 
 		## 2-WAY INTERACTION TERMS
 		# if there are more than desired number of presences per term and initial model can have more than 1 term
-		if (interaction & ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
+		if (interaction && ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
 
 			for (countPred1 in 1:(length(preds) - 1)) { # for each predictor test two-variable terms
 
@@ -212,7 +214,7 @@ trainGlm <- function(
 					term <- paste0(thisPred, ' + ', thatPred, ' + ', thisPred, ':', thatPred)
 
 					# train model
-					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
+					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 					# get AICc
 					thisAic <- AIC(thisModel)
@@ -223,7 +225,7 @@ trainGlm <- function(
 					# remember if coefficients were stable
 					if (all(!is.na(coef(thisModel)))) {
 						if (all(abs(coef(thisModel)) < tooBig)) {
-							glmFrame <- rbind(glmFrame, data.frame(type='interaction', term=term, AICc=thisAic, terms=3))
+							tuning <- rbind(tuning, data.frame(type='interaction', term=term, AICc=thisAic, terms=3))
 						}
 					}
 
@@ -235,7 +237,7 @@ trainGlm <- function(
 
 		## INTERACTION-QUADRATIC terms
 		# if there are more than desired number of presences per term and initial model can have more than 1 term
-		if (interQuad & ((sampleSize / 5 >= presPerTermInitial & initialTerms >= 5) | (sampleSize / 5 >= presPerTermInitial & initialTerms >= 5))) {
+		if (interQuad && ((sampleSize / 5 >= presPerTermInitial & initialTerms >= 5) | (sampleSize / 5 >= presPerTermInitial & initialTerms >= 5))) {
 
 			for (thisPred in preds) { # for each predictor
 
@@ -250,7 +252,7 @@ trainGlm <- function(
 					if (!is.na(term)) {
 
 						# train model
-						thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
+						thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 						# get AICc
 						thisAic <- AIC(thisModel)
@@ -261,7 +263,7 @@ trainGlm <- function(
 						# remember if coefficients were stable
 						if (all(!is.na(coef(thisModel)))) {
 							if (all(abs(coef(thisModel)) < tooBig)) {
-								glmFrame <- rbind(glmFrame, data.frame(type='interaction-quadratic', term=term, AICc=thisAic, terms=4))
+								tuning <- rbind(tuning, data.frame(type='interaction-quadratic', term=term, AICc=thisAic, terms=4))
 							}
 						}
 
@@ -274,11 +276,11 @@ trainGlm <- function(
 		} # if there are more than desired number of presences per term and initial model can have more than 1 term
 
 		# sort by AIC
-		glmFrame <- glmFrame[order(glmFrame$AIC, glmFrame$terms), ]
+		tuning <- tuning[order(tuning$AIC, tuning$terms), ]
 
 		if (verbose) {
 			omnibus::say('GLM construction results for each term tested:');
-			print(glmFrame)
+			print(tuning)
 			omnibus::say('')
 		}
 
@@ -286,7 +288,7 @@ trainGlm <- function(
 		####################################################
 
 		## construct final model
-		form <- paste0(resp, ' ~ 1 + ', glmFrame$term[1]) # add first term
+		form <- paste0(resp, ' ~ 1 + ', tuning$term[1]) # add first term
 
 		numTerms <- length(colnames(attr(terms(as.formula(form)), 'factors')))
 
@@ -297,21 +299,21 @@ trainGlm <- function(
 			glmFrameRow <- 2
 
 			# add terms
-			while ((sampleSize / numTerms) > presPerTermInitial & numTerms < initialTerms & glmFrameRow <= nrow(glmFrame)) {
+			while ((sampleSize / numTerms) > presPerTermInitial & numTerms < initialTerms & glmFrameRow <= nrow(tuning)) {
 
 				# make trial formula
-				trialForm <- as.formula(paste0(form, ' + ', glmFrame$term[glmFrameRow]))
+				trialForm <- as.formula(paste0(form, ' + ', tuning$term[glmFrameRow]))
 				termsInTrial <- length(colnames(attr(terms(as.formula(trialForm)), 'factors')))
 
 				# update formula if there are enough presences per term
 				if (sampleSize / termsInTrial >= presPerTermInitial & termsInTrial <= initialTerms) {
-					form <- paste0(form, ' + ', glmFrame$term[glmFrameRow])
+					form <- paste0(form, ' + ', tuning$term[glmFrameRow])
 				}
 
 				# get number of unique terms that would be added
 				numTerms <- length(colnames(attr(terms(as.formula(form)), 'factors')))
 
-				# look at next row of glmFrame
+				# look at next row of tuning
 				glmFrameRow <- glmFrameRow + 1
 
 			} # next term
@@ -362,7 +364,7 @@ trainGlm <- function(
 	##################
 
 	# train (starting) GLM model
-	model <- glm(formula=form, family=family, data=data, weights=w, na.action=stats::na.fail, method='brglmFit', ...)
+	model <- glm(formula=form, family=family, data=data, weights=w, na.action=stats::na.fail, method=method, ...)
 
 	if (verbose) {
 		omnibus::say('Full model:', pre=1);
@@ -376,7 +378,7 @@ trainGlm <- function(
 
 	if (select) {
 
-		sizeGlmFrame <- if (exists('glmFrame', inherits=FALSE)) { nrow(glmFrame) } else { Inf }
+		sizeGlmFrame <- if (exists('tuning', inherits=FALSE)) { nrow(tuning) } else { Inf }
 		lims <- c(0, max(1, min(floor(sampleSize / presPerTermFinal), initialTerms, sizeGlmFrame)))
 
 		# calculate all possible models and rank by AIC
