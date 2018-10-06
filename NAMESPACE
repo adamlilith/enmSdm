@@ -1,3 +1,4 @@
+importFrom('compiler', 'cmpfun')
 importFrom('graphics', 'abline', 'legend', 'lines', 'par', 'plot',
 	'points', 'polygon', 'rug', 'text')
 importFrom('stats', 'AIC', 'as.dist', 'as.formula', 'coef',
@@ -25,7 +26,9 @@ export(makeLarsData)
 export(mop)
 export(pointDist)
 export(predictLars)
+export(predictEnmSdm)
 export(predictMaxEnt)
+export(randGeoBySelf)
 export(sampleRast)
 export(sampleRastStrat)
 export(trainBrt)

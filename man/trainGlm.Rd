@@ -52,7 +52,7 @@ trainGlm(data, resp = names(data)[1],
 If \code{out = 'model'} this function returns an object of class \code{glm}. If \code{out = 'table'} this function returns a data frame with tuning parameters and AICc for each model tried. If \code{out = c('model', 'table'} then it returns a list object with the \code{glm} object and the data frame.
 }
 \description{
-This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc.
+This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias.
 }
 \examples{
 \dontrun{

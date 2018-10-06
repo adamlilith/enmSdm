@@ -1,4 +1,4 @@
-#' Model construction for Least Angle Regression (LARS) model
+#' Calibrate a least angle regression (LARS) model
 #'
 #' This function calculates the least angle regression (LARS) using possibly overlapping grouped covariates. The model is fit using cross validation (the \code{cv.grpregOverlap} function). The cross-validation is calculated across values of the \code{alpha}, which controls the degree of ridge penalty (\code{alpha ~0} (bit not = 0) imposes the full ridge penalty and \code{alpha) = 1} imposes no ridge penalty). Higher-order terms are constructed (e.g., quadratic, 2-way interaction, etc.) and fitted in a manner that respects mrginality (i.e., all lower order terms will have non-zero coefficients if a high-order term is used).
 #' @param data Data frame.

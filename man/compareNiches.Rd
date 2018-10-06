@@ -36,7 +36,7 @@ compareNiches(x1, x2, method = c("meanDiff", "meanAbsDiff", "d", "i",
 List object with one element per value specified by the argument in \code{method}.
 }
 \description{
-This function calculates several metrics of niche overlap based on predictions for two species (or for the same species but different mdels) at the same sites.
+This function calculates several metrics of niche overlap based on predictions for two species (or for the same species but different models) at the same sites.
 }
 \examples{
 x1 <- seq(0, 1, length.out=100)

@@ -1,6 +1,6 @@
 #' Calibrate a generalized linear model (GLM)
 #'
-#' This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc.
+#' This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias.
 #' @param data Data frame.  Must contain fields with same names as in \code{preds} object.
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
@@ -16,6 +16,7 @@
 #' @param presPerTermFinal Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is TRUE.
 #' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 30, so if this number is >30 and \code{select} is \code{TRUE} then it is forced to 30 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.
 #' @param w Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign equal total weights to presences and contrast sites (\code{TRUE}).
+#' @param method Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.
 #' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
 #' @param verbose Logical. If TRUE then display intermediate results on the display device.
 #' @param ... Arguments to pass to \code{brglm()} or \code{dredge()}.
@@ -58,6 +59,7 @@ trainGlm <- function(
 	presPerTermFinal = 20,
 	initialTerms = 10,
 	w = TRUE,
+	method = 'glm.fit',
 	out = 'model',
 	verbose = FALSE,
 	...
@@ -110,7 +112,7 @@ trainGlm <- function(
 		for (thisPred in preds) { # for each predictor test single-variable terms
 
 			# train model
-			thisModel <- glm(formula=as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method='brglmFit', ...)
+			thisModel <- glm(formula=as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method, ...)
 
 			# get AICc
 			thisAic <- AIC(thisModel)
@@ -122,8 +124,8 @@ trainGlm <- function(
 			if (all(!is.na(stats::coef(thisModel)))) {
 				if (all(abs(stats::coef(thisModel)) < tooBig)) {
 
-					glmFrame <- if (exists('glmFrame', inherits=FALSE)) {
-						rbind(glmFrame, data.frame(type='linear', term=thisPred, AICc=thisAic, terms=1))
+					tuning <- if (exists('tuning', inherits=FALSE)) {
+						rbind(tuning, data.frame(type='linear', term=thisPred, AICc=thisAic, terms=1))
 					} else {
 						data.frame(type='linear', term=thisPred, AICc=thisAic, terms=1)
 					}
@@ -135,7 +137,7 @@ trainGlm <- function(
 
 		## QUADRATIC terms
 		# if there are more than desired number of presences per term and initial model can have more than 1 term
-		if (quadratic & ((sampleSize / 2 >= presPerTermInitial & initialTerms >= 2) | (sampleSize / 2 >= presPerTermInitial & initialTerms >= 2))) {
+		if (quadratic && ((sampleSize / 2 >= presPerTermInitial & initialTerms >= 2) | (sampleSize / 2 >= presPerTermInitial & initialTerms >= 2))) {
 
 			for (thisPred in preds) { # for each predictor test single-variable terms
 
@@ -144,7 +146,7 @@ trainGlm <- function(
 					term <- paste0(thisPred, ' + I(', thisPred, '^2)')
 
 					# train model
-					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
+					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 					# get AICc
 					thisAic <- AIC(thisModel)
@@ -155,7 +157,7 @@ trainGlm <- function(
 					# remember if coefficients were stable
 					if (all(!is.na(coef(thisModel)))) {
 						if (all(abs(coef(thisModel)) < tooBig)) {
-							glmFrame <- rbind(glmFrame, data.frame(type='quadratic', term=term, AICc=thisAic, terms=2))
+							tuning <- rbind(tuning, data.frame(type='quadratic', term=term, AICc=thisAic, terms=2))
 						}
 					}
 
@@ -168,7 +170,7 @@ trainGlm <- function(
 		## CUBIC TERMS
 		# if there are more than desired number of presences per term and initial model can have more than 1 term
 
-		if (cubic & ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
+		if (cubic && ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
 
 			for (thisPred in preds) { # for each predictor test cubic terms
 
@@ -177,7 +179,7 @@ trainGlm <- function(
 					term <- paste0(thisPred, ' + I(', thisPred, '^2) + I(', thisPred, '^3)')
 
 					# train model
-					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
+					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 					# get AICc
 					thisAic <- AIC(thisModel)
@@ -188,7 +190,7 @@ trainGlm <- function(
 					# remember if coefficients were stable
 					if (all(!is.na(coef(thisModel)))) {
 						if (all(abs(coef(thisModel)) < tooBig)) {
-							glmFrame <- rbind(glmFrame, data.frame(type='cubic', term=term, AICc=thisAic, terms=3))
+							tuning <- rbind(tuning, data.frame(type='cubic', term=term, AICc=thisAic, terms=3))
 						}
 					}
 
@@ -200,7 +202,7 @@ trainGlm <- function(
 
 		## 2-WAY INTERACTION TERMS
 		# if there are more than desired number of presences per term and initial model can have more than 1 term
-		if (interaction & ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
+		if (interaction && ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
 
 			for (countPred1 in 1:(length(preds) - 1)) { # for each predictor test two-variable terms
 
@@ -212,7 +214,7 @@ trainGlm <- function(
 					term <- paste0(thisPred, ' + ', thatPred, ' + ', thisPred, ':', thatPred)
 
 					# train model
-					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
+					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 					# get AICc
 					thisAic <- AIC(thisModel)
@@ -223,7 +225,7 @@ trainGlm <- function(
 					# remember if coefficients were stable
 					if (all(!is.na(coef(thisModel)))) {
 						if (all(abs(coef(thisModel)) < tooBig)) {
-							glmFrame <- rbind(glmFrame, data.frame(type='interaction', term=term, AICc=thisAic, terms=3))
+							tuning <- rbind(tuning, data.frame(type='interaction', term=term, AICc=thisAic, terms=3))
 						}
 					}
 
@@ -235,7 +237,7 @@ trainGlm <- function(
 
 		## INTERACTION-QUADRATIC terms
 		# if there are more than desired number of presences per term and initial model can have more than 1 term
-		if (interQuad & ((sampleSize / 5 >= presPerTermInitial & initialTerms >= 5) | (sampleSize / 5 >= presPerTermInitial & initialTerms >= 5))) {
+		if (interQuad && ((sampleSize / 5 >= presPerTermInitial & initialTerms >= 5) | (sampleSize / 5 >= presPerTermInitial & initialTerms >= 5))) {
 
 			for (thisPred in preds) { # for each predictor
 
@@ -250,7 +252,7 @@ trainGlm <- function(
 					if (!is.na(term)) {
 
 						# train model
-						thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method='brglmFit', ...)
+						thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 						# get AICc
 						thisAic <- AIC(thisModel)
@@ -261,7 +263,7 @@ trainGlm <- function(
 						# remember if coefficients were stable
 						if (all(!is.na(coef(thisModel)))) {
 							if (all(abs(coef(thisModel)) < tooBig)) {
-								glmFrame <- rbind(glmFrame, data.frame(type='interaction-quadratic', term=term, AICc=thisAic, terms=4))
+								tuning <- rbind(tuning, data.frame(type='interaction-quadratic', term=term, AICc=thisAic, terms=4))
 							}
 						}
 
@@ -274,11 +276,11 @@ trainGlm <- function(
 		} # if there are more than desired number of presences per term and initial model can have more than 1 term
 
 		# sort by AIC
-		glmFrame <- glmFrame[order(glmFrame$AIC, glmFrame$terms), ]
+		tuning <- tuning[order(tuning$AIC, tuning$terms), ]
 
 		if (verbose) {
 			omnibus::say('GLM construction results for each term tested:');
-			print(glmFrame)
+			print(tuning)
 			omnibus::say('')
 		}
 
@@ -286,7 +288,7 @@ trainGlm <- function(
 		####################################################
 
 		## construct final model
-		form <- paste0(resp, ' ~ 1 + ', glmFrame$term[1]) # add first term
+		form <- paste0(resp, ' ~ 1 + ', tuning$term[1]) # add first term
 
 		numTerms <- length(colnames(attr(terms(as.formula(form)), 'factors')))
 
@@ -297,21 +299,21 @@ trainGlm <- function(
 			glmFrameRow <- 2
 
 			# add terms
-			while ((sampleSize / numTerms) > presPerTermInitial & numTerms < initialTerms & glmFrameRow <= nrow(glmFrame)) {
+			while ((sampleSize / numTerms) > presPerTermInitial & numTerms < initialTerms & glmFrameRow <= nrow(tuning)) {
 
 				# make trial formula
-				trialForm <- as.formula(paste0(form, ' + ', glmFrame$term[glmFrameRow]))
+				trialForm <- as.formula(paste0(form, ' + ', tuning$term[glmFrameRow]))
 				termsInTrial <- length(colnames(attr(terms(as.formula(trialForm)), 'factors')))
 
 				# update formula if there are enough presences per term
 				if (sampleSize / termsInTrial >= presPerTermInitial & termsInTrial <= initialTerms) {
-					form <- paste0(form, ' + ', glmFrame$term[glmFrameRow])
+					form <- paste0(form, ' + ', tuning$term[glmFrameRow])
 				}
 
 				# get number of unique terms that would be added
 				numTerms <- length(colnames(attr(terms(as.formula(form)), 'factors')))
 
-				# look at next row of glmFrame
+				# look at next row of tuning
 				glmFrameRow <- glmFrameRow + 1
 
 			} # next term
@@ -362,7 +364,7 @@ trainGlm <- function(
 	##################
 
 	# train (starting) GLM model
-	model <- glm(formula=form, family=family, data=data, weights=w, na.action=stats::na.fail, method='brglmFit', ...)
+	model <- glm(formula=form, family=family, data=data, weights=w, na.action=stats::na.fail, method=method, ...)
 
 	if (verbose) {
 		omnibus::say('Full model:', pre=1);
@@ -376,7 +378,7 @@ trainGlm <- function(
 
 	if (select) {
 
-		sizeGlmFrame <- if (exists('glmFrame', inherits=FALSE)) { nrow(glmFrame) } else { Inf }
+		sizeGlmFrame <- if (exists('tuning', inherits=FALSE)) { nrow(tuning) } else { Inf }
 		lims <- c(0, max(1, min(floor(sampleSize / presPerTermFinal), initialTerms, sizeGlmFrame)))
 
 		# calculate all possible models and rank by AIC
@@ -395,116 +397,116 @@ trainGlm <- function(
 		coeffOk <- apply(coeffOk, 1, function(y) all(y, na.rm=TRUE))
 		tuning <- subset(tuning, coeffOk, recalc.weights=TRUE, recalc.delta=TRUE)
 
-		# ### remove models that ignore marginality for polynomial terms
-		# ##############################################################
+		### remove models that ignore marginality for polynomial terms
+		##############################################################
 
-		# allModelsDf <- as.data.frame(tuning)
+		allModelsDf <- as.data.frame(tuning)
 
-		# modTerms <- terms(tuning)
-		# modTerms <- sort(modTerms[!(modTerms %in% '(Intercept)')])
+		modTerms <- terms(tuning)
+		modTerms <- sort(modTerms[!(modTerms %in% '(Intercept)')])
 
-		# for (countTerm in seq_along(modTerms)) {
+		for (countTerm in seq_along(modTerms)) {
 
-			# modTerm <- modTerms[countTerm]
+			modTerm <- modTerms[countTerm]
 
-			# # ensure QUADRATIC marginality
-			# if (substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^2)' & !grepl(modTerm, pattern=':')) {
+			# ensure QUADRATIC marginality
+			if (substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^2)' & !grepl(modTerm, pattern=':')) {
 
-				# # find column with linear modTerm that matches this quadratic modTerm
-				# linearTerm <- substr(modTerm, 3, nchar(modTerm) - 3)
+				# find column with linear modTerm that matches this quadratic modTerm
+				linearTerm <- substr(modTerm, 3, nchar(modTerm) - 3)
 
-				# badModel <- which(!is.na(allModelsDf[ , modTerm]) & is.na(allModelsDf[ , linearTerm]))
-				# goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
+				badModel <- which(!is.na(allModelsDf[ , modTerm]) & is.na(allModelsDf[ , linearTerm]))
+				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
 
-				# if (length(goodModel) > 0) {
-					# tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					# allModelsDf <- as.data.frame(tuning)
-				# }
+				if (length(goodModel) > 0) {
+					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
+					allModelsDf <- as.data.frame(tuning)
+				}
 
-			# }
+			}
 
-			# # ensure QUADRATIC with INTERACTION marginality
-			# quadFirst <- (substr(modTerm, 1, 2) == 'I(' & grepl(modTerm, pattern='\\^2)') & grepl(modTerm, pattern=':'))
-			# quadSecond <- (substr(modTerm, 1, 2) != 'I(' & substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^2)' & grepl(modTerm, pattern=':'))
-			# if (quadFirst | quadSecond) {
+			# ensure QUADRATIC with INTERACTION marginality
+			quadFirst <- (substr(modTerm, 1, 2) == 'I(' & grepl(modTerm, pattern='\\^2)') & grepl(modTerm, pattern=':'))
+			quadSecond <- (substr(modTerm, 1, 2) != 'I(' & substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^2)' & grepl(modTerm, pattern=':'))
+			if (quadFirst | quadSecond) {
 
-				# # find column with linear modTerm that matches this quadratic modTerm
-				# linearTerm <- substr(modTerm, regexpr('[(]', modTerm) + 1, regexpr('\\^2)', modTerm) - 1)
-				# secondTerm <- if (quadFirst) {
-					# substr(modTerm, regexpr(':', modTerm) + 1, nchar(modTerm))
-				# } else {
-					# substr(modTerm, 1, regexpr(':', modTerm) - 1)
-				# }
-				# quadTerm <- paste0('I(', linearTerm, '^2)')
-				# iaTerm1 <- paste0(linearTerm, ':', secondTerm)
-				# iaTerm2 <- paste0(secondTerm, ':', linearTerm)
-				# iaTerm <- if (iaTerm1 %in% modTerms) { iaTerm1 } else { iaTerm2 }
+				# find column with linear modTerm that matches this quadratic modTerm
+				linearTerm <- substr(modTerm, regexpr('[(]', modTerm) + 1, regexpr('\\^2)', modTerm) - 1)
+				secondTerm <- if (quadFirst) {
+					substr(modTerm, regexpr(':', modTerm) + 1, nchar(modTerm))
+				} else {
+					substr(modTerm, 1, regexpr(':', modTerm) - 1)
+				}
+				quadTerm <- paste0('I(', linearTerm, '^2)')
+				iaTerm1 <- paste0(linearTerm, ':', secondTerm)
+				iaTerm2 <- paste0(secondTerm, ':', linearTerm)
+				iaTerm <- if (iaTerm1 %in% modTerms) { iaTerm1 } else { iaTerm2 }
 
-				# badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , quadTerm]) | is.na(allModelsDf[ , iaTerm])))
-				# goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
+				badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , quadTerm]) | is.na(allModelsDf[ , iaTerm])))
+				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
 
-				# if (length(goodModel) > 0) {
-					# tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					# allModelsDf <- as.data.frame(tuning)
-				# }
+				if (length(goodModel) > 0) {
+					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
+					allModelsDf <- as.data.frame(tuning)
+				}
 
-			# }
+			}
 
-			# # ensure CUBIC marginality
-			# if (substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^3)' & !grepl(modTerm, pattern=':')) {
+			# ensure CUBIC marginality
+			if (substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^3)' & !grepl(modTerm, pattern=':')) {
 
-				# # find column with linear modTerm that matches this quadratic modTerm
-				# linearTerm <- substr(modTerm, 3, nchar(modTerm) - 3)
-				# quadraticTerm <- paste('I(', linearTerm, '^2)', sep='')
+				# find column with linear modTerm that matches this quadratic modTerm
+				linearTerm <- substr(modTerm, 3, nchar(modTerm) - 3)
+				quadraticTerm <- paste('I(', linearTerm, '^2)', sep='')
 
-				# badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , quadraticTerm])))
-				# goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
+				badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , quadraticTerm])))
+				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
 
-				# if (length(goodModel) > 0) {
-					# tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					# allModelsDf <- as.data.frame(tuning)
-				# }
+				if (length(goodModel) > 0) {
+					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
+					allModelsDf <- as.data.frame(tuning)
+				}
 
-			# }
+			}
 
-			# # ensure CUBIC with INTERACTION marginality
-			# cubicFirst <- (substr(modTerm, 1, 2) == 'I(' & grepl(modTerm, pattern='\\^3)') & grepl(modTerm, pattern=':'))
-			# cubicSecond <- (substr(modTerm, 1, 2) != 'I(' & substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^3)' & grepl(modTerm, pattern=':'))
-			# if (cubicFirst | cubicSecond) {
+			# ensure CUBIC with INTERACTION marginality
+			cubicFirst <- (substr(modTerm, 1, 2) == 'I(' & grepl(modTerm, pattern='\\^3)') & grepl(modTerm, pattern=':'))
+			cubicSecond <- (substr(modTerm, 1, 2) != 'I(' & substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^3)' & grepl(modTerm, pattern=':'))
+			if (cubicFirst | cubicSecond) {
 
-				# # find linear version of this term
-				# linearTerm <- substr(modTerm, regexpr('[(]', modTerm) + 1, regexpr('\\^3)', modTerm) - 1)
-				# secondTerm <- if (cubicFirst) {
-					# substr(modTerm, regexpr(':', modTerm) + 1, nchar(modTerm))
-				# } else {
-					# substr(modTerm, 1, regexpr(':', modTerm) - 1)
-				# }
-				# quadTerm <- paste0('I(', linearTerm, '^2)')
-				# cubicTerm <- paste0('I(', linearTerm, '^3)')
+				# find linear version of this term
+				linearTerm <- substr(modTerm, regexpr('[(]', modTerm) + 1, regexpr('\\^3)', modTerm) - 1)
+				secondTerm <- if (cubicFirst) {
+					substr(modTerm, regexpr(':', modTerm) + 1, nchar(modTerm))
+				} else {
+					substr(modTerm, 1, regexpr(':', modTerm) - 1)
+				}
+				quadTerm <- paste0('I(', linearTerm, '^2)')
+				cubicTerm <- paste0('I(', linearTerm, '^3)')
 
-				# # 2-way interacton term
-				# iaTerm1 <- paste0(linearTerm, ':', secondTerm)
-				# iaTerm2 <- paste0(secondTerm, ':', linearTerm)
-				# iaTerm <- if (iaTerm1 %in% modTerms) { iaTerm1 } else { iaTerm2 }
+				# 2-way interacton term
+				iaTerm1 <- paste0(linearTerm, ':', secondTerm)
+				iaTerm2 <- paste0(secondTerm, ':', linearTerm)
+				iaTerm <- if (iaTerm1 %in% modTerms) { iaTerm1 } else { iaTerm2 }
 
-				# # interaction-quadratic term
-				# quadTermIa1 <- paste0(secondTerm, ':I(', linearTerm, '^2)')
-				# quadTermIa2 <- paste0('I(', linearTerm, '^2):', secondTerm)
-				# quadTermIa <- if (quadTermIa1 %in% modTerms) { quadTermIa1 } else { quadTermIa2 }
+				# interaction-quadratic term
+				quadTermIa1 <- paste0(secondTerm, ':I(', linearTerm, '^2)')
+				quadTermIa2 <- paste0('I(', linearTerm, '^2):', secondTerm)
+				quadTermIa <- if (quadTermIa1 %in% modTerms) { quadTermIa1 } else { quadTermIa2 }
 
-				# badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , secondTerm]) | is.na(allModelsDf[ , quadTerm]) | is.na(allModelsDf[ , cubicTerm]) |  is.na(allModelsDf[ , iaTerm]) |  is.na(allModelsDf[ , quadTermIa])))
-				# goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
+				badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , secondTerm]) | is.na(allModelsDf[ , quadTerm]) | is.na(allModelsDf[ , cubicTerm]) |  is.na(allModelsDf[ , iaTerm]) |  is.na(allModelsDf[ , quadTermIa])))
+				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
 
-				# if (length(goodModel) > 0) {
-					# tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					# allModelsDf <- as.data.frame(tuning)
-				# }
+				if (length(goodModel) > 0) {
+					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
+					allModelsDf <- as.data.frame(tuning)
+				}
 
-			# }
+			}
 
-		# } # next term
+		} # next term
 
-		# if (any(is.na(tuning[ , '(Intercept)']))) tuning <- tuning[-which(is.na(tuning[ , '(Intercept)'])), ]
+		if (any(is.na(tuning[ , '(Intercept)']))) tuning <- tuning[-which(is.na(tuning[ , '(Intercept)'])), ]
 
 		if (verbose) {
 			omnibus::say('')
