@@ -13,9 +13,10 @@
 #' @seealso \code{\link[dismo]{randomPoints}}, \code{\link[enmSdm]{randGeoBySelf}}
 #' @examples
 #' # madagascar
-#' data(mad)
+#' library(dismo)
+#' madElev <- getData('alt', country='MDG')
 #' par(layout(matrix(c(1, 2), nrow=1)))
-#' plot(mad, main='Madagascar')
+#' plot(madElev, main='Madagascar')
 #' data(lemur)
 #' points(lemur, pch=16)
 #' rands <- randGeoBySelf(lemur, mad, verbose=TRUE)
@@ -163,7 +164,8 @@ randGeoBySelfAndOther <- function(
 	deltaSelf1 <- sqrt(sum((randSeldDistDistrib1[ , 'proportion'] - obsSelfDistDistrib1[ , 'proportion'])^2))
 	deltaSelf2 <- sqrt(sum((randSelfDistDistrib2[ , 'proportion'] - obsSelfDistDistrib2[ , 'proportion'])^2))
 	deltaOther <- sqrt(sum((randOtherDistDistrib[ , 'proportion'] - obsOtherDistDistrib[ , 'proportion'])^2))
-	
+
+	# plot
 	if (verbose) {
 
 		par(mfrow=c(1, 4))
@@ -208,7 +210,7 @@ randGeoBySelfAndOther <- function(
 			randPoints <- sp::SpatialPoints(randPoints, sp::CRS(crs))
 			randUsed <- 1
 		}
-		
+!!!!! start working here !!!!!		
 		# replace selected random site with candidate random coordinate
 		candSite <- randPoints[randUsed]
 		
