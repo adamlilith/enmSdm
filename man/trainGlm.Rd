@@ -9,7 +9,8 @@ trainGlm(data, resp = names(data)[1],
   tooBig = 1e+07, construct = TRUE, select = TRUE,
   quadratic = TRUE, cubic = TRUE, interaction = TRUE,
   interQuad = TRUE, presPerTermInitial = 10, presPerTermFinal = 20,
-  initialTerms = 10, w = TRUE, out = "model", verbose = FALSE, ...)
+  initialTerms = 10, w = TRUE, method = "glm.fit", out = "model",
+  verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{Data frame.  Must contain fields with same names as in \code{preds} object.}
@@ -41,6 +42,8 @@ trainGlm(data, resp = names(data)[1],
 \item{initialTerms}{Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 30, so if this number is >30 and \code{select} is \code{TRUE} then it is forced to 30 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.}
 
 \item{w}{Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign equal total weights to presences and contrast sites (\code{TRUE}).}
+
+\item{method}{Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.}
 
 \item{out}{Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
 

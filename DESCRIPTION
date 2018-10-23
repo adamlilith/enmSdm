@@ -1,7 +1,7 @@
 Package: enmSdm
 Type: Package
 Title: Tools for modeling species niches and distributions
-Version: 0.3.3.5
+Version: 0.3.3.6
 Date: 2018-08-03
 Author: Adam B. Smith <adam@earthSkySea.org>
 Maintainer: Adam B. Smith <adam@earthSkySea.org>
@@ -34,6 +34,7 @@ Imports:
 	splines,
 	stats
 Suggests:
+	devtools,
     knitr,
     rmarkdown
 License: GPL (>=3)

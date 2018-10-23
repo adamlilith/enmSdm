@@ -71,19 +71,19 @@ randGeoBySelfAndOther <- function(
 	# correct CRS
 	if (!(raster::projection(x1) == getCRS('wgs84') | raster::projection(x1) == getCRS('nad83'))) {
 
-		warning('Coordinates of x1 are not in WGS84 or NAD83. Projecting them to WGS84.')
+		warning('Coordinates of x1 are not in WGS84 or NAD83 coordinate reference system. Projecting them to WGS84.')
 		x1 <- sp::spTransform(x1, getCRS('wgs84', TRUE))
 
 	}
 	
 	if (!(raster::projection(x2) != getCRS('wgs84') | raster::projection(x2) != getCRS('nad83'))) {
 
-		warning('Coordinates of x2 are not in WGS84 or NAD83. Projecting them to WGS84.')
+		warning('Coordinates of x2 are not in WGS84 or NAD83 coordinate reference system. Projecting them to WGS84.')
 		x2 <- sp::spTransform(x2, getCRS('wgs84', TRUE))
 
 	}
 
-	if (raster::projection(x1) != raster::projection(x2)) error('Coordinate reference systems for x1 and x2 are not the same.')
+	if (raster::projection(x1) != raster::projection(x2)) stop('Coordinate reference systems for x1 and x2 are not the same.')
 	
 	# remember CRS
 	crs <- if ('crs' %in% omnibus::ellipseNames(list)) {
@@ -97,8 +97,8 @@ randGeoBySelfAndOther <- function(
 		stop('Raster named in argument "rast" does not have same coordinate reference system as objects named in "x1" or "x2".')
 	}
 	
-	### calculate observed pairwise distances
-	#########################################
+	### calculate observed pairwise distances within and between point sets
+	#######################################################################
 	
 	obsSelfDists1 <- enmSdm::pointDist(x1, ...)
 	obsSelfDists1[upper.tri(obsSelfDists1, diag=TRUE)] <- NA
@@ -112,19 +112,20 @@ randGeoBySelfAndOther <- function(
 	for (i in 2:(nrow(obsOtherDists) - 1)) obsOtherDists[i, (i + 1):ncol(obsOtherDists)] <- NA
 	
 	maxSelfDist1 <- max(obsSelfDists1, na.rm=TRUE)
-	breaksSelf1 <- c(0, maxSelfDist1 * 1.1, bins)
+	breaksSelf1 <- c(0, maxSelfDist1 * 1.05, bins)
 	
 	maxSelfDist2 <- max(obsSelfDists2, na.rm=TRUE)
-	breaksSelf2 <- c(0, maxSelfDist2 * 1.1, bins)
+	breaksSelf2 <- c(0, maxSelfDist2 * 1.05, bins)
 	
 	maxOtherDist <- max(obsOtherDists, na.rm=TRUE)
-	breaksOther <- c(0, maxOtherDist * 1.1, bins)
+	breaksOther <- c(0, maxOtherDist * 1.05, bins)
 	
 	obsSelfDistDistrib1 <- omnibus::histOverlap(obsSelfDists1, breaks=breaksSelf1)
 	obsSelfDistDistrib2 <- omnibus::histOverlap(obsSelfDists2, breaks=breaksSelf2)
 	obsOtherDistDistrib <- omnibus::histOverlap(obsOtherDists, breaks=breaksOther)
 
-	# randomize points: start by getting a large number... will cycle through these (faster than getting one-by-one)
+	# randomize points: start by getting a large number...
+	# will cycle through these (faster than getting one-by-one)
 	x1size <- length(x1)
 	x2size <- length(x2)
 	x12size <- x1size + x2size
@@ -144,24 +145,26 @@ randGeoBySelfAndOther <- function(
 	randUsed <- x12size
 	
 	# calculate intra- and inter-set pairwise distances
-	randSelfDists1 <- enmSdm::pointDist(randSites1, ...)
-	randSelfDists2 <- enmSdm::pointDist(randSites2, ...)
+	randSelfDists1 <- enmSdm::pointDist(randSites1, distFunct=distFunct, ...)
+	randSelfDists2 <- enmSdm::pointDist(randSites2, distFunct=distFunct, ...)
 	randSelfDists1[upper.tri(randDists1, diag=TRUE)] <- NA
 	randSelfDists2[upper.tri(randDists2, diag=TRUE)] <- NA
 	
-	randOtherDists2 <- enmSdm::pointDist(randSites1, randSites2, ...)
-	for (i in 2:(nrow(obsOtherDists) - 1)) obsOtherDists[i, (i + 1):ncol(obsOtherDists)] <- NA
+	randOtherDists <- enmSdm::pointDist(randSites1, randSites2, distFunct=distFunct, ...)
+	for (i in 2:(nrow(obsOtherDists) - 1)) {
+		obsOtherDists[i, (i + 1):ncol(obsOtherDists)] <- NA
+	}
 	
 	randSelfDists1 <- c(randSelfDists1)
 	randSelfDists2 <- c(randSelfDists2)
-	randOtherDists2 <- c(randOtherDists2)
+	randOtherDists <- c(randOtherDists)
 	
 	randSelfDistDistrib1 <- omnibus::histOverlap(randSelfDists1, breaks=breaksSelf1)
 	randSelfDistDistrib2 <- omnibus::histOverlap(randSelfDists2, breaks=breaksSelf2)
 	randOtherDistDistrib <- omnibus::histOverlap(randOtherDists, breaks=breaksOther)
 
 	# differences between observed and randomized distances
-	deltaSelf1 <- sqrt(sum((randSeldDistDistrib1[ , 'proportion'] - obsSelfDistDistrib1[ , 'proportion'])^2))
+	deltaSelf1 <- sqrt(sum((randSelfDistDistrib1[ , 'proportion'] - obsSelfDistDistrib1[ , 'proportion'])^2))
 	deltaSelf2 <- sqrt(sum((randSelfDistDistrib2[ , 'proportion'] - obsSelfDistDistrib2[ , 'proportion'])^2))
 	deltaOther <- sqrt(sum((randOtherDistDistrib[ , 'proportion'] - obsOtherDistDistrib[ , 'proportion'])^2))
 
@@ -199,7 +202,7 @@ randGeoBySelfAndOther <- function(
 	tries <- accepts <- 0
 		
 	# iteratively randomized, check to see if this made distribution of randomized distances closer to observed distribution, if so keep
-	while (delta > tol) {
+	while (deltaSelf1 > tol && deltaSelf2 > tol && deltaOther > tol) {
 	
 		tries <- tries + 1
 		randUsed <- randUsed + 1
@@ -210,56 +213,158 @@ randGeoBySelfAndOther <- function(
 			randPoints <- sp::SpatialPoints(randPoints, sp::CRS(crs))
 			randUsed <- 1
 		}
-!!!!! start working here !!!!!		
+
 		# replace selected random site with candidate random coordinate
 		candSite <- randPoints[randUsed]
+
+		# randomly choose among sets
+		whichSet <- runif(1)
 		
-		replaceIndex <- sample(seq_along(randSites), 1)
-		candDist <- enmSdm::pointDist(candSite, randSites)
-		candDist <- c(candDist)
-		candRandDists <- randDists
-		candRandDists[replaceIndex, ] <- candRandDists[ , replaceIndex] <- candDist
-		candRandDists[upper.tri(candRandDists, diag=TRUE)] <- NA
+		chosenSet <- if (whichSet <= x1size / x12size) {
+			'x1'
+		} else {
+			'x2'
+		}
+		
+		### try replacing one point in set 1
+		if (chosenSet == 'x1') {
 
-		candRandDistDistrib <- omnibus::histOverlap(c(candRandDists), breaks=breaks)
+			replaceIndex <- sample(seq_along(randSites1), 1)
+			candDistVsSelf <- enmSdm::pointDist(candSite, randSites1)
+			
+			# distribution of distances vs self
+			candRandDists1 <- randDists1
+			candRandDists1[replaceIndex, ] <- candRandDists1[ , replaceIndex] <- candDistVsSelf
+			candRandDists1[upper.tri(candRandDists1, diag=TRUE)] <- NA
+			candRandDistDistrib1 <- omnibus::histOverlap(c(candRandDists1), breaks=breaksSelf1)
+			
+			# distribution of distances of other
+			candRandDistDistrib2 <- if (tries == 1) {
+				omnibus::histOverlap(c(randSelfDists2), breaks=breaksSelf2)
+			} else {
+				randDistDistrib2
+			}
 
-		candDelta <- sqrt(sum((candDistDistrib[ , 'proportion'] - obsDistDistrib[ , 'proportion'])^2))
+			# distribution of distances vs other
+			candDistVsOther <- randDistVsOther
+			thisCandDistVsOther <- enmSdm::pointDist(candSite, randSites2, distFunct=distFunct, ...)
+			candDistVsOther[replaceIndex, ] <- thisCandDistVsOther
+
+			# differences between observed and expected
+			candDeltaSelf1 <- sqrt(sum((candSelfDistDistrib1[ , 'proportion'] - obsSelfDistDistrib1[ , 'proportion'])^2))
+			candDeltaSelf2 <- if (tries == 1) {
+				sqrt(sum((randSelfDistDistrib2[ , 'proportion'] - obsSelfDistDistrib2[ , 'proportion'])^2))
+			} else {
+				randDeltaSelf2
+			}
+
+		### try replacing one point in set 2		
+		} else {
+
+			replaceIndex <- sample(seq_along(randSites2), 1)
+			candDistVsSelf <- enmSdm::pointDist(candSite, randSites2)
+			
+			# distribution of distances vs self
+			candRandDists2 <- randDists2
+			candRandDists2[replaceIndex, ] <- candRandDists2[ , replaceIndex] <- candDistVsSelf
+			candRandDists2[upper.tri(candRandDists2, diag=TRUE)] <- NA
+			candRandDistDistrib2 <- omnibus::histOverlap(c(candRandDists2), breaks=breaksSelf2)
+			
+			# distribution of distances of other
+			candRandDistDistrib1 <- if (tries == 1) {
+				omnibus::histOverlap(c(randSelfDists1), breaks=breaksSelf1)
+			} else {
+				randDistDistrib1
+			}
+
+			# distribution of distances vs other
+			candDistVsOther <- randDistVsOther
+			thisCandDistVsOther <- enmSdm::pointDist(candSite, randSites1, distFunct=distFunct, ...)
+			candDistVsOther[ , replaceIndex] <- thisCandDistVsOther
+
+			# differences between observed and expected
+			candDeltaSelf1 <- if (tries == 1) {
+				sqrt(sum((candSelfDistDistrib1[ , 'proportion'] - obsSelfDistDistrib1[ , 'proportion'])^2))
+			} else {
+				randDeltaSelf1
+			}
+			candDeltaSelf2 <- sqrt(sum((randSelfDistDistrib2[ , 'proportion'] - obsSelfDistDistrib2[ , 'proportion'])^2))
+
+		}
+		
+		# differences between observed and randomized distances
+		candDeltaOther <- sqrt(sum((candOtherDistDistrib[ , 'proportion'] - obsOtherDistDistrib[ , 'proportion'])^2))
 		
 		# accept randomized point
-		if (candDelta < delta | tries %% 10000 == 0) {
+		if (candDeltaSelf1 < deltaSelf1 & candDeltaSelf2 < deltaSelf2 & candDeltaOther < deltaOther | tries %% 10000 == 0) {
 
 			if (verbose) {
 				
-				lines(mids, randDistDistrib[ , 'proportion'], col='gray80')
-				lines(mids, candDistDistrib[ , 'proportion'], col='red')
+				if (chosenSet == 'x1') {
+					lines(mids1, candDistDistrib1[ , 'proportion'], col='gray80')
+					lines(mids1, candDistDistrib1[ , 'proportion'], col='red')
+				} else {
+					lines(mids2, candDistDistrib2[ , 'proportion'], col='gray80')
+					lines(mids2, candDistDistrib2[ , 'proportion'], col='red')
+				}
+
+			}
+			
+			if (chosenSet == 'x1') {
+				
+				coords <- sp::coordinates(randSites1)
+				coords[replaceIndex, ] <- sp::coordinates(candSite)
+				randSites1 <- sp::SpatialPoints(coords, CRS(crs))
+				
+				randDists1 <- candRandDists1
+				candRandDistDistrib1 <- randDistDistrib1
+				
+			} else {
+				
+				coords <- sp::coordinates(randSites2)
+				coords[replaceIndex, ] <- sp::coordinates(candSite)
+				randSites2 <- sp::SpatialPoints(coords, CRS(crs))
+				
+				randDists2 <- candRandDists2
+				candRandDistDistrib2 <- randDistDistrib2
 				
 			}
 			
-			coords <- sp::coordinates(randSites)
-			coords[replaceIndex, ] <- sp::coordinates(candSite)
-			randSites <- sp::SpatialPoints(coords, CRS(crs))
+			randDistVsOther <- candDistVsOther
 			
-			randDistDistrib <- candDistDistrib
-			randDists <- candRandDists
 			accepts <- accepts + 1
-			delta <- candDelta
+			deltaSelf1 <- candDelta1
+			deltaSelf2 <- candDelta2
+			deltaOther <- candDeltaOther
 				
-			if (verbose) say('current tolerance: ', sprintf('%.6f', delta), ' | accepted: ', accepts, ' of ', tries, ' tries.')
+			if (verbose) say('current tolerances: ', sprintf('%.6f', deltaSelf1), ' ', sprintf('%.6f', deltaSelf2), sprintf('%.6f', deltaOther), ' | accepted: ', accepts, ' of ', tries, ' tries.')
 			
 		}
 		
 	}
 	
-	coords <- sp::coordinates(randSites)
+	coords1 <- sp::coordinates(randSites1)
+	coords2 <- sp::coordinates(randSites2)
 	
-	if (class(out) == 'SpatialPointsDataFrame') {
-		out <- sp::SpatialPointsDataFrame(coords, data=as.data.frame(out), CRS(crs))
-	} else if (class(out) == 'SpatialPoints') {
-		out <- sp::SpatialPoints(coords, CRS(crs))
+	if (class(out1) == 'SpatialPointsDataFrame') {
+		out1 <- sp::SpatialPointsDataFrame(coords1, data=as.data.frame(out1), CRS(crs))
+	} else if (class(out1) == 'SpatialPoints') {
+		out1 <- sp::SpatialPoints(coords1, CRS(crs))
 	} else {
-		out[ , 1:2] <- coords
+		out1[ , 1:2] <- coords1
 	}
 	
-	out	
+	if (class(out2) == 'SpatialPointsDataFrame') {
+		out2 <- sp::SpatialPointsDataFrame(coords2, data=as.data.frame(out2), CRS(crs))
+	} else if (class(out2) == 'SpatialPoints') {
+		out2 <- sp::SpatialPoints(coords2, CRS(crs))
+	} else {
+		out2[ , 1:2] <- coords2
+	}
+	
+	out	<- list()
+	out[[1]] <- out1
+	out[[2]] <- out2
+	out
 
 }
