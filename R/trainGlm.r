@@ -1,6 +1,6 @@
 #' Calibrate a generalized linear model (GLM)
 #'
-#' This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias.
+#' This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc.
 #' @param data Data frame.  Must contain fields with same names as in \code{preds} object.
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
@@ -16,15 +16,13 @@
 #' @param presPerTermFinal Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is TRUE.
 #' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 30, so if this number is >30 and \code{select} is \code{TRUE} then it is forced to 30 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.
 #' @param w Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign equal total weights to presences and contrast sites (\code{TRUE}).
-#' @param method Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.
+#' @param method Character naming a solving fitting function. This can be either \code{'glm.fit'} (default--uses the fitting procedure in the \code{\link{glm}} function) or another string indicating method for solving. If the \pkg{brglm2} package is installed, you can use \code{'brglmFit'} to address problems arising from complete separability of binary cases using Firth's penalized likelihood.
 #' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
 #' @param verbose Logical. If TRUE then display intermediate results on the display device.
-#' @param ... Arguments to pass to \code{brglm()} or \code{dredge()}.
+#' @param ... Arguments to pass to \code{\link[base]{glm}} or \code{\link[MuMIn]{dredge}}.
 #' @return If \code{out = 'model'} this function returns an object of class \code{glm}. If \code{out = 'table'} this function returns a data frame with tuning parameters and AICc for each model tried. If \code{out = c('model', 'table'} then it returns a list object with the \code{glm} object and the data frame.
-#' @seealso \code{\link[stats]{glm}}, \code{\link[brglm]{brglm}}
+#' @seealso \code{\link[stats]{glm}}, \code{\link[MuMIn]{dredge}} in the \pkg{MuMIn} package, \code{\link[brglm2]{brglm2}} in the \pkg{brglm2} package.
 #' @examples
-#' \dontrun{
-#' set.seed(123)
 #' x <- matrix(rnorm(n = 6*100), ncol = 6)
 #' # true variables will be #1, #2, #5, and #6, plus
 #' # the squares of #1 and #6, plus
@@ -40,7 +38,6 @@
 #' x <- as.data.frame(x)
 #' names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
 #' model <- trainGlm(x, verbose=TRUE)
-#' }
 #' @export
 
 trainGlm <- function(
