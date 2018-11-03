@@ -8,8 +8,9 @@ trainGlm(data, resp = names(data)[1],
   preds = names(data)[2:ncol(data)], family = "binomial",
   tooBig = 1e+07, construct = TRUE, select = TRUE,
   quadratic = TRUE, cubic = TRUE, interaction = TRUE,
-  interQuad = TRUE, presPerTermInitial = 10, presPerTermFinal = 20,
-  initialTerms = 10, w = TRUE, out = "model", verbose = FALSE, ...)
+  interQuad = TRUE, verboten = NULL, presPerTermInitial = 10,
+  presPerTermFinal = 20, initialTerms = 10, w = TRUE,
+  method = "glm.fit", out = "model", verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{Data frame.  Must contain fields with same names as in \code{preds} object.}
@@ -20,7 +21,7 @@ trainGlm(data, resp = names(data)[1],
 
 \item{family}{Name of family for data error structure (see \code{?family}). Default is to use the 'binomial' family.}
 
-\item{tooBig}{Numeric. Used to catch errors when fitting a \code{brglm}. In some cases fitted coefficents are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.}
+\item{tooBig}{Numeric. Used to catch errors when fitting a model fit with the \code{brglmFit} function in the \pkg{brglm2} package. In some cases fitted coefficients are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.}
 
 \item{construct}{Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic}, \code{cubic}, \code{interaction}, and \code{interQuad}.}
 
@@ -34,22 +35,39 @@ trainGlm(data, resp = names(data)[1],
 
 \item{interQuad}{Logical. Used only if \code{construct} is TRUE. If TRUE then include all possible interactions of the form 'x * y^2' unless 'y' is a factor.}
 
+\item{verboten}{Either \code{NULL} (default) in which case \code{forms} is returned without any manipulation. Alternatively, this is a character list of terms that are not allowed to appear in any model in \code{forms}. Models with these terms are removed from \code{forms}. Note that the order of variables in interaction terms does not matter (e.g., \code{x1:x2} will cause the removal of models with this term verbatim as well as \code{x2:x1}). All possible permutations of three-way interaction terms are treated similarly.}
+
 \item{presPerTermInitial}{Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is TRUE.}
 
 \item{presPerTermFinal}{Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is TRUE.}
 
-\item{initialTerms}{Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 30, so if this number is >30 and \code{select} is \code{TRUE} then it is forced to 30 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.}
+\item{initialTerms}{Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is \code{TRUE}.}
 
 \item{w}{Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign equal total weights to presences and contrast sites (\code{TRUE}).}
 
-\item{out}{Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
+\item{method}{Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.}
+
+\item{out}{Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
 
 \item{verbose}{Logical. If TRUE then display intermediate results on the display device.}
 
-\item{...}{Arguments to pass to \code{brglm()} or \code{dredge()}.}
-}
-\value{
-If \code{out = 'model'} this function returns an object of class \code{glm}. If \code{out = 'table'} this function returns a data frame with tuning parameters and AICc for each model tried. If \code{out = c('model', 'table'} then it returns a list object with the \code{glm} object and the data frame.
+\item{...}{Arguments to pass to \code{glm}.
+set.seed(123)
+x <- matrix(rnorm(n = 6*100), ncol = 6)
+# true variables will be #1, #2, #5, and #6, plus
+# the squares of #1 and #6, plus
+# interaction between #1 and #6
+# the cube of #5
+imp <- c('x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x1_pow2', 'x6_pow2', 'x1_by_x6', 'x5_pow3')
+betas <- c(5, 2, 0, 0, 1, -1, 8, 1, 2, -4)
+names(betas) <- imp
+y <- 0.5 + x %*% betas[1:6] + betas[7] * x[ , 1] +
+betas[8] * x[ , 6] + betas[9] * x[ , 1] * x[ , 6] + betas[10] * x[ , 5]^3
+y <- as.integer(y > 10)
+x <- cbind(y, x)
+x <- as.data.frame(x)
+names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
+model <- trainGlmDredge(x, verbose=TRUE)}
 }
 \description{
 This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias.
@@ -75,5 +93,5 @@ model <- trainGlm(x, verbose=TRUE)
 }
 }
 \seealso{
-\code{\link[stats]{glm}}, \code{\link[brglm]{brglm}}
+\code{\link[enmSdm]{trainGlmDredge}}, \code{\link[stats]{glm}} in the \pkg{stats} package, \code{\link[brglm2]{brglmFit}} in the \pkg{brglm2} package
 }

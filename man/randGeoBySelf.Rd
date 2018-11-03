@@ -2,7 +2,7 @@
 % Please edit documentation in R/randGeoBySelf.r
 \name{randGeoBySelf}
 \alias{randGeoBySelf}
-\title{Randomizes the location of geographic points while observing spatial autocorrelation structure}
+\title{Randomizes the location of geographic points while observing spatial autocorrelation structure between points}
 \usage{
 randGeoBySelf(x, rast, bins = 20, tol = 0.001, distFunct = NULL,
   verbose = FALSE, ...)
@@ -26,7 +26,7 @@ randGeoBySelf(x, rast, bins = 20, tol = 0.001, distFunct = NULL,
 Object of the same class as \code{x} but with coordinates randomized.
 }
 \description{
-This function randomizes the location of geographic points while retaining (more or less) the same distribution of pairwise distances between points (plus or minus a user-defined percent). The procedure is meant to generalized the "RTR" (rotate/translate/reflect) randomization procedure proposed by Nunes, L.A. and Pearson, R.G.  2017.  A null biogeographical test for assessing ecological niche evolution.  \emph{Journal of Biogeography} 44:1331-1343..
+This function randomizes the location of geographic points while retaining (more or less) the same distribution of pairwise distances between points (plus or minus a user-defined percent). The procedure is meant to generalized the "RTR" (rotate/translate/reflect) randomization procedure proposed by Nunes, L.A. and Pearson, R.G.  2017.  A null biogeographical test for assessing ecological niche evolution.  \emph{Journal of Biogeography} 44:1331-1343. The procedure in this function is actually adapted from the randomization procedure presented in Beale, C.M., J.J. Lennon, and A. Gimona.  2008.  Opening the climate envelope reveals no macroscale associations with climate in European birds. \emph{Proceedings of the National Academy of Sciences USA} 105:14908-14912.
 }
 \examples{
 # madagascar

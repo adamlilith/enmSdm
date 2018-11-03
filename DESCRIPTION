@@ -1,10 +1,10 @@
 Package: enmSdm
 Type: Package
 Title: Tools for modeling species niches and distributions
-Version: 0.3.3.5
-Date: 2018-08-03
-Author: Adam B. Smith <adam@earthSkySea.org>
-Maintainer: Adam B. Smith <adam@earthSkySea.org>
+Version: 0.3.3.6
+Date: 2018-11-03
+Author: Adam B. Smith <adam.smith@mobot.org>
+Maintainer: Adam B. Smith <adam.smith@mobot.org>
 Description: This package contains tools for modeling the distributions
     and niches of species or species-like entities. Its main features
     are a set of functions named \code{train~~~} which automatically
@@ -32,7 +32,8 @@ Imports:
 	scales,
 	sp,
 	splines,
-	stats
+	stats,
+	statisfactory
 Suggests:
     knitr,
     rmarkdown
@@ -40,4 +41,5 @@ License: GPL (>=3)
 LazyData: false
 LazyLoad: yes
 URL: http://www.earthSkySea.org
+Encoding: UTF-8
 RoxygenNote: 6.1.0

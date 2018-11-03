@@ -5,23 +5,39 @@
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param family Name of family for data error structure (see \code{?family}). Default is to use the 'binomial' family.
-#' @param tooBig Numeric. Used to catch errors when fitting a \code{brglm}. In some cases fitted coefficents are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.
+#' @param tooBig Numeric. Used to catch errors when fitting a model fit with the \code{brglmFit} function in the \pkg{brglm2} package. In some cases fitted coefficients are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.
 #' @param construct Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic}, \code{cubic}, \code{interaction}, and \code{interQuad}.
 #' @param select Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).
 #' @param quadratic Logical. Used only if \code{construct} is TRUE. If TRUE then include quadratic terms in model construction stage for non-factor predictors.
 #' @param cubic Logical. Used only if \code{construct} is TRUE. If TRUE then include cubic terms in model construction stage for non-factor predictors.
 #' @param interaction Logical. Used only if \code{construct} is TRUE. If TRUE then include 2-way interaction terms (including interactions between factor predictors).
 #' @param interQuad Logical. Used only if \code{construct} is TRUE. If TRUE then include all possible interactions of the form 'x * y^2' unless 'y' is a factor.
+#' @param verboten Either \code{NULL} (default) in which case \code{forms} is returned without any manipulation. Alternatively, this is a character list of terms that are not allowed to appear in any model in \code{forms}. Models with these terms are removed from \code{forms}. Note that the order of variables in interaction terms does not matter (e.g., \code{x1:x2} will cause the removal of models with this term verbatim as well as \code{x2:x1}). All possible permutations of three-way interaction terms are treated similarly.
 #' @param presPerTermInitial Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is TRUE.
 #' @param presPerTermFinal Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is TRUE.
-#' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 30, so if this number is >30 and \code{select} is \code{TRUE} then it is forced to 30 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.
+#' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is \code{TRUE}.
 #' @param w Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign equal total weights to presences and contrast sites (\code{TRUE}).
 #' @param method Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.
-#' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
+#' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
 #' @param verbose Logical. If TRUE then display intermediate results on the display device.
-#' @param ... Arguments to pass to \code{brglm()} or \code{dredge()}.
-#' @return If \code{out = 'model'} this function returns an object of class \code{glm}. If \code{out = 'table'} this function returns a data frame with tuning parameters and AICc for each model tried. If \code{out = c('model', 'table'} then it returns a list object with the \code{glm} object and the data frame.
-#' @seealso \code{\link[stats]{glm}}, \code{\link[brglm]{brglm}}
+#' @param ... Arguments to pass to \code{glm}.
+#' set.seed(123)
+#' x <- matrix(rnorm(n = 6*100), ncol = 6)
+#' # true variables will be #1, #2, #5, and #6, plus
+#' # the squares of #1 and #6, plus
+#' # interaction between #1 and #6
+#' # the cube of #5
+#' imp <- c('x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x1_pow2', 'x6_pow2', 'x1_by_x6', 'x5_pow3')
+#' betas <- c(5, 2, 0, 0, 1, -1, 8, 1, 2, -4)
+#' names(betas) <- imp
+#' y <- 0.5 + x %*% betas[1:6] + betas[7] * x[ , 1] +
+#' betas[8] * x[ , 6] + betas[9] * x[ , 1] * x[ , 6] + betas[10] * x[ , 5]^3
+#' y <- as.integer(y > 10)
+#' x <- cbind(y, x)
+#' x <- as.data.frame(x)
+#' names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
+#' model <- trainGlmDredge(x, verbose=TRUE)
+#' @seealso \code{\link[enmSdm]{trainGlmDredge}}, \code{\link[stats]{glm}} in the \pkg{stats} package, \code{\link[brglm2]{brglmFit}} in the \pkg{brglm2} package
 #' @examples
 #' \dontrun{
 #' set.seed(123)
@@ -42,7 +58,6 @@
 #' model <- trainGlm(x, verbose=TRUE)
 #' }
 #' @export
-
 trainGlm <- function(
 	data,
 	resp = names(data)[1],
@@ -55,6 +70,7 @@ trainGlm <- function(
 	cubic = TRUE,
 	interaction = TRUE,
 	interQuad = TRUE,
+	verboten = NULL,
 	presPerTermInitial = 10,
 	presPerTermFinal = 20,
 	initialTerms = 10,
@@ -359,155 +375,55 @@ trainGlm <- function(
 	# convert to formula
 	form <- as.formula(form)
 
-	##################
-	## train model ###
-	##################
-
-	# train (starting) GLM model
-	model <- glm(formula=form, family=family, data=data, weights=w, na.action=stats::na.fail, method=method, ...)
-
-	if (verbose) {
-		omnibus::say('Full model:', pre=1);
-		print(summary(model))
-		flush.console()
-	}
-
 	########################################################################################
 	## if doing model construction, evaluate all possible models using AICc then get best ##
 	########################################################################################
 
-	if (select) {
+	if (!select) {
 
-		sizeGlmFrame <- if (exists('tuning', inherits=FALSE)) { nrow(tuning) } else { Inf }
-		lims <- c(0, max(1, min(floor(sampleSize / presPerTermFinal), initialTerms, sizeGlmFrame)))
+		# train (starting) GLM model
+		model <- glm(form, family=family, data=data, weights=w, method=method, ...)
 
-		# calculate all possible models and rank by AIC
-		tuning <- MuMIn::dredge(
-			global.model=model,
-			rank='AICc',
-			m.lim=lims,
-			trace=FALSE,
-			...
-		)
+		if (verbose) {
+			omnibus::say('Full model:', pre=1);
+			print(summary(model))
+			flush.console()
+		}
+		
+	} else {
 
-		### remove any models with wild coefficients
-		############################################
+		maxTerms <- if (family == 'binomial') {
+			max(1, 1 + floor(sampleSize / presPerTermFinal))
+		} else {
+			Inf
+		}
+verboten <<- NULL	
+		forms <- statisfactory::makeFormulae(form, maxTerms=maxTerms, intercept=TRUE, interceptOnly=TRUE, linearOnly=TRUE, quad=FALSE, ia=FALSE, verboten=verboten, returnFx=as.character)
+		
+		tuning <- data.frame()
+		
+		# evaluate each model
+		for (i in seq_along(forms)) {
+		
+			form <- as.formula(forms[[i]])
+			
+			model <- glm(form, family=family, data=data, weights=w, method=method, ...)
+			ll <- logLik(model)
+			aicc <- MuMIn::AICc(model)
+			
+			tuning <- rbind(
+				tuning,
+				data.frame(
+					model = forms[[i]],
+					logLik = ll,
+					aicc = aicc
+				)
+			)
+			
+		}
 
-		coeffOk <- abs(coefficients(tuning)) < tooBig
-		coeffOk <- apply(coeffOk, 1, function(y) all(y, na.rm=TRUE))
-		tuning <- subset(tuning, coeffOk, recalc.weights=TRUE, recalc.delta=TRUE)
-
-		### remove models that ignore marginality for polynomial terms
-		##############################################################
-
-		allModelsDf <- as.data.frame(tuning)
-
-		modTerms <- terms(tuning)
-		modTerms <- sort(modTerms[!(modTerms %in% '(Intercept)')])
-
-		for (countTerm in seq_along(modTerms)) {
-
-			modTerm <- modTerms[countTerm]
-
-			# ensure QUADRATIC marginality
-			if (substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^2)' & !grepl(modTerm, pattern=':')) {
-
-				# find column with linear modTerm that matches this quadratic modTerm
-				linearTerm <- substr(modTerm, 3, nchar(modTerm) - 3)
-
-				badModel <- which(!is.na(allModelsDf[ , modTerm]) & is.na(allModelsDf[ , linearTerm]))
-				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
-
-				if (length(goodModel) > 0) {
-					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					allModelsDf <- as.data.frame(tuning)
-				}
-
-			}
-
-			# ensure QUADRATIC with INTERACTION marginality
-			quadFirst <- (substr(modTerm, 1, 2) == 'I(' & grepl(modTerm, pattern='\\^2)') & grepl(modTerm, pattern=':'))
-			quadSecond <- (substr(modTerm, 1, 2) != 'I(' & substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^2)' & grepl(modTerm, pattern=':'))
-			if (quadFirst | quadSecond) {
-
-				# find column with linear modTerm that matches this quadratic modTerm
-				linearTerm <- substr(modTerm, regexpr('[(]', modTerm) + 1, regexpr('\\^2)', modTerm) - 1)
-				secondTerm <- if (quadFirst) {
-					substr(modTerm, regexpr(':', modTerm) + 1, nchar(modTerm))
-				} else {
-					substr(modTerm, 1, regexpr(':', modTerm) - 1)
-				}
-				quadTerm <- paste0('I(', linearTerm, '^2)')
-				iaTerm1 <- paste0(linearTerm, ':', secondTerm)
-				iaTerm2 <- paste0(secondTerm, ':', linearTerm)
-				iaTerm <- if (iaTerm1 %in% modTerms) { iaTerm1 } else { iaTerm2 }
-
-				badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , quadTerm]) | is.na(allModelsDf[ , iaTerm])))
-				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
-
-				if (length(goodModel) > 0) {
-					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					allModelsDf <- as.data.frame(tuning)
-				}
-
-			}
-
-			# ensure CUBIC marginality
-			if (substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^3)' & !grepl(modTerm, pattern=':')) {
-
-				# find column with linear modTerm that matches this quadratic modTerm
-				linearTerm <- substr(modTerm, 3, nchar(modTerm) - 3)
-				quadraticTerm <- paste('I(', linearTerm, '^2)', sep='')
-
-				badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , quadraticTerm])))
-				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
-
-				if (length(goodModel) > 0) {
-					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					allModelsDf <- as.data.frame(tuning)
-				}
-
-			}
-
-			# ensure CUBIC with INTERACTION marginality
-			cubicFirst <- (substr(modTerm, 1, 2) == 'I(' & grepl(modTerm, pattern='\\^3)') & grepl(modTerm, pattern=':'))
-			cubicSecond <- (substr(modTerm, 1, 2) != 'I(' & substr(modTerm, nchar(modTerm) - 2, nchar(modTerm)) == '^3)' & grepl(modTerm, pattern=':'))
-			if (cubicFirst | cubicSecond) {
-
-				# find linear version of this term
-				linearTerm <- substr(modTerm, regexpr('[(]', modTerm) + 1, regexpr('\\^3)', modTerm) - 1)
-				secondTerm <- if (cubicFirst) {
-					substr(modTerm, regexpr(':', modTerm) + 1, nchar(modTerm))
-				} else {
-					substr(modTerm, 1, regexpr(':', modTerm) - 1)
-				}
-				quadTerm <- paste0('I(', linearTerm, '^2)')
-				cubicTerm <- paste0('I(', linearTerm, '^3)')
-
-				# 2-way interacton term
-				iaTerm1 <- paste0(linearTerm, ':', secondTerm)
-				iaTerm2 <- paste0(secondTerm, ':', linearTerm)
-				iaTerm <- if (iaTerm1 %in% modTerms) { iaTerm1 } else { iaTerm2 }
-
-				# interaction-quadratic term
-				quadTermIa1 <- paste0(secondTerm, ':I(', linearTerm, '^2)')
-				quadTermIa2 <- paste0('I(', linearTerm, '^2):', secondTerm)
-				quadTermIa <- if (quadTermIa1 %in% modTerms) { quadTermIa1 } else { quadTermIa2 }
-
-				badModel <- which(!is.na(allModelsDf[ , modTerm]) & (is.na(allModelsDf[ , linearTerm]) | is.na(allModelsDf[ , secondTerm]) | is.na(allModelsDf[ , quadTerm]) | is.na(allModelsDf[ , cubicTerm]) |  is.na(allModelsDf[ , iaTerm]) |  is.na(allModelsDf[ , quadTermIa])))
-				goodModel <- which(!({1:nrow(allModelsDf)} %in% badModel))
-
-				if (length(goodModel) > 0) {
-					tuning <- subset(tuning, goodModel, recalc.weights=TRUE, recalc.delta=TRUE)
-					allModelsDf <- as.data.frame(tuning)
-				}
-
-			}
-
-		} # next term
-
-		if (any(is.na(tuning[ , '(Intercept)']))) tuning <- tuning[-which(is.na(tuning[ , '(Intercept)'])), ]
-
+		tuning <- tuning[order(tuning$aicc), ]
+		
 		if (verbose) {
 			omnibus::say('')
 			print(tuning)
@@ -517,7 +433,10 @@ trainGlm <- function(
 		# retrain best model
 		if ('model' %in% out) {
 
-			model <- MuMIn::get.models(tuning, subset = 1)[[1]]
+			form <- tuning$model[1]
+			form <- as.formula(form)
+			
+			model <- glm(form, family=family, data=data, weights=w, method=method, ...)
 
 			if (verbose) {
 				omnibus::say('Final model:', pre=1);
@@ -529,15 +448,13 @@ trainGlm <- function(
 
 	} # if want model construction
 
-	gc()
-
 	# return
-	if ('model' %in% out & 'table' %in% out) {
+	if ('model' %in% out & 'tuning' %in% out) {
 		out <- list()
-		out$table <- tuning
+		out$tuning <- tuning
 		out$model <- model
 		out
-	} else if ('table' %in% out) {
+	} else if ('tuning' %in% out) {
 		tuning
 	} else {
 		model
