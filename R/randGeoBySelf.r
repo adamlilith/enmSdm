@@ -1,6 +1,6 @@
-#' Randomizes the location of a set of geographic points while respecting spatial autocorrelation
+#' Randomizes geographic points while observing spatial autocorrelation
 #'
-#' This function randomizes the location of geographic points while retaining (more or less) the same distribution of pairwise distances between points (plus or minus a user-defined tolerance). The procedure is meant to generalized the "RTR" (rotate/translate/reflect) randomization procedure proposed by Nunes, L.A. and Pearson, R.G.  2017.  A null biogeographical test for assessing ecological niche evolution.  \emph{Journal of Biogeography} 44:1331-1343. The procedure in this function is actually adapted from the randomization procedure presented in Beale, C.M., J.J. Lennon, and A. Gimona.  2008.  Opening the climate envelope reveals no macroscale associations with climate in European birds. \emph{Proceedings of the National Academy of Sciences USA} 105:14908-14912.
+#' This function randomizes the location of geographic points while retaining (more or less) the same distribution of pairwise distances between points (plus or minus a user-defined percent). The procedure is meant to generalized the "RTR" (rotate/translate/reflect) randomization procedure proposed by Nunes, L.A. and Pearson, R.G.  2017.  A null biogeographical test for assessing ecological niche evolution.  \emph{Journal of Biogeography} 44:1331-1343. The procedure in this function is actually adapted from the randomization procedure presented in Beale, C.M., J.J. Lennon, and A. Gimona.  2008.  Opening the climate envelope reveals no macroscale associations with climate in European birds. \emph{Proceedings of the National Academy of Sciences USA} 105:14908-14912.
 #' @param x Matrix, data frame, SpatialPoints, or SpatialPointsDataFrame object. If this is a matrix or data frame, the first two columns must represent longitude and latitude (in that order). If \code{x} is a matrix or data frame, the coordinates are assumed to be unprojected (WGS84) (a coordinate reference system proj4 string or \code{CRS} object can be passed into the function using \code{...}). If \code{x} is a SpatialPoints or SpatialPointsDataFrame and not in WGS84 or NAD83, then coordinates are projected to WGS84 (with a warning).
 #' @param rast Raster, RasterStack, or RasterBrick used to locate presences randomly. If this is a RasterStack or a RasterBrick then the first layer will be used (i.e., so cells with \code{NA} will not have points located within them).
 #' @param bins Integer > 1, number of overlapping bins across which to calculate distribution of pairwise distances between points. The range covered by bins starts at 0 and and at the largest observed pairwise distance + 0.5 * bin width. Default value is 20.
@@ -9,7 +9,7 @@
 #' @param verbose Logical, if \code{FALSE} (default) show no progress indicator. If \code{TRUE} then display occasional updates and graph.
 #' @param ... Arguments to pass to \code{distCosine} or \code{\link[dismo]{randomPoints}}. Note that if \code{x} is a matrix or data frame a coordinate reference system may be passed using \code{crs = <proj4 string code} or \code{crs = <object of class CRS (see sp package)>}. Otherwise WGS84 is assumed.
 #' @return Object of the same class as \code{x} but with coordinates randomized.
-#' @seealso \code{\link[dismo]{randomPoints}}, \code{\link[enmSdm]{randGeoBySelf}}
+#' @seealso \code{\link[dismo]{randomPoints}}
 #' @examples
 #' # madagascar
 #' data(mad)
@@ -70,7 +70,7 @@ randGeoBySelf <- function(
 
 	# check CRS of raster
 	if (crs != raster::projection(rast)) {
-		stop('Raster named in argument "rast" does not have same coordinate reference system as object named in "x".')
+		stop('Raster named in argument "rast" does not have same coordinate reference system as object named in "x" (or "crs").')
 	}
 	
 	### calculate observed pairwise distances
@@ -80,7 +80,7 @@ randGeoBySelf <- function(
 	obsDists[upper.tri(obsDists, diag=TRUE)] <- NA
 	obsDists <- c(obsDists)
 	
-	maxDist <- max(obsDists, na.rm=TRUE)
+	maxDist <- max(obsDists, na.rm=T)
 	breaks <- c(0, maxDist * 1.1, bins)
 	
 	obsDistDistrib <- omnibus::histOverlap(obsDists, breaks=breaks)
@@ -94,7 +94,7 @@ randGeoBySelf <- function(
 	
 	randDists <- enmSdm::pointDist(randSites, ...)
 	randDists[upper.tri(randDists, diag=TRUE)] <- NA
-	randDists <- c(randDists)
+	randDists <- randDists
 	
 	randDistDistrib <- omnibus::histOverlap(randDists, breaks=breaks)
 
