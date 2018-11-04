@@ -10,6 +10,7 @@ This package is a complement to the popular **dismo** package by Robert Hijmans.
 * `trainCrf`: conditional regression trees (CRFs)
 * `trainGam`: generalized additive models (GAMs)
 * `trainGlm`: generalized linear models (GLMs)
+* `trainGlmDredge`: generalized linear models (GLMs)
 * `trainLars`: least-angle regression models (LARS)
 * `trainMaxEnt` and `trainMaxNet`: Maxent models
 * `trainNs`: splines
