@@ -78,7 +78,7 @@ compareNiches <- function(
 	if ('rho' %in% method) {
 
 		if (logit) {
-			sim <- c(sim, boot::corr(cbind(omnibus::logitAdj(x1, ...), omnibus::logitAdj(x2, ...)), w=w))
+			sim <- c(sim, boot::corr(cbind(statisfactory::logitAdj(x1, ...), statisfactory::logitAdj(x2, ...)), w=w))
 		} else {
 			sim <- c(sim, boot::corr(cbind(x1, x2), w=w))
 		}

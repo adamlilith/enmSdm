@@ -1,18 +1,19 @@
 #' Calibrate a generalized linear model (GLM)
 #'
 #' This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias.
-#' @param data Data frame.  Must contain fields with same names as in \code{preds} object.
+#' @param data Data frame. Must contain fields with same names as in \code{preds} object.
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
-#' @param family Name of family for data error structure (see \code{?family}). Default is to use the 'binomial' family.
+#' @param family Name of family for data error structure (see \code{\link[stats]{family}}). Default is to use the 'binomial' family.
 #' @param tooBig Numeric. Used to catch errors when fitting a model fit with the \code{brglmFit} function in the \pkg{brglm2} package. In some cases fitted coefficients are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.
 #' @param construct Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic}, \code{cubic}, \code{interaction}, and \code{interQuad}.
 #' @param select Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).
-#' @param quadratic Logical. Used only if \code{construct} is TRUE. If TRUE then include quadratic terms in model construction stage for non-factor predictors.
-#' @param cubic Logical. Used only if \code{construct} is TRUE. If TRUE then include cubic terms in model construction stage for non-factor predictors.
-#' @param interaction Logical. Used only if \code{construct} is TRUE. If TRUE then include 2-way interaction terms (including interactions between factor predictors).
-#' @param interQuad Logical. Used only if \code{construct} is TRUE. If TRUE then include all possible interactions of the form 'x * y^2' unless 'y' is a factor.
+#' @param quadratic Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} (default) then include quadratic terms in model construction stage for non-factor predictors.
+#' @param interaction Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} (default) then include 2-way interaction terms (including interactions between factor predictors).
+#' @param cubic Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} then include cubic terms in model construction stage for non-factor predictors. Default is \code{FALSE}.
+#' @param interQuad Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} then include all possible interactions of the form 'x * y^2' unless 'y' is a factor. Default is \code{FALSE}.
 #' @param verboten Either \code{NULL} (default) in which case \code{forms} is returned without any manipulation. Alternatively, this is a character list of terms that are not allowed to appear in any model in \code{forms}. Models with these terms are removed from \code{forms}. Note that the order of variables in interaction terms does not matter (e.g., \code{x1:x2} will cause the removal of models with this term verbatim as well as \code{x2:x1}). All possible permutations of three-way interaction terms are treated similarly.
+#' @param verbotenCombos Either \code{NULL} or a list of lists. This argument allows excluding particular combinations of variables using exact matches (i.e., a variable appears exactly as stated) or general matches (i.e., a variable appears in any term). Please see the \emph{Details} section of \code{\link[statisfactory]{makeFormulae}} for more information on how to use this argument. The default is \code{NULL} in which case any combination of variables is allowed.
 #' @param presPerTermInitial Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is TRUE.
 #' @param presPerTermFinal Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is TRUE.
 #' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is \code{TRUE}.
@@ -67,10 +68,11 @@ trainGlm <- function(
 	construct = TRUE,
 	select = TRUE,
 	quadratic = TRUE,
-	cubic = TRUE,
 	interaction = TRUE,
-	interQuad = TRUE,
+	cubic = FALSE,
+	interQuad = FALSE,
 	verboten = NULL,
+	verbotenCombos = NULL,
 	presPerTermInitial = 10,
 	presPerTermFinal = 20,
 	initialTerms = 10,
@@ -245,7 +247,7 @@ trainGlm <- function(
 						}
 					}
 
-				}  # for each second predictor test interaction terms
+				} # for each second predictor test interaction terms
 
 			} # for each predictor test interaction terms
 
@@ -285,7 +287,7 @@ trainGlm <- function(
 
 					}
 
-				}  # for each second predictor test interaction terms
+				} # for each second predictor test interaction terms
 
 			} # for each predictor test interaction terms
 
@@ -397,8 +399,8 @@ trainGlm <- function(
 		} else {
 			Inf
 		}
-verboten <<- NULL	
-		forms <- statisfactory::makeFormulae(form, maxTerms=maxTerms, intercept=TRUE, interceptOnly=TRUE, linearOnly=TRUE, quad=FALSE, ia=FALSE, verboten=verboten, returnFx=as.character)
+
+		forms <- statisfactory::makeFormulae(form, maxTerms=maxTerms, intercept=TRUE, interceptOnly=TRUE, linearOnly=TRUE, quad=FALSE, ia=FALSE, verboten=verboten, verbotenCombos=verbotenCombos, returnFx=as.character)
 		
 		tuning <- data.frame()
 		
