@@ -9,9 +9,9 @@
 #' @export
 xToCoords <- function(x, longLat = NULL, sp = TRUE) {
 
-	if (class(x) %in% c('matrix', 'data.frame')) {
+	if (class(x) == 'data.frame' | class(x) == 'matrix') {
 		if (is.null(longLat) & ncol(x) == 2) longLat <- 1:2
-		x <- x[ , longLat, drop=FALSE]
+		x <- x[ , longLat]
 		crs <- getCRS('wgs84', asCRS=TRUE)
 	} else {
 		crs <- sp::CRS(raster::projection(x))
