@@ -2,11 +2,7 @@
 % Please edit documentation in R/randGeoBySelf.r
 \name{randGeoBySelf}
 \alias{randGeoBySelf}
-<<<<<<< HEAD
-\title{Randomizes the location of geographic points while observing spatial autocorrelation structure between points}
-=======
-\title{Randomizes the location of a set of geographic points while respecting spatial autocorrelation}
->>>>>>> 24d7e42b90eb070c890504e3cca8cadca165b28d
+\title{Randomizes geographic points while observing spatial autocorrelation}
 \usage{
 randGeoBySelf(x, rast, bins = 20, tol = 0.001, distFunct = NULL,
   verbose = FALSE, ...)
@@ -20,7 +16,7 @@ randGeoBySelf(x, rast, bins = 20, tol = 0.001, distFunct = NULL,
 
 \item{tol}{Numeric >0, for any one bin, root-mean square deviation between observed pairwise distribution of distances and randomized distances required for the randomized distances to be considered statistically the same as observed distances.}
 
-\item{distFunct}{Either a function or \code{NULL}. If \code{NULL} then \code{\link[geosphere]{distCosine}} is used to calculate distances.  Other "dist" functions (e.g., \code{\link[geosphere]{distGeo}}) can be used.  Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.}
+\item{distFunct}{Either a function or \code{NULL}. If \code{NULL} then \code{\link[geosphere]{distCosine}} is used to calculate distances. Other "dist" functions (e.g., \code{\link[geosphere]{distGeo}}) can be used. Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.}
 
 \item{verbose}{Logical, if \code{FALSE} (default) show no progress indicator. If \code{TRUE} then display occasional updates and graph.}
 
@@ -30,23 +26,19 @@ randGeoBySelf(x, rast, bins = 20, tol = 0.001, distFunct = NULL,
 Object of the same class as \code{x} but with coordinates randomized.
 }
 \description{
-<<<<<<< HEAD
-This function randomizes the location of geographic points while retaining (more or less) the same distribution of pairwise distances between points (plus or minus a user-defined percent). The procedure is meant to generalized the "RTR" (rotate/translate/reflect) randomization procedure proposed by Nunes, L.A. and Pearson, R.G.  2017.  A null biogeographical test for assessing ecological niche evolution.  \emph{Journal of Biogeography} 44:1331-1343. The procedure in this function is actually adapted from the randomization procedure presented in Beale, C.M., J.J. Lennon, and A. Gimona.  2008.  Opening the climate envelope reveals no macroscale associations with climate in European birds. \emph{Proceedings of the National Academy of Sciences USA} 105:14908-14912.
-=======
-This function randomizes the location of geographic points while retaining (more or less) the same distribution of pairwise distances between points (plus or minus a user-defined tolerance). The procedure is meant to generalized the "RTR" (rotate/translate/reflect) randomization procedure proposed by Nunes, L.A. and Pearson, R.G.  2017.  A null biogeographical test for assessing ecological niche evolution.  \emph{Journal of Biogeography} 44:1331-1343. The procedure in this function is actually adapted from the randomization procedure presented in Beale, C.M., J.J. Lennon, and A. Gimona.  2008.  Opening the climate envelope reveals no macroscale associations with climate in European birds. \emph{Proceedings of the National Academy of Sciences USA} 105:14908-14912.
->>>>>>> 24d7e42b90eb070c890504e3cca8cadca165b28d
+This function randomizes the location of geographic points while retaining (more or less) the same distribution of pairwise distances between points (plus or minus a user-defined percent). The procedure is meant to generalized the "RTR" (rotate/translate/reflect) randomization procedure proposed by Nunes, L.A. and Pearson, R.G. 2017. A null biogeographical test for assessing ecological niche evolution. \emph{Journal of Biogeography} 44:1331-1343. The procedure in this function is actually adapted from the randomization procedure presented in Beale, C.M., J.J. Lennon, and A. Gimona. 2008. Opening the climate envelope reveals no macroscale associations with climate in European birds. \emph{Proceedings of the National Academy of Sciences USA} 105:14908-14912.
 }
 \examples{
 # madagascar
-data(mad)
+elev <- getData('alt', country='MDG', res=0.5)
 par(layout(matrix(c(1, 2), nrow=1)))
-plot(mad, main='Madagascar')
+plot(elev, main='Madagascar')
 data(lemur)
 points(lemur, pch=16)
-rands <- randGeoBySelf(lemur, mad, verbose=TRUE)
+rands <- randGeoBySelf(lemur, elev, verbose=TRUE)
 par(fig=1, new=FALSE)
 points(rand, col='red')
 }
 \seealso{
-\code{\link[dismo]{randomPoints}}, \code{\link[enmSdm]{randGeoBySelf}}
+\code{\link[dismo]{randomPoints}}
 }

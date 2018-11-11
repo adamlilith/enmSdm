@@ -12,16 +12,15 @@
 #' @seealso \code{\link[dismo]{randomPoints}}
 #' @examples
 #' # madagascar
-#' data(mad)
+#' elev <- dismo::getData('alt', country='MDG', res=0.5)
 #' par(layout(matrix(c(1, 2), nrow=1)))
-#' plot(mad, main='Madagascar')
+#' plot(elev, main='Madagascar')
 #' data(lemur)
 #' points(lemur, pch=16)
-#' rands <- randGeoBySelf(lemur, mad, verbose=TRUE)
+#' rands <- randGeoBySelf(lemur, elev, verbose=TRUE)
 #' par(fig=1, new=FALSE)
 #' points(rand, col='red')
 #' @export
-
 randGeoBySelf <- function(
 	x,
 	rast,
@@ -53,37 +52,37 @@ randGeoBySelf <- function(
 
 	}
 
-	# correct CRS
-	if (raster::projection(x) != getCRS('wgs84') & raster::projection(x) != getCRS('nad83')) {
+	# # correct CRS
+	# if (raster::projection(x) != getCRS('wgs84') & raster::projection(x) != getCRS('nad83')) {
 
-		warning('Coordinates are not in WGS84 or NAD83. Projecting them to WGS84.')
-		x <- sp::spTransform(x, getCRS('wgs84', TRUE))
+		# warning('Coordinates are not in WGS84 or NAD83. Projecting them to WGS84.')
+		# x <- sp::spTransform(x, getCRS('wgs84', TRUE))
 
-	}
-	
+	# }
+
 	# remember CRS
-	crs <- if ('crs' %in% omnibus::ellipseNames(list)) {
+	crs <- if ('crs' %in% ellipses) {
 		ellipses$crs
 	} else {
 		raster::projection(x)
 	}
 
-	# check CRS of raster
-	if (crs != raster::projection(rast)) {
-		stop('Raster named in argument "rast" does not have same coordinate reference system as object named in "x" (or "crs").')
-	}
-	
+	# # check CRS of raster
+	# if (crs != raster::projection(rast)) {
+		# stop('Raster named in argument "rast" does not have same coordinate reference system as object named in "x" (or "crs").')
+	# }
+
 	### calculate observed pairwise distances
 	#########################################
-	
+
 	obsDists <- enmSdm::pointDist(x, ...)
 	obsDists[upper.tri(obsDists, diag=TRUE)] <- NA
 	obsDists <- c(obsDists)
-	
+
 	maxDist <- max(obsDists, na.rm=T)
 	breaks <- c(0, maxDist * 1.1, bins)
-	
-	obsDistDistrib <- omnibus::histOverlap(obsDists, breaks=breaks)
+
+	obsDistDistrib <- statisfactory::histOverlap(obsDists, breaks=breaks)
 
 	# randomize points: start by getting a large number... will cycle through these (faster than getting one-by-one)
 	numRandPoints <- max(10000, length(x) * round(length(x) * bins / (10000 * tol)))
@@ -91,49 +90,49 @@ randGeoBySelf <- function(
 	randPoints <- sp::SpatialPoints(randPoints, sp::CRS(crs))
 	randSites <- randPoints[1:length(x)]
 	randUsed <- length(x)
-	
+
 	randDists <- enmSdm::pointDist(randSites, ...)
 	randDists[upper.tri(randDists, diag=TRUE)] <- NA
 	randDists <- randDists
-	
-	randDistDistrib <- omnibus::histOverlap(randDists, breaks=breaks)
+
+	randDistDistrib <- statisfactory::histOverlap(randDists, breaks=breaks)
 
 	# differences between observed and randomized distances
 	delta <- sqrt(sum((randDistDistrib[ , 'proportion'] - obsDistDistrib[ , 'proportion'])^2))
-	
+
 	if (verbose) {
 
 		par(mfrow=c(1, 1))
-	
+
 		plot(rast)
 		points(x, pch=16)
 		points(randSites, col='red')
-		
+
 		mids <- apply(obsDistDistrib[ , 1:2], 1, mean)
 		plot(mids, obsDistDistrib[ , 'proportion'], pch=16, type='b', ylab='Proportion of Pairwise Distances', xlab='Distance Bin Midpoint')
 		lines(mids, randDistDistrib[ , 'proportion'], col='red')
 		legend('topright', inset=0.01, legend=c('Observed', 'Randomized'), col=c('black', 'red'), pch=c(16, NA), lwd=1)
-		
+
 	}
-		
+
 	tries <- accepts <- 0
-		
+
 	# iteratively randomized, check to see if this made distribution of randomized distances closer to observed distribution, if so keep
 	while (delta > tol) {
-	
+
 		tries <- tries + 1
 		randUsed <- randUsed + 1
-	
+
 		# get new random set of coordinates
 		if (randUsed > length(randPoints)) {
 			randPoints <- enmSdm::sampleRast(rast, numRandPoints, prob=FALSE)
 			randPoints <- sp::SpatialPoints(randPoints, sp::CRS(crs))
 			randUsed <- 1
 		}
-		
+
 		# replace selected random site with candidate random coordinate
 		candSite <- randPoints[randUsed]
-		
+
 		replaceIndex <- sample(seq_along(randSites), 1)
 		candDist <- enmSdm::pointDist(candSite, randSites)
 		candDist <- c(candDist)
@@ -141,37 +140,37 @@ randGeoBySelf <- function(
 		candRandDists[replaceIndex, ] <- candRandDists[ , replaceIndex] <- candDist
 		candRandDists[upper.tri(candRandDists, diag=TRUE)] <- NA
 
-		candRandDistDistrib <- omnibus::histOverlap(c(candRandDists), breaks=breaks)
+		candRandDistDistrib <- statisfactory::histOverlap(c(candRandDists), breaks=breaks)
 
-		candDelta <- sqrt(sum((candDistDistrib[ , 'proportion'] - obsDistDistrib[ , 'proportion'])^2))
-		
+		candDelta <- sqrt(sum((candRandDistDistrib[ , 'proportion'] - obsDistDistrib[ , 'proportion'])^2))
+
 		# accept randomized point
 		if (candDelta < delta | tries %% 10000 == 0) {
 
 			if (verbose) {
-				
+
 				lines(mids, randDistDistrib[ , 'proportion'], col='gray80')
-				lines(mids, candDistDistrib[ , 'proportion'], col='red')
-				
+				lines(mids, candRandDistDistrib[ , 'proportion'], col='red')
+
 			}
-			
+
 			coords <- sp::coordinates(randSites)
 			coords[replaceIndex, ] <- sp::coordinates(candSite)
 			randSites <- sp::SpatialPoints(coords, CRS(crs))
-			
-			randDistDistrib <- candDistDistrib
+
+			randDistDistrib <- candRandDistDistrib
 			randDists <- candRandDists
 			accepts <- accepts + 1
 			delta <- candDelta
-				
-			if (verbose) say('current tolerance: ', sprintf('%.6f', delta), ' | accepted: ', accepts, ' of ', tries, ' tries.')
-			
+
+			if (verbose) omnibus::say('current tolerance: ', sprintf('%.6f', delta), ' | accepted: ', accepts, ' of ', tries, ' tries.')
+
 		}
-		
+
 	}
-	
+
 	coords <- sp::coordinates(randSites)
-	
+
 	if (class(out) == 'SpatialPointsDataFrame') {
 		out <- sp::SpatialPointsDataFrame(coords, data=as.data.frame(out), CRS(crs))
 	} else if (class(out) == 'SpatialPoints') {
@@ -179,7 +178,7 @@ randGeoBySelf <- function(
 	} else {
 		out[ , 1:2] <- coords
 	}
-	
-	out	
+
+	out
 
 }
