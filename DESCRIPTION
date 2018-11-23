@@ -5,37 +5,33 @@ Version: 0.3.3.9
 Date: 2018-11-11
 Author: Adam B. Smith <adam.smith@mobot.org>
 Maintainer: Adam B. Smith <adam.smith@mobot.org>
-Description: This package contains tools for modeling the distributions
-    and niches of species or species-like entities. Its main features
-    are a set of functions named \code{train~~~} which automatically
-    calibrate models using AICc, cross-validated deviance, or other
-    metrics (depending on the algorithm).
+Description: This package contains tools for modeling the distributions and niches of species or species-like entities. Its main features are a set of functions named \code{train~~~} which automatically calibrate models using AICc, cross-validated deviance, or other metrics (depending on the algorithm).
 Depends:
 Imports:
-	boot,
-	cluster,
-	dismo,
-	geosphere,
-	grpreg,
-	grpregOverlap,
-	maxnet,
-	mgcv,
-	MuMIn,
-	omnibus,
-	party,
-	rJava,
-	randomForest,
-	raster,
-	rgdal,
-	rgeos,
-	scales,
-	sp,
-	splines,
-	stats,
-	statisfactory
+    boot,
+    cluster,
+    dismo,
+    geosphere,
+    grpreg,
+    grpregOverlap,
+    maxnet,
+    mgcv,
+    MuMIn,
+    omnibus,
+    party,
+    rJava,
+    randomForest,
+    raster,
+    rgdal,
+    rgeos,
+    scales,
+    sp,
+    splines,
+    stats,
+    statisfactory
 Suggests:
-	brglm2,
-	devtools,
+    brglm2,
+    devtools,
     knitr,
     rmarkdown
 License: GPL (>=3)
