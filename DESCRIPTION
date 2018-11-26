@@ -18,6 +18,7 @@ Imports:
 	geosphere,
 	grpreg,
 	grpregOverlap,
+	MASS,
 	maxnet,
 	mgcv,
 	MuMIn,

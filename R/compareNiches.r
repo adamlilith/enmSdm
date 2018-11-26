@@ -1,9 +1,9 @@
 #' Metrics of niche overlap
 #'
 #' This function calculates several metrics of niche overlap based on predictions for two species (or for the same species but different models) at the same sites.
-#' @param x1 Numeric. List of predictions from a model.
-#' @param x2 Numeric. List of predictions from another model.
-#' @param method Character list, indicates type of metric to calculate:
+#' @param x1 Numeric. Vector or matrix of predictions from a model.
+#' @param x2 Numeric. Vector or matrix of predictions from another model.
+#' @param method Character vector, indicates type of metric to calculate:
 #' \itemize{
 #' \item \code{meanDiff} mean difference between \code{x1} and \code{x2}
 #' \item \code{meanAbsDiff} mean absolute difference between \code{x1} and \code{x2} (ie, \code{sum(abs(x1 - x2))})
@@ -14,9 +14,8 @@
 #' \item \code{rankCor}  Pearson rank correlation.
 #' }
 #' @param w Numeric list. Weights of predictions in \code{x1} and \code{x2}.
-#' @param logit Logical. Only used if \code{method} contains \code{rho}.  If TRUE, then \code{x1} and \code{x2} are first adjusted using \code{logitAdj()}. Use \code{...} to alter the default value of \code{epsilon} in \code{logitAdj()}.
 #' @param na.rm Logical.  If T\code{TRUE} then remove elements in \code{x1} and \code{2} that are \code{NA} in \emph{either} \code{x1} or \code{x2}.
-#' @param ... Arguments to send to \code{\link[omnibus]{logitAdj}}.
+#' @param ... Other arguments (not used).
 #' @return List object with one element per value specified by the argument in \code{method}.
 #' @seealso \code{\link{compareResponse}}
 #' @examples
@@ -31,9 +30,11 @@ compareNiches <- function(
 	method = c('meanDiff', 'meanAbsDiff', 'd', 'i', 'esp', 'rho', 'rankCor'),
 	w = rep(1, length(x1)),
 	na.rm = FALSE,
-	logit = TRUE,
 	...
 ) {
+
+	x1 <- c(x1)
+	x2 <- c(x2)
 
 	# remove NAs
 	if (na.rm) {
@@ -75,20 +76,11 @@ compareNiches <- function(
 	if ('esp' %in% method) sim <- c(sim, 2 * sum(w * x1 * x2) / sum(w * c(x1 + x2)))
 
 	# correlation
-	if ('rho' %in% method) {
-
-		if (logit) {
-			sim <- c(sim, boot::corr(cbind(statisfactory::logitAdj(x1, ...), statisfactory::logitAdj(x2, ...)), w=w))
-		} else {
-			sim <- c(sim, boot::corr(cbind(x1, x2), w=w))
-		}
-
-	}
+	if ('rho' %in% method) sim <- c(sim, boot::corr(cbind(x1, x2), w=w))
 
 	# rank correlation
 	if ('rankCor' %in% method) sim <- c(sim, stats::cor(w * x1, w * x2, method='spearman'))
 
-	sim <- as.list(sim)
 	names(sim) <- method
 	sim
 
