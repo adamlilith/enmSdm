@@ -20,5 +20,5 @@ Object of class\code{SpatialPoints} or a 2-column \code{matrix}.
 This function extracts geographic coordinates from a data frame, matrix, or \code{SpatialPoints}* object
 }
 \seealso{
-\code{\link[sp]{SpatialPoints}}, \code{\link[sp]{SpatialPointsDataFrame}}
+\code{\link[sp]{SpatialPoints}}
 }

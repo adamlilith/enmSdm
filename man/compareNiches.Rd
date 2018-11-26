@@ -5,15 +5,14 @@
 \title{Metrics of niche overlap}
 \usage{
 compareNiches(x1, x2, method = c("meanDiff", "meanAbsDiff", "d", "i",
-  "esp", "rho", "rankCor"), w = rep(1, length(x1)), na.rm = FALSE,
-  logit = TRUE, ...)
+  "esp", "rho", "rankCor"), w = rep(1, length(x1)), na.rm = FALSE, ...)
 }
 \arguments{
-\item{x1}{Numeric. List of predictions from a model.}
+\item{x1}{Numeric. Vector or matrix of predictions from a model.}
 
-\item{x2}{Numeric. List of predictions from another model.}
+\item{x2}{Numeric. Vector or matrix of predictions from another model.}
 
-\item{method}{Character list, indicates type of metric to calculate:
+\item{method}{Character vector, indicates type of metric to calculate:
 \itemize{
 \item \code{meanDiff} mean difference between \code{x1} and \code{x2}
 \item \code{meanAbsDiff} mean absolute difference between \code{x1} and \code{x2} (ie, \code{sum(abs(x1 - x2))})
@@ -28,9 +27,7 @@ compareNiches(x1, x2, method = c("meanDiff", "meanAbsDiff", "d", "i",
 
 \item{na.rm}{Logical.  If T\code{TRUE} then remove elements in \code{x1} and \code{2} that are \code{NA} in \emph{either} \code{x1} or \code{x2}.}
 
-\item{logit}{Logical. Only used if \code{method} contains \code{rho}.  If TRUE, then \code{x1} and \code{x2} are first adjusted using \code{logitAdj()}. Use \code{...} to alter the default value of \code{epsilon} in \code{logitAdj()}.}
-
-\item{...}{Arguments to send to \code{\link[omnibus]{logitAdj}}.}
+\item{...}{Other arguments (not used).}
 }
 \value{
 List object with one element per value specified by the argument in \code{method}.
