@@ -39,7 +39,8 @@
 		rast <- rast * rastCrop
 	
 	}
-	
+
+	n <- if (raster::ncell(rast) > n) { ncell(rast) } else { n }
 	randPoints <- dismo::randomPoints(rast, n)
 	randPoints <- sp::SpatialPoints(randPoints, sp::CRS(crs))
 	

@@ -176,7 +176,7 @@ randPointsRespectingSelf <- function(
 		if (candDelta < delta) {
 
 			if (verbose) {
-				omnibus::say('(actual - desired) tolerance: ', sprintf('%.2f', candDelta), ' with ', accepts, ' accepts of ', tries, ' tries')
+				omnibus::say('(actual - desired) tolerance: ', sprintf('%.2f', candDelta - tol), ' with ', accepts, ' accepts of ', tries, ' tries')
 			}
 
 			randSites@coords[replaceIndex, ] <- sp::coordinates(candSite)
