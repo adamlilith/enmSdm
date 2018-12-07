@@ -59,37 +59,42 @@ nicheOverlap <- compiler::cmpfun(function(
 	colnames(x1) <- paste0('pc', 1:2)
 	colnames(x2) <- paste0('pc', 1:2)
 
+	### get limits of environmental space
+	pc1lims <- range(x1[ , 1], x2[ , 1], env[ , 1])
+	pc2lims <- range(x1[ , 2], x2[ , 2], env[ , 2])
+
+	# add an extra "half" bin to each side
+	pc1range <- diff(pc1lims)
+	pc2range <- diff(pc2lims)
+	
+	pc1binWidth <- 0.5 * 0.01 * pc1range
+	pc2binWidth <- 0.5 * 0.01 * pc2range
+	
+	pc1inc <- pc1binWidth / 2
+	pc2inc <- pc2binWidth / 2
+	
+	pc1lims[1] <- pc1lims[1] - pc1inc
+	pc2lims[1] <- pc2lims[1] - pc2inc
+	
+	pc1lims[2] <- pc1lims[2] + pc1inc
+	pc2lims[2] <- pc2lims[2] + pc2inc
+	
 	### construct kernel density estimator
-	xlims <- range(x1[ , 1], x2[ , 1], env[ , 1])
-	ylims <- range(x1[ , 2], x2[ , 2], env[ , 2])
+	kdeEnv <- MASS::kde2d(x=env[ , 1], y=env[ , 2], n=bins, lims=c(pc1lims, pc2lims))
+	x1kde <- MASS::kde2d(x=x1[ , 1], y=x1[ , 2], n=bins, lims=c(pc1lims, pc2lims))
+	x2kde <- MASS::kde2d(x=x2[ , 1], y=x2[ , 2], n=bins, lims=c(pc1lims, pc2lims))
 
-	# add extra "empty" bin to accommodate difference in interpretation of bins in kde2d and hist2d functions
-	xlims[1] <- xlims[1] - omnibus::eps()
-	ylims[1] <- ylims[1] - omnibus::eps()
-
-	xBinEdges <- seq.int(xlims[1L], xlims[2L], length.out=1L + bins[1L])
-	yBinEdges <- seq.int(ylims[1L], ylims[2L], length.out=1L + bins[1L])
-
-	xBinWidth <- xBinEdges[length(xBinEdges)] - xBinEdges[length(xBinEdges) - 1L]
-	yBinWidth <- yBinEdges[length(yBinEdges)] - yBinEdges[length(yBinEdges) - 1L]
-	xlims[2] <- xlims[2] + xBinWidth
-	ylims[2] <- ylims[2] + yBinWidth
-
-	kde <- MASS::kde2d(x=env[ , 1], y=env[ , 2], n=bins + 1, lims=c(xlims, ylims))
-
-	# calculate frequency of occupancy
-	envDens <- kde$z
-	envDens <- envDens[1:(nrow(envDens) - 1), 1:(ncol(envDens) - 1)]
+	### calculate frequency of occupancy
+	envDens <- kdeEnv$z
+	x1dens <- x1kde$z
+	x2dens <- x2kde$z
+	
 	envDens <- envDens / sum(envDens)
+	x1dens <- x1dens / sum(x1dens)
+	x2dens <- x2dens / sum(x2dens)
 
-	breaks1 <- kde$x
-	breaks2 <- kde$y
-
-	x1hist <- statisfactory::hist2d(x1, breaks1=breaks1, breaks2=breaks2)
-	x2hist <- statisfactory::hist2d(x2, breaks1=breaks1, breaks2=breaks2)
-
-	freqOcc1 <- x1hist / envDens
-	freqOcc2 <- x2hist / envDens
+	freqOcc1 <- x1dens / envDens
+	freqOcc2 <- x2dens / envDens
 
 	freqOcc1 <- freqOcc1 / sum(freqOcc1)
 	freqOcc2 <- freqOcc2 / sum(freqOcc2)
