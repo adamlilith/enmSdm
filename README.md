@@ -3,10 +3,10 @@ This package is a complement to the popular **dismo** package by Robert Hijmans.
 
 You can install the package using these commands:
 
-`install.packages('devtools') # if you haven't done this already`
-`library(devtools)`
-`install_github('adamlilith/omnibus')`
-`install_github('adamlilith/enmSdm')`
+`install.packages('devtools') # if you haven't done this already`  
+`library(devtools)`  
+`install_github('adamlilith/omnibus')`  
+`install_github('adamlilith/enmSdm')`  
 
 ## Data preparation ##
 * `geoFold`: Generate geographically distinct k-folds
