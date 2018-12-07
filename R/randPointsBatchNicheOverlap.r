@@ -8,6 +8,7 @@
 #' @param bins Number of bins into which to divide the environmental space (default is 100 on each side).
 #' @param cor Logical, if \code{TRUE} (default), then the PCA used to construct the environmental space will use the correlation matrix (this is highly recommended if the variables are on different scales). This is ignored if \code{env} is an object of class \code{princomp}.
 #' @return Data frame.
+#' @seealso \code{\link[enmSdm]{randPointsRespectingSelf}}, \code{\link[enmSdm]{randPointsRespectingSelfOther1}}, \code{\link[enmSdm]{randPointsRespectingSelfOther2}}, \code{\link[enmSdm]{randPointsBatch}}, \code{\link[enmSdm]{randPointsBatchSampled}}, \code{\link[enmSdm]{randPointsBatchExtract}}
 #' @examples
 #' library(dismo)
 #' library(raster)
@@ -201,6 +202,7 @@ randPointsBatchNicheOverlap <- function(
 
 		thisOverlap <- nicheOverlap(x1=x1, x2=x2, env=env, vars=vars, bins=bins, cor=cor)
 		thisOverlap <- as.data.frame(thisOverlap)
+		thisOverlap <- t(thisOverlap)
 		out <- rbind(out, thisOverlap)
 
 	}
@@ -209,6 +211,8 @@ randPointsBatchNicheOverlap <- function(
 		data.frame(iter = 1:nrow(out)),
 		out
 	)
+	
+	rownames(out) <- 1:nrow(out)
 
 	out
 

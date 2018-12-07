@@ -1,6 +1,13 @@
 # enmSdm
 This package is a complement to the popular **dismo** package by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating *species distribution models*, and comparing ecological niches.
 
+You can install the package using these commands:
+
+`install.packages('devtools') # if you haven't done this already`
+`library(devtools)`
+`install_github('adamlilith/omnibus')`
+`install_github('adamlilith/enmSdm')`
+
 ## Data preparation ##
 * `geoFold`: Generate geographically distinct k-folds
 * `geoThin` and `geoThinApprox`: Geographically thin points
@@ -19,13 +26,19 @@ This package is a complement to the popular **dismo** package by Robert Hijmans.
 ## Model evaluation ##
 * `aucWeighted`: AUC (with/out weights)
 * `contBoyce`: Continuous Boyce Index (with/out weights)
-* `Fpb`: Fpb
+* `Fpb`: Fpb (with/out weights)
 
 ## Niche overlap ##
 * `compareNiches`: Niche overlap metrics
-* `compareResponse`: Compare responses to a single variable
-* `randGeoBySelf`: Randomize points while respecting observed spatial autocorrelation structure between points
+* `compareResponse`: Compare niche model responses to a single variable
 * `mop`: Calculate mobility-oriented parity, a measure of multivariate distance
+* `nicheOverlap`: Calculate niche overlap as per Broennimann et al. Global Ecology and Biogeography 21:481-497
+* `randPointsRespectingSelf`: Randomize geographic points while approximately respecting observed spatial autocorrelation structure between points
+* `randPointsRespectingSelfOther2`: Randomize two sets of geographic points while approximately respecting observed spatial autocorrelation structure between and within sets
+* `randPointsBatch`: Call `randPointsRespectingSelf` or randPointsRespectingSelfOther2` multiple times
+* `randPointsBatchExtract`: Extract environment from a set of rasters for sets of randomized points generated using `randPointsBatch`
+* `randPointsBatchSampled`: Collate all sets of randomized points generated using `randPointsBatch`
+* `randPointsBatchNicheOverlap`: Calculate niche overlap between sets of randomized points generated using `randPointsBatch`
 
 ## Geographic utility functions ##
 * `convertTropicosCoords`: Convert coordinates from the TROPICOS database
