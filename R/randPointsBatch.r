@@ -9,9 +9,9 @@
 #' @param keepData Logical, if \code{TRUE} then the original data in \code{x} (i.e., columns that do not represent coordinates) will be retained in the output but the coordinates will be shuffled. If \code{FALSE} (default) then the returned value will have just shuffled coordinates.
 #' @param verbose Logical, if \code{TRUE} (default) show progress along iterations.
 #' @param verboseEach Logical, if \code{FALSE} (default), then suppress progress indicators for each call of the \code{randPointsRespecting~} function.
-#' @details Note that if you use the \code{randPointsRespectingSelfOther2} function and intend to summarize across iterations using subsequent functions (e.g., \code{\link[enmSdm]{randPointsSampled}}), it is highly advisable to ensure that the \code{x1} and \code{x2} arguments to that function have the same class (matrix, data frame, SpatialPoints, or SpatialPointsDataFrame). You should also either set the argument \code{keepData} to \code{FALSE} or ensure that the column names of \code{x1} and \code{x2} are exactly the same (which allows you to use \code{keepData = TRUE}).
+#' @details Note that if you use the \code{randPointsRespectingSelfOther2} function and intend to summarize across iterations using subsequent functions (e.g., \code{\link[enmSdm]{randPointsSampled}}), it is highly advisable to ensure that the \code{x1} and \code{x2} arguments to that function have the same class (matrix, data frame, SpatialPoints, or SpatialPointsDataFrame). You should also either set the argument \code{keepData} to \code{FALSE} or ensure that the column names of \code{x1} and \code{x2} are exactly the same (which then allows you to use \code{keepData = TRUE}).
 #' @return A list with \code{iterations} elements.
-#' @seealso \code{\link[enmSdm]{randPointsRespectingSelf}}, \code{\link[enmSdm]{randPointsRespectingSelfOther1}}, \code{\link[enmSdm]{randPointsRespectingSelfOther2}}, \code{\link[enmSdm]{randPointsSampled}}
+#' @seealso \code{\link[enmSdm]{randPointsRespectingSelf}}, \code{\link[enmSdm]{randPointsRespectingSelfOther1}}, \code{\link[enmSdm]{randPointsRespectingSelfOther2}}, \code{\link[enmSdm]{randPointsBatchSampled}}, \code{\link[enmSdm]{randPointsBatchExtract}}, \code{\link[enmSdm]{randPointsBatchNicheOverlap}}
 #' @examples
 #' library(dismo)
 #' library(raster)

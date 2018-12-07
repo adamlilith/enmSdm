@@ -20,5 +20,5 @@ A list.
 This function is called using a list object typically generated using the \code{\link[enmSdm]{randPointsMaster}} function. To each set of random points represented in that list it adds environmental data extracted from a raster stack or brick.
 }
 \seealso{
-\code{\link[enmSdm]{randPointsMaster}}, \code{\link[enmSdm]{randPointsSampled}}
+\code{\link[enmSdm]{randPointsRespectingSelf}}, \code{\link[enmSdm]{randPointsRespectingSelfOther1}}, \code{\link[enmSdm]{randPointsRespectingSelfOther2}}, \code{\link[enmSdm]{randPointsBatch}}, \code{\link[enmSdm]{randPointsBatchSampled}}, \code{\link[enmSdm]{randPointsBatchNicheOverlap}}
 }

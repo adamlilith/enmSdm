@@ -26,3 +26,6 @@ Data frame.
 \description{
 This function is called using a list object typically generated using the \code{\link[enmSdm]{randPontsMaster}} function (plus sometimes followed by the \code{\link[enmSdm]{randPointsExtract}} and \code{\link[enmSdm]{randPointsSampled}} functions). It calculates niche overlap for each set of points. Essentially it is a wrapper for \code{\link[enmSdm]{nicheOverlap}}.
 }
+\seealso{
+\code{\link[enmSdm]{randPointsRespectingSelf}}, \code{\link[enmSdm]{randPointsRespectingSelfOther1}}, \code{\link[enmSdm]{randPointsRespectingSelfOther2}}, \code{\link[enmSdm]{randPointsBatch}}, \code{\link[enmSdm]{randPointsBatchSampled}}, \code{\link[enmSdm]{randPointsBatchExtract}}
+}
