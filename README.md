@@ -1,7 +1,7 @@
 # enmSdm
-This package is a complement to the popular **dismo** package by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating *species distribution models*, and comparing ecological niches.
+This package is a complement to the popular **dismo** package for R by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating *species distribution models*, and comparing ecological niches.
 
-You can install the package using these commands:
+You can install this package in R using these commands:
 
 `install.packages('devtools') # if you haven't done this already`  
 `library(devtools)`  
