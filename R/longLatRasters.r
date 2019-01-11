@@ -7,7 +7,7 @@
 #' @param ... Arguments to pass to \code{writeRaster} (if \code{filePath} is not \code{NULL}).
 #' @return Object of class \code{RasterStack}.
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' x <- raster::raster() # raster with 1 deg resolution and extent equal to entire world
 #' ll <- longLatRasters(x)
 #' plot(ll)

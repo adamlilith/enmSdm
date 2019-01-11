@@ -23,7 +23,7 @@
 #' @return If \code{out = 'model'} this function returns an object of class \code{gbm}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters and cross-validation deviance for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{gbm} object and the data frame.
 #' @seealso [dismo::gbm.step()]
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' x <- matrix(rnorm(n = 6*100), ncol = 6)
 #' # true variables will be #1, #2, #5, and #6, plus

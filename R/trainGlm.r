@@ -40,7 +40,7 @@
 #' model <- trainGlmDredge(x, verbose=TRUE)
 #' @seealso \code{\link[enmSdm]{trainGlmDredge}}, \code{\link[stats]{glm}} in the \pkg{stats} package, \code{\link[brglm2]{brglmFit}} in the \pkg{brglm2} package
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' x <- matrix(rnorm(n = 6*100), ncol = 6)
 #' # true variables will be #1, #2, #5, and #6, plus
