@@ -4,11 +4,16 @@
 \alias{spatialCorrForPoints}
 \title{Calculate spatial autocorrelation for geographic points}
 \usage{
-spatialCorrForPoints(x, rast, breaks, iters = 100, verbose = FALSE,
-  ...)
+spatialCorrForPoints(x, rast, breaks, iters = 100, numPoints = NULL,
+  verbose = FALSE, ...)
 }
 \arguments{
-\item{x}{SpatialPoints or SpatialPointsDataFrame object or a matrix or data frame with two columns. If a matrix or data frame, then the first column must have values for longitude and the second latitude.}
+\item{x}{Any one of:
+\itemize{
+\item SpatialPoints or SpatialPointsDataFrame object.
+\item Matrix or data frame with two columns. The first column must have values for longitude and the second latitude.
+\item Numeric vector of positive values. These represent "observed" distances to be evaluated against randomized distances in kilometers. If this option is used then \code{numPoints} must be specified.
+}}
 
 \item{rast}{Raster, raster stack, or raster brick object. Randomly located sites will be placed in any non-\code{NA} cell on this raster. If this is a raster stack or brick, the first layer will be used.}
 
@@ -19,6 +24,8 @@ spatialCorrForPoints(x, rast, breaks, iters = 100, verbose = FALSE,
 }}
 
 \item{iters}{Positive integer, number of times to generate randomized realizations of points.}
+
+\item{numPoints}{Either \code{NULL} (default) or a positive integer >= 2. This argument is only used if \code{x} is a numeric vector representing distances. It represents the number of points the be randomly located in each iteration.}
 
 \item{verbose}{Logical, if \code{TRUE} then display progress. Default is \code{FALSE}.}
 
