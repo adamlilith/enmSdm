@@ -32,7 +32,7 @@ A list with \code{iterations} elements.
 This function is a wrapper function for any of the \code{randPointsRespecting~} functions. It is useful for calling the function multiple times using the same arguments. The output is a list with one element per call.
 }
 \details{
-Note that if you use the \code{randPointsRespectingSelfOther2} function and intend to summarize across iterations using subsequent functions (e.g., \code{\link[enmSdm]{randPointsSampled}}), it is highly advisable to ensure that the \code{x1} and \code{x2} arguments to that function have the same class (matrix, data frame, SpatialPoints, or SpatialPointsDataFrame). You should also either set the argument \code{keepData} to \code{FALSE} or ensure that the column names of \code{x1} and \code{x2} are exactly the same (which allows you to use \code{keepData = TRUE}).
+Note that if you use the \code{randPointsRespectingSelfOther2} function and intend to summarize across iterations using subsequent functions (e.g., \code{\link[enmSdm]{randPointsSampled}}), it is highly advisable to ensure that the \code{x1} and \code{x2} arguments to that function have the same class (matrix, data frame, SpatialPoints, or SpatialPointsDataFrame). You should also either set the argument \code{keepData} to \code{FALSE} or ensure that the column names of \code{x1} and \code{x2} are exactly the same (which then allows you to use \code{keepData = TRUE}).
 }
 \seealso{
 \code{\link[enmSdm]{randPointsRespectingSelf}}, \code{\link[enmSdm]{randPointsRespectingSelfOther1}}, \code{\link[enmSdm]{randPointsRespectingSelfOther2}}, \code{\link[enmSdm]{randPointsBatchSampled}}, \code{\link[enmSdm]{randPointsBatchExtract}}, \code{\link[enmSdm]{randPointsBatchNicheOverlap}}
