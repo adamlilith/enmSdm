@@ -6,6 +6,7 @@ You can install this package in R using these commands:
 `install.packages('devtools') # if you haven't done this already`  
 `library(devtools)`  
 `install_github('adamlilith/omnibus')`  
+`install_github('adamlilith/statisfactory')`  
 `install_github('adamlilith/enmSdm')`  
 
 ## Data preparation ##
