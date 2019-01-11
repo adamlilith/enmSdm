@@ -1,7 +1,7 @@
 # enmSdm
-This package is a complement to the popular **dismo** package by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating *species distribution models*, and comparing ecological niches.
+This package is a complement to the popular **dismo** package for R by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating *species distribution models*, and comparing ecological niches.
 
-You can install the package using these commands:
+You can install this package in R using these commands:
 
 `install.packages('devtools') # if you haven't done this already`  
 `library(devtools)`  
@@ -39,6 +39,11 @@ You can install the package using these commands:
 * `randPointsBatchExtract`: Extract environment from a set of rasters for sets of randomized points generated using `randPointsBatch`
 * `randPointsBatchSampled`: Collate all sets of randomized points generated using `randPointsBatch`
 * `randPointsBatchNicheOverlap`: Calculate niche overlap between sets of randomized points generated using `randPointsBatch`
+
+## Spatial autocorrelation ##
+* `spatialCorrForPoints`: Calculate pairwise distance-based measure of spatial autocorrelation between geographic points
+* `spatialCorrForPointsSummary`: Characteristic cluster size of spatial points (distance of autocorrelation)
+* `spatialCorrForPointsPlot`: Plot observed and null distributions of pairwise distance-based measure of spatial autocorrelation
 
 ## Geographic utility functions ##
 * `convertTropicosCoords`: Convert coordinates from the TROPICOS database
