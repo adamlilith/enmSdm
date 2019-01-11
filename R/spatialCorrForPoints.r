@@ -1,7 +1,12 @@
 #' Calculate spatial autocorrelation for geographic points
 #'
 #' This function calculates a measure of spatial autocorrelation for a set of geographic points. The procedure first computes the distribution of pairwise distances between the points. The frequency of distances are then tabulated in overlapping distance bins (e.g., 0 to 10 km, 5 to 15 km, 10 to 20 km, etc.). Then, many sets of randomly located points are generated. Each set contains the same number of points as observed.  For each set pairwise distances are calculated and the distance distribution tabulated. The observed distance distribution can then be compared to the randomized distributions to determine at what distance(s) the observed distances are more/less clustered than expected by chance.
-#' @param x SpatialPoints or SpatialPointsDataFrame object or a matrix or data frame with two columns. If a matrix or data frame, then the first column must have values for longitude and the second latitude.
+#' @param x Any one of:
+#' \itemize{
+#' \item SpatialPoints or SpatialPointsDataFrame object.
+#' \item Matrix or data frame with two columns. The first column must have values for longitude and the second latitude.
+#' \item Numeric vector of positive values. These represent "observed" distances to be evaluated against randomized distances in kilometers. If this option is used then \code{numPoints} must be specified.
+#' }
 #' @param rast Raster, raster stack, or raster brick object. Randomly located sites will be placed in any non-\code{NA} cell on this raster. If this is a raster stack or brick, the first layer will be used.
 #' @param breaks Three numeric values or a matrix or data frame with at least two columns:
 #' \itemize{
@@ -9,6 +14,7 @@
 #' \item Matrix or data frame with at least two columns. Each row corresponds to a different bin. The first column represents the minimum distance in each bin  (in km) and the second column the maximum distance (in km). Subsequent columns are ignored. Note that by using this option arbitrary bins can be used--they need not overlap or even be continuous in coverage.
 #' }
 #' @param iters Positive integer, number of times to generate randomized realizations of points.
+#' @param numPoints Either \code{NULL} (default) or a positive integer >= 2. This argument is only used if \code{x} is a numeric vector representing distances. It represents the number of points the be randomly located in each iteration.
 #' @param verbose Logical, if \code{TRUE} then display progress. Default is \code{FALSE}.
 #' @param ... Arguments to pass to \code{\link[dismo]{randomPoints}}.
 #' @details The idea behind this measure of spatial autocorrelation is that a set of geographic points is "independent" of one another if their pairwise distances are indistinguishable from pairwise distances of the same number of points randomly located across a landscape. Typically a set of points displays clustering (non-independence) across some distances but not all distances. Thus to identify the scale of clustering pairwise distances are tabulated into bins.  (We suggest using overlapping bins, e.g., from 0 to 20 km, 10 to 30 km, 20 to 40 km, etc. See the example below for how to do this).  
@@ -64,17 +70,21 @@ spatialCorrForPoints <- function(
 	rast,
 	breaks,
 	iters = 100,
+	numPoints = NULL,
 	verbose = FALSE,
 	...
 ) {
 
 	if (class(x) %in% 'data.frame') x <- as.matrix(x)
 
-	if (!(class(x) %in% c('matrix', 'SpatialPoints', 'SpatialPointsDataFrame'))) {
-		stop('Argument "x" must be a "SpatialPoints" or "SpatialPointsDataFrame" object or a matrix with two columns.')
+	if (class(x) == 'numeric' & is.null(numPoints)) {
+		stop('Argument "numPoints" must be specified if "x" is a vector.')
 	}
-
-	numPoints <- if (class(x) == 'SpatialPoints') {
+	
+	# number of points to draw each iteration
+	numPoints <- if (class(x) == 'numeric') {
+		numPoints
+	} else if (class(x) == 'SpatialPoints') {
 		length(x)
 	} else {
 		nrow(x)
@@ -82,11 +92,18 @@ spatialCorrForPoints <- function(
 
 	# observed distances
 	if (verbose) omnibus::say('Calculating observed pairwise distance distribution...')
-	obsDist <- geosphere::distm(x)
-	obsDist <- obsDist / 1000
-	diag(obsDist) <- NA
-	obsDist <- c(obsDist)
 	
+	if (class(x) == 'numeric') {
+		obsDist <- x
+	} else {
+		
+		obsDist <- geosphere::distm(x)
+		obsDist <- obsDist / 1000
+		diag(obsDist) <- NA
+		obsDist <- c(obsDist)
+		
+	}
+		
 	distDistrib <- statisfactory::histOverlap(obsDist, breaks=breaks, graph=FALSE)
 	
 	# create bank of random points
