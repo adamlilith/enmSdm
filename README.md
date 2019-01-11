@@ -45,6 +45,7 @@ You can install this package in R using these commands:
 * `spatialCorrForPoints`: Calculate pairwise distance-based measure of spatial autocorrelation between geographic points
 * `spatialCorrForPointsSummary`: Characteristic cluster size of spatial points (distance of autocorrelation)
 * `spatialCorrForPointsPlot`: Plot observed and null distributions of pairwise distance-based measure of spatial autocorrelation
+* `spatialCorrForPointsWeight`: Assign weights to points based on pairwise distance-based measure of spatial autocorrelation
 
 ## Geographic utility functions ##
 * `convertTropicosCoords`: Convert coordinates from the TROPICOS database
