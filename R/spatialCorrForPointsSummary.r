@@ -80,14 +80,17 @@ spatialCorrForPointsSummary <- function(
 	} else {
 
 		if (verbose) {
-			omnibus::say('The least distance interval at which the observed distance')
-			omnibus::say('distribution is insignificantly different from the null')
-			omnibus::say('distribution using the upper ', perc, 'th quantile occurs in the')
-			omnibus::say('interval from ', x[firstInsigIndex, 'lower'], ' to ', x[firstInsigIndex, 'upper'], '.')
-		}
+			
+			lower <- x[firstInsigIndex, 'lower']
+			upper <- x[firstInsigIndex, 'upper']
+			firstInsigDist <- mean(c(lower, upper))
 		
-		midDists <- apply(x[ , 1:2], 1, mean)
-		firstInsigDist <- midDists[firstInsigIndex]
+			omnibus::say('The distance interval at which the observed distance')
+			omnibus::say('distribution is first insignificantly different from')
+			omnibus::say('the null distribution using the upper ', perc, 'th quantile')
+			omnibus::say('occurs in the interval from ', lower, ' to ', upper, ' (midpoint = ')
+			omnibus::say(firstInsigDist, ').')
+		}
 		
 	}
 	
