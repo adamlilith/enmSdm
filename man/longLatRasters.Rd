@@ -22,7 +22,7 @@ Object of class \code{RasterStack}.
 This function generates a raster stack with two rasters, one with cell values equal to the cell's longitude and the other with cell values equal to cthe cell's latitude.
 }
 \examples{
-\dontrun{
+\donttest{
 x <- raster::raster() # raster with 1 deg resolution and extent equal to entire world
 ll <- longLatRasters(x)
 plot(ll)

@@ -52,7 +52,7 @@ If \code{out = 'model'} this function returns an object of class \code{gbm}. If 
 This function is a wrapper for \code{gbm.step()}. It returns the model with best combination of learning rate, tree depth, and bag fraction based on cross-validated deviance. Models with >=1000 trees are preferred over those with lower deviance.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(123)
 x <- matrix(rnorm(n = 6*100), ncol = 6)
 # true variables will be #1, #2, #5, and #6, plus

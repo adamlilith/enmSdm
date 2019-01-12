@@ -58,7 +58,7 @@ If \code{out = 'model'} this function returns an object of class \code{glm}. If 
 This is a pseudo-deprecated function to construct a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias. This function uses \code{\link[MuMIn]{dredge}} in the \pkg{MuMIn} package to cycle through all possible models.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(123)
 x <- matrix(rnorm(n = 6*100), ncol = 6)
 # true variables will be #1, #2, #5, and #6, plus

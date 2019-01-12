@@ -38,7 +38,7 @@ Numeric.
 Takes a MaxEnt \code{lambda} object or a MaxEnt object and returns raw or logistic predictions.  Its output is the same as the function \code{raster::predict(maxentModelObject, dataFrame)} or \code{raster::predict(maxentModelObject, dataFrame, args='outputformat=raw')} (to within rounding error), and in fact those functions should be faster.  However, this function does allow custom manipulations that those functions do not allow (e.g., permuting product features while leaving other features with the same variables intact).  This function is based on Peter D. Wilson's document "Guidelines for computing MaxEnt model output values from a lambdas file".
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(123)
 data <- matrix(rnorm(n = 6*1000), ncol = 6)
 # true variables will be #1, #2, #5, and #6, plus
