@@ -7,11 +7,10 @@
 trainGlm(data, resp = names(data)[1],
   preds = names(data)[2:ncol(data)], family = "binomial",
   tooBig = 1e+07, construct = TRUE, select = TRUE,
-  quadratic = TRUE, interaction = TRUE, cubic = FALSE,
-  interQuad = FALSE, verboten = NULL, verbotenCombos = NULL,
-  presPerTermInitial = 10, presPerTermFinal = 20, initialTerms = 10,
-  w = TRUE, method = "glm.fit", out = "model", verbose = FALSE,
-  ...)
+  quadratic = TRUE, interaction = TRUE, verboten = NULL,
+  verbotenCombos = NULL, presPerTermInitial = 10,
+  presPerTermFinal = 20, initialTerms = 10, w = TRUE,
+  method = "glm.fit", out = "model", verbose = FALSE, ...)
 }
 \arguments{
 \item{data}{Data frame. Must contain fields with same names as in \code{preds} object.}
@@ -24,17 +23,13 @@ trainGlm(data, resp = names(data)[1],
 
 \item{tooBig}{Numeric. Used to catch errors when fitting a model fit with the \code{brglmFit} function in the \pkg{brglm2} package. In some cases fitted coefficients are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.}
 
-\item{construct}{Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic}, \code{cubic}, \code{interaction}, and \code{interQuad}.}
+\item{construct}{Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic} and \code{interaction}.}
 
 \item{select}{Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).}
 
 \item{quadratic}{Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} (default) then include quadratic terms in model construction stage for non-factor predictors.}
 
 \item{interaction}{Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} (default) then include 2-way interaction terms (including interactions between factor predictors).}
-
-\item{cubic}{Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} then include cubic terms in model construction stage for non-factor predictors. Default is \code{FALSE}.}
-
-\item{interQuad}{Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} then include all possible interactions of the form 'x * y^2' unless 'y' is a factor. Default is \code{FALSE}.}
 
 \item{verboten}{Either \code{NULL} (default) in which case \code{forms} is returned without any manipulation. Alternatively, this is a character list of terms that are not allowed to appear in any model in \code{forms}. Models with these terms are removed from \code{forms}. Note that the order of variables in interaction terms does not matter (e.g., \code{x1:x2} will cause the removal of models with this term verbatim as well as \code{x2:x1}). All possible permutations of three-way interaction terms are treated similarly.}
 
@@ -73,10 +68,10 @@ names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
 model <- trainGlmDredge(x, verbose=TRUE)}
 }
 \description{
-This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias.
+This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, and 2-way-interaction terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias.
 }
 \examples{
-\dontrun{
+\donttest{
 set.seed(123)
 x <- matrix(rnorm(n = 6*100), ncol = 6)
 # true variables will be #1, #2, #5, and #6, plus
