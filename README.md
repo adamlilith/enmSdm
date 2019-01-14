@@ -25,9 +25,10 @@ You can install this package in R using these commands:
 * `trainRf`: random forests (RFs)  
 
 ## Model evaluation ##
-* `aucWeighted`: AUC (with/out weights)
-* `contBoyce`: Continuous Boyce Index (with/out weights)
-* `Fpb`: Fpb (with/out weights)
+* `aucWeighted`: AUC (with/out site weights)
+* `aucMultiWeighted`: Multivariate version of AUC (with/out site weight)
+* `contBoyce`: Continuous Boyce Index (with/out site weights)
+* `Fpb`: Fpb (with/out site weights)
 
 ## Niche overlap ##
 * `compareNiches`: Niche overlap metrics
