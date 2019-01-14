@@ -15,7 +15,7 @@
 #' @return Numeric.
 #' @seealso \code{\link[dismo]{maxent}}
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' data <- matrix(rnorm(n = 6*1000), ncol = 6)
 #' # true variables will be #1, #2, #5, and #6, plus

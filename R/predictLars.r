@@ -12,7 +12,7 @@
 #' @examples
 #' # linear regression, a simulation demo
 #' (from grpregOverlap() function in the grpregOverlap package)
-#' \dontrun{
+#' \donttest{
 #' set.seed(123)
 #' X <- matrix(rnorm(n = 6*100), ncol = 6)
 #' # true variables will be #1, #2, #5, and #6, plus

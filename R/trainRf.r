@@ -4,9 +4,9 @@
 #' @param data Data frame.
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
-#' @param family Character. If "\code{binomial}" then the response is converted to a binary factor with levels 0 and 1. Othewrise, this argument has no effect.
+#' @param family Character. If "\code{binomial}" then the response is converted to a binary factor with levels 0 and 1. Otherwise, this argument has no effect.
 #' @param w Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) \emph{or} a numeric list of weights, one per class in \code{resp}. The default is to assign equal total weight to presences and contrast sites (\code{TRUE}).
-#' @param verbose Logical. If \code{TRUE} then display progresss for finding optimal value of \code{mtry}.
+#' @param verbose Logical. If \code{TRUE} then display progress for finding optimal value of \code{mtry}.
 #' @param ... Arguments to pass to \code{\link[randomForest]{randomForest}}.
 #' @return Object of class \code{\link[randomForest]{randomForest}}.
 #' @seealso \code{\link[randomForest]{randomForest}}, \code{\link{trainCrf}}

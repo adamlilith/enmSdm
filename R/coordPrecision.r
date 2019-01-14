@@ -36,7 +36,7 @@
 #' precision_m <- coordPrecision(ll)
 #' cbind(ll, precision_m)
 #'
-#' \dontrun{
+#' \donttest{
 #' # known error when longitude is negative and latitude is -90
 #' long <- -45
 #' lat <- -90

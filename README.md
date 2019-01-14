@@ -25,9 +25,10 @@ You can install this package in R using these commands:
 * `trainRf`: random forests (RFs)  
 
 ## Model evaluation ##
-* `aucWeighted`: AUC (with/out weights)
-* `contBoyce`: Continuous Boyce Index (with/out weights)
-* `Fpb`: Fpb (with/out weights)
+* `aucWeighted`: AUC (with/out site weights)
+* `aucMultiWeighted`: Multivariate version of AUC (with/out site weight)
+* `contBoyce`: Continuous Boyce Index (with/out site weights)
+* `Fpb`: Fpb (with/out site weights)
 
 ## Niche overlap ##
 * `compareNiches`: Niche overlap metrics
@@ -52,7 +53,7 @@ You can install this package in R using these commands:
 * `coordPrecision`: Calculate maximum possible coordinate precision
 * `dmsToDecimal`: Convert degrees-minutes-seconds to decimal
 * `elimCellDups`: Eliminate duplicate points in each cell of a raster
-* `getCRS`: Return a proj4string (coordinate reference system string) using a nikname
+* `getCRS`: Return a proj4string (coordinate reference system string) using a nickname
 * `longLatRasters`: Generate rasters with values of longitude/latitude for cell values
 * `pointDist`: Geographic distance between set(s) of points
 * `sampleRast` and `sampleRastStrat`: Sample raster with/out replacement and possibly in a stratified manner

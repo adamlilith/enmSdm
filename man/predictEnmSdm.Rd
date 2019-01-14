@@ -7,7 +7,7 @@
 predictEnmSdm(model, newdata, maxentFun = "dismo", ...)
 }
 \arguments{
-\item{model}{Object of class \code{lm}, \code{glm}, \code{gam}, \code{randomForest}, \code{xxxx}, \code{MaxEnt}, \code{MaxNet}, and possibly others (worth a try!).}
+\item{model}{Object of class \code{lm}, \code{glm}, \code{gam}, \code{randomForest}, \code{MaxEnt}, \code{MaxNet}, and possibly others (worth a try!).}
 
 \item{newdata}{Data frame or matrix with data to which to predict}
 
@@ -19,11 +19,11 @@ predictEnmSdm(model, newdata, maxentFun = "dismo", ...)
 Numeric.
 }
 \description{
-This is a generic predict function that automatically uses the model common arguments for predicting models of the following types: linear models, generalized linear models (GLMs), generalzied additive models (GAMs), random forests, boosted regression trees (BRTs)/gradient boosting machines (GBMs), conditional random forests, Maxent, and more.
+This is a generic predict function that automatically uses the model common arguments for predicting models of the following types: linear models, generalized linear models (GLMs), generalized additive models (GAMs), random forests, boosted regression trees (BRTs)/gradient boosting machines (GBMs), conditional random forests, Maxent, and more.
 }
 \examples{
 
 }
 \seealso{
-\code{\link[stats]{predict}} from the stats package, \code{\link[dismo]{predict}} from the dismmo package, \code{\link[raster]{predict}} fromm the raster package
+\code{\link[stats]{predict}} from the stats package, \code{\link[dismo]{predict}} from the dismo package, \code{\link[raster]{predict}} fromm the raster package
 }

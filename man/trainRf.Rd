@@ -14,11 +14,11 @@ trainRf(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
 
 \item{preds}{Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.}
 
-\item{family}{Character. If "\code{binomial}" then the response is converted to a binary factor with levels 0 and 1. Othewrise, this argument has no effect.}
+\item{family}{Character. If "\code{binomial}" then the response is converted to a binary factor with levels 0 and 1. Otherwise, this argument has no effect.}
 
 \item{w}{Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) \emph{or} a numeric list of weights, one per class in \code{resp}. The default is to assign equal total weight to presences and contrast sites (\code{TRUE}).}
 
-\item{verbose}{Logical. If \code{TRUE} then display progresss for finding optimal value of \code{mtry}.}
+\item{verbose}{Logical. If \code{TRUE} then display progress for finding optimal value of \code{mtry}.}
 
 \item{...}{Arguments to pass to \code{\link[randomForest]{randomForest}}.}
 }
