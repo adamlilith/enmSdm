@@ -5,7 +5,7 @@ Version: 0.3.4.8
 Date: 2019-02-06
 Author: Adam B. Smith <adam.smith@mobot.org>
 Maintainer: Adam B. Smith <adam.smith@mobot.org>
-Description: Smarter modeling of niches and distributions.
+Description: Better modeling of niches and distributions.
 Depends:
 Imports:
 	boot,
