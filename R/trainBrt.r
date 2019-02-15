@@ -103,7 +103,8 @@ trainBrt <- function(
 	# initialize lowest cross-validation deviance
 	lowestDeviance <- Inf
 
-
+	bestModel <- NA
+	
 	############
 	### MAIN ###
 	############
@@ -117,7 +118,7 @@ trainBrt <- function(
 			tempTc <- thisTc
 
 			# by BAG FRACTION
-			for (thisBF in bagFraction) {
+			for (thisBag in bagFraction) {
 
 				# for each parameter combination, train model and get deviance, remember if model with lowest deviance so far
 				for (thisMaxTrees in maxTrees) {
@@ -146,7 +147,7 @@ trainBrt <- function(
 						}
 
 						# display parameters
-						if (verbose) omnibus::say('try: ', numTries, ' | max trees: ', tempMaxTrees, ' | step: ', tempStepSize, ' trees | LR: ', tempLr, ' | TC: ', tempTc, ' | BF: ', thisBF, post=0)
+						if (verbose) omnibus::say('try: ', numTries, ' | max trees: ', tempMaxTrees, ' | step: ', tempStepSize, ' trees | learning: ', tempLr, ' | complexity: ', tempTc, ' | bag: ', thisBag, post=0)
 
 						# train model... using tryCatch because model may not converge
 						model <- tryCatch(
@@ -157,7 +158,7 @@ trainBrt <- function(
 								family=family,
 								tree.complexity=tempTc,
 								learning.rate=tempLr,
-								bag.fraction=thisBF,
+								bag.fraction=thisBag,
 								max.trees=tempMaxTrees,
 								n.trees=tempStepSize,
 								plot.main=FALSE,
@@ -175,12 +176,12 @@ trainBrt <- function(
 
 							converged <- TRUE
 							dev <- model$cv.statistics$deviance.mean
-							if (dev < lowestDeviance) {
+							if (dev < lowestDeviance && model$gbm.call$best.trees >= 1000) {
 								bestModel <- model
 								lowestDeviance <- dev
 								bestTc <- tempTc
 								bestLr <- tempLr
-								bestBF <- thisBF
+								bestBF <- thisBag
 								bestMaxTrees <- tempMaxTrees
 								bestStepSize <- tempStepSize
 							}
@@ -197,7 +198,7 @@ trainBrt <- function(
 							data.frame(
 								learningRate = tempLr,
 								treeComplexity = tempTc,
-								bagFraction = thisBF,
+								bagFraction = thisBag,
 								maxTrees = tempMaxTrees,
 								stepSize = tempStepSize,
 								nTrees = ifelse(converged, model$gbm.call$best.trees, NA),
@@ -221,7 +222,7 @@ trainBrt <- function(
 
 	} # next learning rate
 
-	# flag models with >1000 trees
+	# accept models with >=1000 trees
 	tuning <- tuning[order(tuning$dev), ]
 	tuning$usable <- (tuning$nTrees >= 1000 & !is.na(tuning$deviance))
 	if (any(tuning$usable) & any(!tuning$usable)) tuning <- rbind(tuning[tuning$usable, ], tuning[!tuning$usable, ])
@@ -236,47 +237,47 @@ trainBrt <- function(
 		omnibus::say('')
 	}
 
-	### get best model with >1000 trees
-	if (tuning$usable[1] & nrow(tuning) > 1) {
+	# ### get best model with >1000 trees
+	# if (tuning$usable[1] & nrow(tuning) > 1) {
 
-		# if did not remember best model
-		if (tuning$treeComplexity[1] != bestTc | tuning$learningRate[1] != bestLr | tuning$bagFraction[1] != bestBF | tuning$maxTrees[1] != bestMaxTrees | tuning$stepSize[1] != bestStepSize) {
+		# # if did not remember best model
+		# if (tuning$treeComplexity[1] != bestTc | tuning$learningRate[1] != bestLr | tuning$bagFraction[1] != bestBF | tuning$maxTrees[1] != bestMaxTrees | tuning$stepSize[1] != bestStepSize) {
 
-			if (verbose) omnibus::say('Training best model...')
+			# if (verbose) omnibus::say('Training best model...')
 
-			# train model... using tryCatch because model may not converge
-			model <- dismo::gbm.step(
-				data=data,
-				gbm.x=preds,
-				gbm.y=resp,
-				family=family,
-				tree.complexity=tuning$treeComplexity[1],
-				learning.rate=tuning$learningRate[1],
-				bag.fraction=tuning$bagFraction[1],
-				max.trees=tuning$maxTrees[1],
-				n.trees=tuning$stepSize[1],
-				plot.main=FALSE,
-				plot.folds=FALSE,
-				silent=TRUE,
-				verbose=TRUE,
-				site.weights=w,
-				...
-			)
+			# # train model... using tryCatch because model may not converge
+			# model <- dismo::gbm.step(
+				# data=data,
+				# gbm.x=preds,
+				# gbm.y=resp,
+				# family=family,
+				# tree.complexity=tuning$treeComplexity[1],
+				# learning.rate=tuning$learningRate[1],
+				# bag.fraction=tuning$bagFraction[1],
+				# max.trees=tuning$maxTrees[1],
+				# n.trees=tuning$stepSize[1],
+				# plot.main=FALSE,
+				# plot.folds=FALSE,
+				# silent=TRUE,
+				# verbose=TRUE,
+				# site.weights=w,
+				# ...
+			# )
 
-		}
+		# }
 
-	}
+	# }
 
 	# return
 	if ('model' %in% out & 'tuning' %in% out) {
 		out <- list()
 		out$tuning <- tuning
-		out$model <- model
+		out$model <- bestModel
 		out
 	} else if ('tuning' %in% out) {
 		tuning
 	} else {
-		model
+		bestModel
 	}
 
 }
