@@ -103,7 +103,8 @@ trainBrt <- function(
 	# initialize lowest cross-validation deviance
 	lowestDeviance <- Inf
 
-
+	bestModel <- NA
+	
 	############
 	### MAIN ###
 	############
@@ -175,7 +176,7 @@ trainBrt <- function(
 
 							converged <- TRUE
 							dev <- model$cv.statistics$deviance.mean
-							if (!is.na(dev) && dev < lowestDeviance && model$gbm.call$best.trees >= 1000) {
+							if (dev < lowestDeviance && model$gbm.call$best.trees >= 1000) {
 								bestModel <- model
 								lowestDeviance <- dev
 								bestTc <- tempTc
@@ -221,7 +222,7 @@ trainBrt <- function(
 
 	} # next learning rate
 
-	# flag models with >1000 trees
+	# accept models with >=1000 trees
 	tuning <- tuning[order(tuning$dev), ]
 	tuning$usable <- (tuning$nTrees >= 1000 & !is.na(tuning$deviance))
 	if (any(tuning$usable) & any(!tuning$usable)) tuning <- rbind(tuning[tuning$usable, ], tuning[!tuning$usable, ])
