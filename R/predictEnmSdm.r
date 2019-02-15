@@ -18,25 +18,25 @@ predictEnmSdm <- function(
 	...
 ) {
 
-	cl <- class(model)
+	modelClass <- class(model)
 
 	# GAM/GLM
-	if ('gam' %in% cl | 'glm' %in% cl) {
+	if ('gam' %in% modelClass | 'glm' %in% modelClass) {
 	
 		out <- predict(model, newdata, type='response', ...)
 		
 	# LM
-	} else if ('lm' %in% cl) {
+	} else if ('lm' %in% modelClass) {
 	
 		out <- predict(model, newdata, ...)
 		
 	# BRT
-	} else if ('gbm' %in% cl) {
+	} else if ('gbm' %in% modelClass) {
 	
-		out <- predict(model, newdata, n.trees=model$gbm.call$n.trees, ...)
+		out <- gbm::predict.gbm(model, newdata, n.trees=model$gbm.call$n.trees, ...)
 	
 	# Maxent
-	} else if ('MaxEnt' %in% cl) {
+	} else if ('MaxEnt' %in% modelClass) {
 	
 		out <- if (maxentFun == 'dismo') {
 			dismo::predict(model, newdata, ...)
@@ -45,12 +45,12 @@ predictEnmSdm <- function(
 		}
 	
 	# MaxNet
-	} else if ('maxnet' %in% cl) {
+	} else if ('maxnet' %in% modelClass) {
 	
 		out <- predict(model, newdata, ...)
 		
 	# random forest in party package
-	} else if ('RandomForest' %in% cl) {
+	} else if ('RandomForest' %in% modelClass) {
 	
 		out <- predict(model, newdata, type='prob', ...)
 		out <- unlist(out)
