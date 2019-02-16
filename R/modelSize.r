@@ -24,7 +24,7 @@ modelSize <- function(
 	graceful = TRUE
 ) {
 
-	modelClass <- class(model)
+	modelClass <- class(x)
 
 	# LM/GAM/GLM
 	samples <- if ('gam' %in% modelClass | 'glm' %in% modelClass | 'lm' %in% modelClass) {
