@@ -4,7 +4,7 @@
 #' @param long Character list, longitudes in TROPICOS format.
 #' @param lat Character list, latitudes in TROPICOS format.
 #' @param returnApprox Logical, if \code{TRUE} then approximate coordinates (surrounded by square brackets in TROPICOS format) are converted. If \code{FALSE} (default), then \code{NA} is returned.
-#' @return A data five-column frame. The first two columns are the original TROPICOS coordinates, the next two the converted coordinates, and the last a flag to indicate if the TROPICOS coordinates were approximate (\code{TRUE}) or "exact" (\code{FALSE}).
+#' @return A data five-column frame. The first two columns are the original TROPICOS coordinates, the next two the converted coordinates, and the last a flag to indicate if the TROPICOS coordinates were approximate (\code{TRUE}) or "exact" (\code{FALSE}) or missing (\code{NA}).
 #' @seealso \code{\link[enmSdm]{dmsToDecimal}}
 #' @examples
 #' long <- c("078°14'05\"\"W", "091°49'39\"\"W", NA, "[091°53'38\"\"W]")
@@ -31,7 +31,8 @@ convertTropicosCoords <- function(
 
 			out$longitude[i] <- NA
 			out$latitude[i] <- NA
-
+			out$approximate[i] <- NA
+			
 		# if not converting approximate coordinates
 		} else if (substr(thisLong, 1, 1) == '[' & !returnApprox) {
 
