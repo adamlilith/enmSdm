@@ -30,6 +30,9 @@ You can install this package in R using these commands:
 * `contBoyce`: Continuous Boyce Index (with/out site weights)
 * `Fpb`: Fpb (with/out site weights)
 
+## Model information
+* `modelSize`: Number of response values in a model object
+
 ## Niche overlap ##
 * `compareNiches`: Niche overlap metrics
 * `compareResponse`: Compare niche model responses to a single variable

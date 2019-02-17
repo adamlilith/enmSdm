@@ -1,44 +1,49 @@
 #' Convert coordinates from TROPICOS records to decimal degrees
 #'
 #' The TROPICOS (http://www.tropicos.org/) plant specimen database of the Missouri Botanical Garden returns records in degrees-minutes-seconds format with symbols for degrees, minutes, second, and hemisphere.  This function converts this format to signed decimal degrees format.  By default, values surrounded by square brackets (\code{[]}) are returned as \code{NA} because they are geolocated to the center of a political unit (usually county or equivalent).
-#' @param long Character list, longitudes in TROPICOS format.
-#' @param lat Character list, latitudes in TROPICOS format.
-#' @param returnApprox Logical, if \code{TRUE} then approximate coordinates (surrounded by square brackets in TROPICOS format) are converted. If \code{FALSE} (default), then \code{NA} is returned.
-#' @return A data five-column frame. The first two columns are the original TROPICOS coordinates, the next two the converted coordinates, and the last a flag to indicate if the TROPICOS coordinates were approximate (\code{TRUE}) or "exact" (\code{FALSE}).
+#' @param x A data frame with data downloaded from TROPICOS. If \code{x} is supplied then the script will guess which fields pertain to longitude and latitude. The advantage of supplying \code{x} (versus \code{long} and \code{lat} is that the data in \code{x} is returned plus fields for decimal longitude and latitude and whether or not the record is approximate. The default value is \code{NULL}.
+#' @param long Character list, longitudes in TROPICOS format. If this is supplied then do not supply \code{x}.
+#' @param lat Character list, latitudes in TROPICOS format. If this is supplied then do not supply \code{x}.
+#' @return A data five-column frame. The first two columns are the original TROPICOS coordinates, the next two the converted coordinates, and the last a flag to indicate if the TROPICOS coordinates were approximate (\code{TRUE}) or "exact" (\code{FALSE}) or missing (\code{NA}).
 #' @seealso \code{\link[enmSdm]{dmsToDecimal}}
 #' @examples
 #' long <- c("078°14'05\"\"W", "091°49'39\"\"W", NA, "[091°53'38\"\"W]")
 #' lat <- c("39°40'41\"\"N", "36°34'14\"\"S", NA, "[36°46'14\"\"N]")
-#' convertTropicosCoords(long, lat)
-#' convertTropicosCoords(long, lat, TRUE)
+#' convertTropicosCoords(long=long, lat=lat)
 #' @export
 convertTropicosCoords <- function(
-	long,
-	lat,
-	returnApprox = FALSE
+	x=NULL,
+	long=NULL,
+	lat=NULL
 ) {
 
-	out <- data.frame(tropicosLong=long, tropicosLat=lat, longitude=NA, latitude=NA, approximate=NA)
+	if (!is.null(x) & (!is.null(long) | !is.null(lat))) stop('You must supply either "x" OR "long" plus "lat" to function convertTropicosCoords().')
 
+	# define output structure
+	if (!is.null(x)) {
+		out <- x
+		out$approximate <- out$latitude <- out$longitude <- NA
+		tropicosLong <- x$Longitude
+		tropicosLat <- x$Latitude
+	} else {
+		out <- data.frame(tropicosLong=long, tropicosLat=lat, longitude=NA, latitude=NA, approximate=NA)
+		tropicosLong <- long
+		tropicosLat <- lat
+	}
+
+	
 	# convert each coordinate set
 	for (i in 1:nrow(out)) {
 
-		thisLong <- as.character(out$tropicosLong[i])
-		thisLat <- as.character(out$tropicosLat[i])
+		thisLong <- as.character(tropicosLong[i])
+		thisLat <- as.character(tropicosLat[i])
 
 		# if NA
-		if (is.na(thisLong) | is.na(thisLat)) {
+		if (is.na(thisLong) || is.na(thisLat) || thisLong == '' || thisLat == '') {
 
 			out$longitude[i] <- NA
 			out$latitude[i] <- NA
-
-		# if not converting approximate coordinates
-		} else if (substr(thisLong, 1, 1) == '[' & !returnApprox) {
-
-			out$longitude[i] <- NA
-			out$latitude[i] <- NA
-			out$approximate[i] <- TRUE
-
+			
 		# convert
 		} else {
 
@@ -72,15 +77,6 @@ convertTropicosCoords <- function(
 
 	}
 
-	# mask approximate coordinates
-	if (!returnApprox && any(out$approximate)) {
-
-		nas <- cbind(NA, NA)
-		nas <- nas[rep(1, sum(out$approximate, na.rm=TRUE)), ]
-		out[out$approximate & !is.na(out$approximate), c('longitude', 'latitude')] <- nas
-	
-	}
-	
 	out
 
 }
