@@ -4,14 +4,14 @@
 \alias{convertTropicosCoords}
 \title{Convert coordinates from TROPICOS records to decimal degrees}
 \usage{
-convertTropicosCoords(long, lat, returnApprox = FALSE)
+convertTropicosCoords(x = NULL, long = NULL, lat = NULL)
 }
 \arguments{
-\item{long}{Character list, longitudes in TROPICOS format.}
+\item{x}{A data frame with data downloaded from TROPICOS. If \code{x} is supplied then the script will guess which fields pertain to longitude and latitude. The advantage of supplying \code{x} (versus \code{long} and \code{lat} is that the data in \code{x} is returned plus fields for decimal longitude and latitude and whether or not the record is approximate. The default value is \code{NULL}.}
 
-\item{lat}{Character list, latitudes in TROPICOS format.}
+\item{long}{Character list, longitudes in TROPICOS format. If this is supplied then do not supply \code{x}.}
 
-\item{returnApprox}{Logical, if \code{TRUE} then approximate coordinates (surrounded by square brackets in TROPICOS format) are converted. If \code{FALSE} (default), then \code{NA} is returned.}
+\item{lat}{Character list, latitudes in TROPICOS format. If this is supplied then do not supply \code{x}.}
 }
 \value{
 A data five-column frame. The first two columns are the original TROPICOS coordinates, the next two the converted coordinates, and the last a flag to indicate if the TROPICOS coordinates were approximate (\code{TRUE}) or "exact" (\code{FALSE}) or missing (\code{NA}).
@@ -22,8 +22,7 @@ The TROPICOS (http://www.tropicos.org/) plant specimen database of the Missouri 
 \examples{
 long <- c("078Â°14'05\\"\\"W", "091Â°49'39\\"\\"W", NA, "[091Â°53'38\\"\\"W]")
 lat <- c("39Â°40'41\\"\\"N", "36Â°34'14\\"\\"S", NA, "[36Â°46'14\\"\\"N]")
-convertTropicosCoords(long, lat)
-convertTropicosCoords(long, lat, TRUE)
+convertTropicosCoords(long=long, lat=lat)
 }
 \seealso{
 \code{\link[enmSdm]{dmsToDecimal}}
