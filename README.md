@@ -9,6 +9,8 @@ You can install this package in R using these commands:
 `install_github('adamlilith/statisfactory')`  
 `install_github('adamlilith/enmSdm')`  
 
+NB: If for some reason these commands don't work, you can install the package(s) by downloading the latest zip/tar file from the `zipTarFiles` directory and installing the package(s) manually.
+
 ## Data preparation ##
 * `geoFold`: Generate geographically distinct k-folds
 * `geoThin` and `geoThinApprox`: Geographically thin points

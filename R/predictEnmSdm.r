@@ -20,15 +20,20 @@ predictEnmSdm <- function(
 
 	modelClass <- class(model)
 
-	# GAM/GLM
-	if ('gam' %in% modelClass | 'glm' %in% modelClass) {
+	# GAM
+	if ('gam' %in% modelClass) {
 	
-		out <- predict(model, newdata, type='response', ...)
+		out <- mgcv::predict.gam(model, newdata, type='response', ...)
+		
+	# GLM
+	} else if ('glm' %in% modelClass) {
+	
+		out <- stats::predict.glm(model, newdata, type='response', ...)
 		
 	# LM
 	} else if ('lm' %in% modelClass) {
 	
-		out <- predict(model, newdata, ...)
+		out <- stats::predict.lm(model, newdata, ...)
 		
 	# BRT
 	} else if ('gbm' %in% modelClass) {
