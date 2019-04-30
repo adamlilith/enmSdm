@@ -396,7 +396,18 @@ trainGlm <- function(
 			Inf
 		}
 
-		forms <- statisfactory::makeFormulae(form, maxTerms=maxTerms, intercept=TRUE, interceptOnly=TRUE, linearOnly=TRUE, quad=quadratic, ia=interaction, verboten=verboten, verbotenCombos=verbotenCombos, returnFx=as.character)
+		forms <- statisfactory::makeFormulae(
+			form,
+			maxTerms=maxTerms,
+			intercept=TRUE,
+			interceptOnly=TRUE,
+			linearOnly=TRUE,
+			quad=quadratic,
+			ia=interaction,
+			verboten=verboten,
+			verbotenCombos=verbotenCombos,
+			returnFx=as.character
+		)
 		
 		tuning <- data.frame()
 		
