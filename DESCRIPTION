@@ -36,7 +36,7 @@ Suggests:
 	devtools,
     knitr,
     rmarkdown
-License: GPL (>=3)
+License: GPL (>=3) + file LICENSE
 LazyData: false
 LazyLoad: yes
 URL: http://www.earthSkySea.org
