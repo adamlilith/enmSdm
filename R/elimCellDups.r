@@ -64,7 +64,7 @@ elimCellDups <- function(
 	}
 
 	# remove redundant points
-	x <- if (class(x) %in% c('data.frame', 'matrix', 'SpatialPointsDataFrame') {
+	x <- if (class(x) %in% c('data.frame', 'matrix', 'SpatialPointsDataFrame')) {
 		x[-removeThese, ]
 	} else {
 		x[-removeThese]
