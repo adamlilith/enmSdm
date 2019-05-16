@@ -47,10 +47,11 @@ elimCellDups <- function(
 	removeThese <- integer()
 
 	# remove redundant points in each cell
-	for (thisCell in unique(cellNum)) {
+	uniCells <- unique(cellNum)
+	for (thisCell in uniCells) {
 
 		# if more than one point per cell
-		if (sum(cellNum %in% thisCell) > 1) {
+		if (sum(cellNum == thisCell) > 1) {
 
 			thisRow <- index[thisCell == cellNum]
 			thisPriority <- priority[thisCell == cellNum]
@@ -63,7 +64,7 @@ elimCellDups <- function(
 	}
 
 	# remove redundant points
-	x <- if (class(x) == 'data.frame' | class(x) == 'matrix') {
+	x <- if (class(x) %in% c('data.frame', 'matrix', 'SpatialPointsDataFrame')) {
 		x[-removeThese, ]
 	} else {
 		x[-removeThese]

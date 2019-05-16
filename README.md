@@ -42,10 +42,10 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `nicheOverlap`: Calculate niche overlap as per Broennimann et al. Global Ecology and Biogeography 21:481-497
 * `randPointsRespectingSelf`: Randomize geographic points while approximately respecting observed spatial autocorrelation structure between points
 * `randPointsRespectingSelfOther2`: Randomize two sets of geographic points while approximately respecting observed spatial autocorrelation structure between and within sets
-* `randPointsBatch`: Call `randPointsRespectingSelf` or randPointsRespectingSelfOther2` multiple times
+* `randPointsBatch`: Call `randPointsRespectingSelf` or `randPointsRespectingSelfOther2` multiple times
 * `randPointsBatchExtract`: Extract environment from a set of rasters for sets of randomized points generated using `randPointsBatch`
 * `randPointsBatchSampled`: Collate all sets of randomized points generated using `randPointsBatch`
-* `randPointsBatchNicheOverlap`: Calculate niche overlap between sets of randomized points generated using `randPointsBatch`
+* `randPointsBatchNicheOverlap`: Calculate niche overlap between sets of randomized points that were generated using `randPointsBatch`
 
 ## Spatial autocorrelation ##
 * `spatialCorrForPoints`: Calculate pairwise distance-based measure of spatial autocorrelation between geographic points
