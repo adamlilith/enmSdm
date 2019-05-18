@@ -25,4 +25,20 @@ This function returns coordinates randomly located on a raster where cells can b
 }
 \seealso{
 \code{\link[dismo]{randomPoints}}, \code{\link{sampleRastStrat}}
+r <- raster::raster()
+nc <- raster::ncell(r)
+r[] <- 1:nc
+rands1 <- sampleRast(r, 10000)
+rands2 <- sampleRast(r, 10000, adjArea=FALSE)
+rands3 <- sampleRast(r, 10000, prob=FALSE)
+rands4 <- sampleRast(r, 10000, adjArea=FALSE, prob=FALSE)
+par(mfrow=c(2, 2))
+plot(r, main='adjArea = TRUE & prob = TRUE')
+points(rands1, pch='.')
+plot(r, main='adjArea = FALSE & prob = TRUE')
+points(rands2, pch='.')
+plot(r, main='adjArea = TRUE & prob = FALSE')
+points(rands3, pch='.')
+plot(r, main='adjArea = FALSE & prob = FALSE')
+points(rands4, pch='.')
 }

@@ -8,6 +8,22 @@
 #' @param prob Logical. If TRUE then sample cells with probabilities proportional to cell values. If `adjArea` is also TRUE then probabilities are drawn proportional to the product of cell area * the value of the cell.
 #' @return 2-column matrix with longitude and latitude of random points.
 #' @seealso \code{\link[dismo]{randomPoints}}, \code{\link{sampleRastStrat}}
+#' r <- raster::raster()
+#' nc <- raster::ncell(r)
+#' r[] <- 1:nc
+#' rands1 <- sampleRast(r, 10000)
+#' rands2 <- sampleRast(r, 10000, adjArea=FALSE)
+#' rands3 <- sampleRast(r, 10000, prob=FALSE)
+#' rands4 <- sampleRast(r, 10000, adjArea=FALSE, prob=FALSE)
+#' par(mfrow=c(2, 2))
+#' plot(r, main='adjArea = TRUE & prob = TRUE')
+#' points(rands1, pch='.')
+#' plot(r, main='adjArea = FALSE & prob = TRUE')
+#' points(rands2, pch='.')
+#' plot(r, main='adjArea = TRUE & prob = FALSE')
+#' points(rands3, pch='.')
+#' plot(r, main='adjArea = FALSE & prob = FALSE')
+#' points(rands4, pch='.')
 #' @export
 
 ## function to sample raster with/out replacement with probabilities proportional to raster values
@@ -28,6 +44,7 @@ sampleRast <- function(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE) {
 
 	} else if (!adjArea & prob) {
 
+		if (any(probs < 0)) warning('Some probabilities are < 0.', .immediate=TRUE)
 		probs <- val
 
 	} else if (!adjArea & !prob) {
@@ -41,7 +58,7 @@ sampleRast <- function(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE) {
 
 	probs <- probs[!is.na(val)]
 
-	sites <- cellNum[sample(seq_along(cellNum), size=n, replace=replace, prob=probs)]
+	sites <- sample(cellNum, size=n, replace=replace, prob=probs)
 	xy <- raster::xyFromCell(x, sites)
 
 	xy
