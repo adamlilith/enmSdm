@@ -7,13 +7,13 @@
 #' @param binWidth Positive numeric. Size of a bin. Each bin will be \code{binWidth * (max - min)} where \code{max} and \code{min}. If \code{autoWindow} is \code{FALSE} (the default) then \code{min} is 0 and \code{max} is 1. If \code{autoWindow} is \code{TRUE} then \code{min} and \code{max} are the maximum and minimum value of all predictions in the background and presence sets (i.e., not necessarily 0 and 1).
 #' @param presWeight Numeric vector same length as \code{pres}. Relative weights of presence sites.
 #' @param bgWeight Numeric vector same length as \code{bg}. Relative weights of background sites.
-#' @param autoWindow Logical. If \code{FALSE} calculate bin boundaries starting at 0 and ending at 1 (default). If \code{TRUE} then calculate bin boundaries starting at minimum predicted value and ending at maximum predicted value.
+#' @param autoWindow Logical. If \code{FALSE} calculate bin boundaries starting at 0 and ending at 1 + epsilon (where epsilon is a very small number to assure inclusion of cases that equal 1 exactly). If \code{TRUE} (default) then calculate bin boundaries starting at minimum predicted value and ending at maximum predicted value.
 #' @param method Character. Type of correlation to calculate. The default is \code{'spearman'}, the Spearman rank correlation coefficient used by Boyce et al. (2002) and Hirzel et al. (2006), which is the traditional CBI. In contrast, \code{'pearson'} or \code{'kendall'} can be used instead.  See [stats::cor()] for more details.
 #' @param dropZeros Logical. If TRUE then drop all bins in which the frequency of presences is 0.
 #' @param graph Logical. If TRUE then plot P vs E and P/E versus bin.
 #' @param na.rm Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.
 #' @return Numeric value.
-#' @details The CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicate the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probabilty of presence.
+#' @details CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicate the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probability of presence.
 #' @references Boyce, M.S., Vernier, P.R., Nielsen, S.E., and Schmiegelow, F.K.A.  2002.  Evaluating resource selection functions.  \emph{Ecological Modeling} 157:281-300)
 #' @references Hirzel, A.H., Le Lay, G., Helfer, V., Randon, C., and Guisan, A.  2006.  Evaluating the ability of habitat suitability models to predict species presences.  \emph{Ecological Modeling} 199:142-152.
 #' @seealso \code{\link[stats]{cor}}, \code{\link{Fpb}}, \code{\link{aucWeighted}}, \code{link[enmSdm]{contBoyce2x}}
@@ -108,8 +108,8 @@ contBoyce <- function(
 	}
 	
 	# right hand side of each class (assumes max value is >0)
-	lowest <- if (autoWindow) { min(c(pres, bg), na.rm=T) } else { 0 }
-	highest <- if (autoWindow) { max(c(pres, bg), na.rm=T) + omnibus::eps() } else { 1 + omnibus::eps() }
+	lowest <- if (autoWindow) { min(c(pres, bg), na.rm=TRUE) } else { 0 }
+	highest <- if (autoWindow) { max(c(pres, bg), na.rm=TRUE) + omnibus::eps() } else { 1 + omnibus::eps() }
 
 	windowWidth <- binWidth * (highest - lowest)
 
