@@ -53,13 +53,16 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `spatialCorrForPointsPlot`: Plot observed and null distributions of pairwise distance-based measure of spatial autocorrelation
 * `spatialCorrForPointsWeight`: Assign weights to points based on pairwise distance-based measure of spatial autocorrelation
 
+## Functions for rasters
+* `interpolateRasters`: Interpolate a stack of rasters
+* `longLatRasters`: Generate rasters with values of longitude/latitude for cell values
+* `sampleRast` and `sampleRastStrat`: Sample raster with/out replacement and possibly in a stratified manner
+
 ## Geographic utility functions ##
 * `convertTropicosCoords`: Convert coordinates from the TROPICOS database
 * `coordPrecision`: Calculate maximum possible coordinate precision
 * `dmsToDecimal`: Convert degrees-minutes-seconds to decimal
 * `elimCellDups`: Eliminate duplicate points in each cell of a raster
 * `getCRS`: Return a proj4string (coordinate reference system string) using a nickname
-* `longLatRasters`: Generate rasters with values of longitude/latitude for cell values
 * `pointDist`: Geographic distance between set(s) of points
-* `sampleRast` and `sampleRastStrat`: Sample raster with/out replacement and possibly in a stratified manner
 * `xToCoords`: Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object
