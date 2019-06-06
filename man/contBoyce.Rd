@@ -22,7 +22,7 @@ contBoyce(pres, bg, numBins = 101, binWidth = 0.1,
 
 \item{bgWeight}{Numeric vector same length as \code{bg}. Relative weights of background sites.}
 
-\item{autoWindow}{Logical. If \code{FALSE} calculate bin boundaries starting at 0 and ending at 1 (default). If \code{TRUE} then calculate bin boundaries starting at minimum predicted value and ending at maximum predicted value.}
+\item{autoWindow}{Logical. If \code{FALSE} calculate bin boundaries starting at 0 and ending at 1 + epsilon (where epsilon is a very small number to assure inclusion of cases that equal 1 exactly). If \code{TRUE} (default) then calculate bin boundaries starting at minimum predicted value and ending at maximum predicted value.}
 
 \item{method}{Character. Type of correlation to calculate. The default is \code{'spearman'}, the Spearman rank correlation coefficient used by Boyce et al. (2002) and Hirzel et al. (2006), which is the traditional CBI. In contrast, \code{'pearson'} or \code{'kendall'} can be used instead.  See [stats::cor()] for more details.}
 
@@ -39,7 +39,7 @@ Numeric value.
 This function calculates the Continuous Boyce Index (CBI), a measure of model accuracy for presence-only test data.
 }
 \details{
-The CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicate the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probabilty of presence.
+CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicate the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probability of presence.
 }
 \examples{
 set.seed(123)
