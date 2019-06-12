@@ -54,6 +54,7 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `spatialCorrForPointsWeight`: Assign weights to points based on pairwise distance-based measure of spatial autocorrelation
 
 ## Functions for rasters
+* `bioticVelocity`: Velocity of movement across a series of rasters
 * `interpolateRasters`: Interpolate a stack of rasters
 * `longLatRasters`: Generate rasters with values of longitude/latitude for cell values
 * `sampleRast` and `sampleRastStrat`: Sample raster with/out replacement and possibly in a stratified manner

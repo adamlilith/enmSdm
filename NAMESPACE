@@ -3,6 +3,7 @@
 export(Fpb)
 export(aucMultiWeighted)
 export(aucWeighted)
+export(bioticVelocity)
 export(compareNiches)
 export(compareResponse)
 export(contBoyce)
