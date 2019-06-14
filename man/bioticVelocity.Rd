@@ -5,38 +5,56 @@
 \title{Shifts in densities across rasters}
 \usage{
 bioticVelocity(x, times = NULL, atTimes = NULL, longitude = NULL,
-  latitude = NULL, proj4 = NULL, ext = NULL,
-  metrics = c("centroid", "nsCentroid", "ewCentroid", "nCentroid",
-  "sCentroid", "eCentroid", "wCentroid", "nsQuants", "ewQuants", "mean",
-  "quants", "prevalence"), quants = c(0.05, 0.1, 0.5, 0.9, 0.95), ...)
+  latitude = NULL, metrics = c("centroid", "nsCentroid", "ewCentroid",
+  "nCentroid", "sCentroid", "eCentroid", "wCentroid", "nsQuants",
+  "ewQuants", "mean", "quants", "prevalence"), quants = c(0.05, 0.1, 0.5,
+  0.9, 0.95), warn = TRUE, ...)
 }
 \arguments{
-\item{x}{Either a \code{RasterStack}, a 3-dimensional array, or list representing colonization histories (a "pops" object). If \code{x} is a RasterStack then each raster is assumed to represent a time slice and the rasters \emph{must} be in an equal-area projection. If \code{x} is an array then each matrix in the third dimension is assumed to represent a map at a particular time slice in an equal-area projection. Note that if this is an array you must also specify the arguments \code{xCoord} and \code{yCoord} \emph{or} \code{proj4} and \code{ext}. Regardless of the class of \code{x}, it is assumed values representing the entity for which to calculate velocities are either \code{NA} or >= 0 (i.e., no negative population size).}
+\item{x}{Either a \code{RasterStack}, a 3-dimensional array, or list representing colonization histories (a "pops" object). Regardless of the class of \code{x}, it is assumed values representing the entity for which to calculate velocities are either \code{NA} or >= 0 (i.e., no negative population size).
+\itemize{
+    \item If \code{x} is a RasterStack then each raster is assumed to represent a time slice and the rasters \emph{must} be in an equal-area projection.
+    \item If \code{x} is an array then each matrix in the third dimension is assumed to represent a map at a particular time slice in an equal-area projection. Note that if this is an array you can also specify the arguments \code{longitude} and \code{latitude}.
+ \item If \code{x} is a list (a "pops" object), then it is assumed to have at minimum the field \code{x$Nvecs}. To ensure velocities are in spatial units (usually meters--as opposed to arbitrary units), it must have the fields \code{x$pophist$longitude} and \code{x$pophist$latitude} (if not, then it must have It must also have \code{x$pophist$row} and \code{x$pophist$col}). To ensure velocities are in units of time (vs arbitrary units) it also needs \code{x$pophist$time}.
+}}
 
-\item{times}{Numeric vector or \code{NULL} (default). This specifies the time period represented by each layer in \code{x}. If \code{x} is a \code{RasterStack} then you need to specify the same number of values as layers in \code{x}. If \code{x} is an array then you need to specify the same number of values as the length of \code{x} in the third dimension. The default is \code{NULL} in which case \code{times} will be assigned values starting at 1 and ending at the total number of rasters/layers in \code{x}.}
+\item{times}{Numeric vector \emph{or} \code{NULL} (default). This specifies the time period represented by each layer in \code{x}. Times \emph{must} appear in sequential order. For example, if time periods are 24 kybp, 23 kybp, 22 kypb, use \code{c(-24, -23, -22)}, \emph{not} \code{c(24, 23, 22)}. If \code{NULL} (default), default values are assigned:
+\itemize{
+\item If \code{x} is a \code{RasterStack} and \code{times} is \code{NULL}, then \code{times} will be assigned values starting at 1 and ending at the total number of rasters in \code{x}. Alternatively, you can supply a numeric vector with the same number of values as layers in \code{x}.
+\item If \code{x} is an array and \code{times} is \code{NULL}, then \code{times} will be assigned values starting at 1 and ending at \code{dim(x)[3]}. Alternatively, you can supply a numeric vector with the same number of values as layers in the third dimension of \code{x}.
+\item If \code{x} is a list (a "pops" object) and contains a field named \code{x$pophist$time} and \code{times} is \code{NULL}, then \code{.$pophist$time} will be used to assign times to each period. Alternatively, you can supply a numeric vector with the same number of values as columns in \code{x$Nvecs}.
+}}
 
-\item{atTimes}{Numeric, values of \code{times} across which to calculate biotic velocity. You can use this, for example, to calculate biotic velocities across just the first and last time slices represented by \code{x} or any subset of \code{x}. Note that \code{across} \emph{must} be equal to or a subset of \code{times}. The default is \code{NULL}, in which case biotic velocity is calculated across all time slices (i.e., between period 1 and 2, 2 and 3, 3 and 4, etc.).}
+\item{atTimes}{Numeric, values of \code{times} across which to calculate biotic velocity. You can use this to calculate biotic velocities across selected time periods (e.g., just the first and last time periods). Note that \code{across} \emph{must} be the same as or a subset of \code{times}. The default is \code{NULL}, in which case biotic velocity is calculated across all time slices (i.e., between period 1 and 2, 2 and 3, 3 and 4, etc.).}
 
-\item{longitude}{Numeric matrix or \code{NULL}. If \code{x} is an array, then this is a two-dimensional matrix whose elements represent the longitude coordinates of the centers of cells of \code{x}. The matrix must have the same number of rows and columns as \code{x}. Note that the coordinates must be from an equal-area projection for results to be valid! Ignored if \code{x} is a \code{RasterStack}.}
+\item{longitude}{Numeric matrix or \code{NULL} (default).
+\itemize{
+\item If \code{x} is \code{RasterStack} then this is ignored (longitude is ascertained directly from the rasters, which \emph{must} be in equal-area projection for velocities to be valid!).
+\item If \code{x} is an array and \code{longitude} is \code{NULL} (default), then longitude will be ascertained from column numbers in \code{x} and velocities will be in arbitrary spatial units (versus, for example, meters). Alternatively, this can be a two-dimensional matrix whose elements represent the longitude coordinates of the centers of cells of \code{x}. The matrix must have the same number of rows and columns as \code{x}. Note that the coordinates must be from an equal-area projection for results to be valid!
+    \item If \code{x} is a list (a "pops" object), the function uses values in \code{x$pophist$longitude}. If \code{x$pophist$longitude} does not exist, then the \code{x$pophist$col} is used as longitude (with a warning). Alternatively, you can supply a two-dimensional matrix with longitude values for each cell. Note that the coordinates must be from an equal-area projection for results to be valid!
+}}
 
-\item{latitude}{Numeric matrix or \code{NULL}. If \code{x} is an array, then this is a two-dimensional matrix whose elements represent the latitude coordinates of the centers of cells of \code{x}. The matrix must have the same number of rows and columns as \code{x}. Note that the coordinates must be from an equal-area projection for results to be valid! Ignored if \code{x} is a \code{RasterStack}.}
+\item{latitude}{Numeric matrix or \code{NULL} (default).
+\itemize{
+\item If \code{x} is \code{RasterStack} then this is ignored (latitude is ascertained directly from the rasters, which \emph{must} be in equal-area projection for velocities to be valid!).
+\item If \code{x} is an array and \code{latitude} is \code{NULL} (default), then latitude will be ascertained from row numbers in \code{x} and velocities will be in arbitrary spatial units (versus, for example, meters). Alternatively, this can be a two-dimensional matrix whose elements represent the latitude coordinates of the centers of cells of \code{x}. The matrix must have the same number of rows and columns as \code{x}. Note that the coordinates must be from an equal-area projection for results to be valid!
+    \item If \code{x} is a list (a "pops" object), the function uses values in \code{x$pophist$latitude}. If \code{x$pophist$latitude} does not exist, then the \code{x$pophist$row} is used as latitude (with a warning). Alternatively, you can supply a two-dimensional matrix with latitude values for each cell. Note that the coordinates must be from an equal-area projection for results to be valid!
+}}
 
-\item{proj4}{String or object of class \code{CRS}. Coordinate reference system (proj4 string) for the maps represented by \code{x}. Ignored if \code{x} is a \code{RasterStack}. Ignored if \code{x} is a \code{RasterStack}.}
-
-\item{ext}{Object of class \code{\link[raster]{extent}} representing the spatial extent of maps in \code{x}. Ignored if \code{x} is a \code{RasterStack}.}
-
-\item{metrics}{Biotic velocity metrics to calculate (default is to calculate them all). The units for all metrics will be the spatial units of the map (usually meters) divided by the temporal units (same units used for \code{times}--most often years).  All metrics ignore \code{NA}s.
+\item{metrics}{Biotic velocity metrics to calculate (default is to calculate them all). The units for all metrics will be the spatial units of the map (usually meters) divided by the temporal units (same units used for \code{times}---most often years). All metrics ignore \code{NA} cells in \code{x}.
 \itemize{
     \item \code{centroid}: Movement of mass-weighted centroid.
  \item \code{nsCentroid} or \code{ewCentroid}: Movement of mass-weighted centroid in the north-south or east-west directions. For north-south cardinality, positive values represent movement northward and negative southward. For east-west cardinality, positive values represent movement eastward and negative westward.
- \item \code{nCentroid}, \code{sCentroid}, \code{eCentroid}, and \code{wCentroid}: Movement of mass-weighted centroid in of the portion of the range that is north, south, east, or west of the starting centroid.
- \item \code{nsQuants} or \code{ewQuants}: Movement of the location of the x-th quantile of mass in the north-south or east-west directions. For example, this could be the movement of the 5th, 50th, and 95th quantiles of population size from south to north. The quantiles can be specified in \code{quants}.
+ \item \code{nCentroid}, \code{sCentroid}, \code{eCentroid}, and \code{wCentroid}: Movement of mass-weighted centroid in of the portion of the range that is north, south, east, or west of the mass-weighted centroid of the previous time period.
+ \item \code{nsQuants} or \code{ewQuants}: Movement of the location of the \emph{x}th quantile of mass in the north-south or east-west directions. For example, this could be the movement of the 5th, 50th, and 95th quantiles of population size from south to north. The quantiles can be specified in \code{quants}.
  \item \code{mean}: Mean value across all cells (this is not really a measure of "velocity").
- \item \code{quants}: \emph{X}th quantile values across all cells (this is not really a measure of "velocity"). Quantiles are given by \code{quants}.
+ \item \code{quants}: \emph{x}th quantile values across all cells (this is not really a measure of "velocity"). Quantiles are given by \code{quants}.
  \item \code{prevalence}: Number of cells with values > 0 (this is not really a measure of "velocity").
 }}
 
-\item{quants}{Numeric vector indicating the quantiles at which biotic velocity is calculated for the "Quants" metrics. Default is \code{c(0.05, 0.10, 0.5, 0.9, 0.95)}.}
+\item{quants}{Numeric vector indicating the quantiles at which biotic velocity is calculated for the "quant" and "Quants" metrics. Default is \code{c(0.05, 0.10, 0.5, 0.9, 0.95)}.}
+
+\item{warn}{Logical, if \code{TRUE} then display function-specific warnings.}
 
 \item{...}{Other arguments (not used).}
 }
@@ -49,21 +67,21 @@ A data frame with biotic velocities. Fields are as follows:
 }
 Depending on \code{metrics} that are specified, additional fields are as follows:
 \itemize{
-	\item \code{centroidVelocity}, \code{centroidLong}, \code{centroidLat}: Velocity of abundance-weighted centroid and its longitude and latitude.
-	\item \code{nsCentroid}, \code{nsCentroidLat}: Velocity of abundance-weighted centroid in north-south direction and its latitude.
-	\item \code{ewCentroid}, \code{ewCentroidLong}: Velocity of abundance-weighted centroid in east-west direction and its longitude.
-	\item \code{nCentroid} and \code{nCentroidAbund}, \code{sCentroid} and \code{sCentroidAbund}, \code{eCentroid} and \code{eCentroidAbund}, or \code{wCentroid} and \code{wCentroidAbund}: Velocity of abundance-weighted centroid of all cells with abundance >0 that fall north, south, east, or west of centroid of initial population (population in first time step), plus abundance of all such populations.
-	\item \code{nsCentroidVelocity_quantX} and \code{nsCentroidLat_quantX}, or \code{ewCentroidVelocity_quantX} and \code{ewCentroidLat_quantX}: Velocity of the Xth quantile abundance in the north-south or east-west directions, plus the latitude or longitude thereof.
-	\item \code{mean}: Mean abundance in "timeTo" time step.
-	\item \code{quantile_quantX}: The \emph{X}th quantile(s) of abundance in the "timeTo" time step.
-	\item \code{prevalence}: Proportion of non-\code{NA} cells with abundance >0 in the "timeTo" time step.
+	\item \code{centroidVelocity}, \code{centroidLong}, \code{centroidLat}: Velocity of weighted centroid and its longitude and latitude.
+	\item \code{nsCentroid}, \code{nsCentroidLat}: Velocity of weighted centroid in north-south direction and its latitude.
+	\item \code{ewCentroid}, \code{ewCentroidLong}: Velocity of weighted centroid in east-west direction and its longitude.
+	\item \code{nCentroid} and \code{nCentroidAbund}, \code{sCentroid} and \code{sCentroidAbund}, \code{eCentroid} and \code{eCentroidAbund}, or \code{wCentroid} and \code{wCentroidAbund}: Velocity of weighted centroid of all cells with weight >0 that fall north, south, east, or west of centroid of initial population (population in first time step), plus weight of all such populations.
+	\item \code{nsCentroidVelocity_quantX} and \code{nsCentroidLat_quantX}, or \code{ewCentroidVelocity_quantX} and \code{ewCentroidLat_quantX}: Velocity of the \emph{x}th quantile weight in the north-south or east-west directions, plus the latitude or longitude thereof.
+	\item \code{mean}: Mean weight in "timeTo" time step.
+	\item \code{quantile_quantX}: The \emph{X}th quantile(s) of weight in the "timeTo" time step.
+	\item \code{prevalence}: Proportion of non-\code{NA} cells with weight >0 in the "timeTo" time step.
 }
 }
 \description{
 This function calculates several metrics of biotic velocity for a stack of rasters, an array representing a gridded landscape, or a "pops" (list) object.
 }
 \details{
-This function may fail or yield erroneous velocities if the region of interest is near a pole or spans the international date line. It converts rasters to arrays before doing calculations, so using very large rasters may yield slow performance and may not even work, depending on memory requirements.
+This function may yield erroneous velocities if the region of interest is near a pole and will yield erroneous results if the region spans the international date line. It converts rasters to arrays before doing calculations, so using very large rasters may yield slow performance and may not even work, depending on memory requirements.
 }
 \examples{
 # simulate species starting at center of map
@@ -84,6 +102,8 @@ gauss <- function(x1, x2, mu1=0, mu2=0, sigma1=1, sigma2=0, rho=0) {
 	expo
 	
 }
+
+library(raster)
 
 r <- raster()
 r[] <- 1
