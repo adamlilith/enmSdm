@@ -2,7 +2,7 @@
 % Please edit documentation in R/aucWeighted.r
 \name{aucWeighted}
 \alias{aucWeighted}
-\title{Calculate weighted AUC}
+\title{Weighted AUC}
 \usage{
 aucWeighted(pres, bg, presWeight = rep(1, length(pres)),
   bgWeight = rep(1, length(bg)), na.rm = FALSE)
@@ -12,9 +12,9 @@ aucWeighted(pres, bg, presWeight = rep(1, length(pres)),
 
 \item{bg}{Predictions at absence sites.}
 
-\item{presWeight}{Weights of presences.}
+\item{presWeight}{Weights of presences. The default is to assign each presence a weight of 1.}
 
-\item{bgWeight}{Weights of absences.}
+\item{bgWeight}{Weights of absences. The default is to assign each presence a weight of 1.}
 
 \item{na.rm}{Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.}
 }
@@ -44,5 +44,5 @@ bgWeight <- sqrt(bg)
 aucWeighted(pres, bg, presWeight=presWeight, bgWeight=bgWeight)
 }
 \seealso{
-\code{\link{Fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}
+\code{\link{fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}
 }

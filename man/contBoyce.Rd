@@ -2,7 +2,7 @@
 % Please edit documentation in R/contBoyce.r
 \name{contBoyce}
 \alias{contBoyce}
-\title{Calculate the Continuous Boyce Index (CBI) with weighting}
+\title{Continuous Boyce Index (CBI) with weighting}
 \usage{
 contBoyce(pres, bg, numBins = 101, binWidth = 0.1,
   presWeight = rep(1, length(pres)), bgWeight = rep(1, length(bg)),
@@ -10,17 +10,17 @@ contBoyce(pres, bg, numBins = 101, binWidth = 0.1,
   graph = FALSE, na.rm = FALSE)
 }
 \arguments{
-\item{pres}{Numeric list. Predicted values at test presences}
+\item{pres}{Numeric vector. Predicted values at presence sites.}
 
-\item{bg}{Numeric list.  Predicted values at background sites.}
+\item{bg}{Numeric vector. Predicted values at absence/background sites.}
 
 \item{numBins}{Positive integer. Number of (overlapping) bins into which to divide predictions.}
 
 \item{binWidth}{Positive numeric. Size of a bin. Each bin will be \code{binWidth * (max - min)} where \code{max} and \code{min}. If \code{autoWindow} is \code{FALSE} (the default) then \code{min} is 0 and \code{max} is 1. If \code{autoWindow} is \code{TRUE} then \code{min} and \code{max} are the maximum and minimum value of all predictions in the background and presence sets (i.e., not necessarily 0 and 1).}
 
-\item{presWeight}{Numeric vector same length as \code{pres}. Relative weights of presence sites.}
+\item{presWeight}{Numeric vector same length as \code{pres}. Relative weights of presence sites. The default is to assign each presence a weight of 1.}
 
-\item{bgWeight}{Numeric vector same length as \code{bg}. Relative weights of background sites.}
+\item{bgWeight}{Numeric vector same length as \code{bg}. Relative weights of background sites. The default is to assign each presence a weight of 1.}
 
 \item{autoWindow}{Logical. If \code{FALSE} calculate bin boundaries starting at 0 and ending at 1 + epsilon (where epsilon is a very small number to assure inclusion of cases that equal 1 exactly). If \code{TRUE} (default) then calculate bin boundaries starting at minimum predicted value and ending at maximum predicted value.}
 
@@ -106,5 +106,5 @@ Boyce, M.S., Vernier, P.R., Nielsen, S.E., and Schmiegelow, F.K.A.  2002.  Evalu
 Hirzel, A.H., Le Lay, G., Helfer, V., Randon, C., and Guisan, A.  2006.  Evaluating the ability of habitat suitability models to predict species presences.  \emph{Ecological Modeling} 199:142-152.
 }
 \seealso{
-\code{\link[stats]{cor}}, \code{\link{Fpb}}, \code{\link{aucWeighted}}, \code{link[enmSdm]{contBoyce2x}}
+\code{\link[stats]{cor}}, \code{\link{fpb}}, \code{\link{aucWeighted}}, \code{link[enmSdm]{contBoyce2x}}
 }

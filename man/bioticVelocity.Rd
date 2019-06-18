@@ -103,8 +103,6 @@ gauss <- function(x1, x2, mu1=0, mu2=0, sigma1=1, sigma2=0, rho=0) {
 	
 }
 
-library(raster)
-
 r <- raster()
 r[] <- 1
 mollweide <- enmSdm::getCRS('mollweide', TRUE)

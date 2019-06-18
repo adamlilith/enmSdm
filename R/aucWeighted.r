@@ -1,13 +1,13 @@
-#' Calculate weighted AUC
+#' Weighted AUC
 #'
 #' This function calculates the area under the receiver-operator characteristic curve (AUC) following Mason, S.J. and N.E. Graham.  2002.  Areas beneath the relative operating characteristics (ROC) and relative operating levels (ROL) curves: Statistical significance and interpretation.  \emph{Quarterly Journal of the Royal Meteorological Society} 128:2145-2166. Positives and negatives values can be given weights.
 #' @param pres Predictions at presence sites.
 #' @param bg Predictions at absence sites.
-#' @param presWeight Weights of presences.
-#' @param bgWeight Weights of absences.
+#' @param presWeight Weights of presences. The default is to assign each presence a weight of 1.
+#' @param bgWeight Weights of absences. The default is to assign each presence a weight of 1.
 #' @param na.rm Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.
 #' @return Numeric value.
-#' @seealso \code{\link{Fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}
+#' @seealso \code{\link{fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}
 #' @examples
 #' pres <- seq(0.5, 1, by=0.1)
 #' bg <- seq(0, 1, by=0.01)
@@ -36,6 +36,13 @@ aucWeighted <- function(
 	na.rm = FALSE
 ) {
 
+	# if all NAs
+	if (all(is.na(pres)) | all(is.na(bg)) | all(is.na(presWeight)) | all(is.na(bgWeight))) return(NA)
+
+	# catch errors
+	if (length(presWeight) != length(pres)) stop('You must have the same number of presence predictions and presence weights ("pres" and "presWeight").')
+	if (length(bgWeight) != length(bg)) stop('You must have the same number of absence/background predictions and absence/background weights ("bg" and "bgWeight").')
+	
 	# remove NAs
 	if (na.rm) {
 

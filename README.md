@@ -16,21 +16,25 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `geoThin` and `geoThinApprox`: Geographically thin points
 
 ## Model training ###
-* `trainBrt`: boosted regression trees (BRTs)
-* `trainCrf`: conditional regression trees (CRFs)
-* `trainGam`: generalized additive models (GAMs)
-* `trainGlm`: generalized linear models (GLMs)
-* `trainGlmDredge`: generalized linear models (GLMs)
-* `trainLars`: least-angle regression models (LARS)
+* `trainByCrossValid`: Wrapper for implementing any "trainXYZ" function across cross-validation folds
+* `trainBrt`: Boosted regression trees (BRTs)
+* `trainCrf`: Conditional regression trees (CRFs)
+* `trainGam`: Generalized additive models (GAMs)
+* `trainGlm`: Generalized linear models (GLMs)
+* `trainGlmDredge`: Generalized linear models (GLMs)
+* `trainLars`: Least-angle regression models (LARS)
 * `trainMaxEnt` and `trainMaxNet`: Maxent models
-* `trainNs`: splines
-* `trainRf`: random forests (RFs)  
+* `trainNs`: Splines
+* `trainRf`: Random forests (RFs)  
 
 ## Model evaluation ##
 * `aucWeighted`: AUC (with/out site weights)
 * `aucMultiWeighted`: Multivariate version of AUC (with/out site weight)
 * `contBoyce`: Continuous Boyce Index (with/out site weights)
-* `Fpb`: Fpb (with/out site weights)
+* `contBoyce2x`: "2X coverage" version of the Continuous Boyce Index (with/out site weights)
+* `fpb`: Fpb (with/out site weights)
+* `thresholdWeighted`: Thresholds to convert continuous predictions to binary predictions (with/out site weights)
+* `tssWeighted`: True Skill Statistic (TSS) (with/out site weights)
 
 ## Model information
 * `modelSize`: Number of response values in a model object
