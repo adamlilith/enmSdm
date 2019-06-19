@@ -23,9 +23,9 @@ trainGlm(data, resp = names(data)[1],
 
 \item{tooBig}{Numeric. Used to catch errors when fitting a model fit with the \code{brglmFit} function in the \pkg{brglm2} package. In some cases fitted coefficients are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.}
 
-\item{construct}{Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic} and \code{interaction}.}
+\item{construct}{Logical. If \code{TRUE} (default) then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic} and \code{interaction}.}
 
-\item{select}{Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).}
+\item{select}{Logical. If \code{TRUE} (default) then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).}
 
 \item{quadratic}{Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} (default) then include quadratic terms in model construction stage for non-factor predictors.}
 
@@ -49,7 +49,12 @@ trainGlm(data, resp = names(data)[1],
 
 \item{verbose}{Logical. If \code{TRUE} then display intermediate results on the display device.}
 
-\item{...}{Arguments to pass to \code{glm}.
+\item{...}{Arguments to pass to \code{glm}.}
+}
+\description{
+This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, and 2-way-interaction terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is any or all of: a table with AICc for all possible models, all possible models (after model construction), and/or the model with the lowest AICc.
+}
+\examples{
 set.seed(123)
 x <- matrix(rnorm(n = 6*100), ncol = 6)
 # true variables will be #1, #2, #5, and #6, plus
@@ -59,18 +64,13 @@ x <- matrix(rnorm(n = 6*100), ncol = 6)
 imp <- c('x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x1_pow2', 'x6_pow2', 'x1_by_x6', 'x5_pow3')
 betas <- c(5, 2, 0, 0, 1, -1, 8, 1, 2, -4)
 names(betas) <- imp
-y <- 0.5 + x %*% betas[1:6] + betas[7] * x[ , 1] +
+y <- 0.5 + x \%*\% betas[1:6] + betas[7] * x[ , 1] +
 betas[8] * x[ , 6] + betas[9] * x[ , 1] * x[ , 6] + betas[10] * x[ , 5]^3
 y <- as.integer(y > 10)
 x <- cbind(y, x)
 x <- as.data.frame(x)
 names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
-model <- trainGlmDredge(x, verbose=TRUE)}
-}
-\description{
-This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, and 2-way-interaction terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is any or all of: a table with AICc for all possible models, all possible models (after model construction), and/or the model with the lowest AICc.
-}
-\examples{
+model <- trainGlmDredge(x, verbose=TRUE)
 \donttest{
 set.seed(123)
 x <- matrix(rnorm(n = 6*100), ncol = 6)

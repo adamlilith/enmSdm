@@ -6,8 +6,8 @@
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param family Name of family for data error structure (see \code{\link[stats]{family}}). Default is to use the 'binomial' family.
 #' @param tooBig Numeric. Used to catch errors when fitting a model fit with the \code{brglmFit} function in the \pkg{brglm2} package. In some cases fitted coefficients are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.
-#' @param construct Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic} and \code{interaction}.
-#' @param select Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).
+#' @param construct Logical. If \code{TRUE} (default) then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic} and \code{interaction}.
+#' @param select Logical. If \code{TRUE} (default) then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).
 #' @param quadratic Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} (default) then include quadratic terms in model construction stage for non-factor predictors.
 #' @param interaction Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} (default) then include 2-way interaction terms (including interactions between factor predictors).
 #' @param verboten Either \code{NULL} (default) in which case \code{forms} is returned without any manipulation. Alternatively, this is a character list of terms that are not allowed to appear in any model in \code{forms}. Models with these terms are removed from \code{forms}. Note that the order of variables in interaction terms does not matter (e.g., \code{x1:x2} will cause the removal of models with this term verbatim as well as \code{x2:x1}). All possible permutations of three-way interaction terms are treated similarly.
@@ -20,6 +20,7 @@
 #' @param out Character. Indicates type of value returned. Values can be \code{'model'} (default; return and object with the best model), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with (possible) names of "model", "models", and/or "tuning". If \code{'models'} is specified, they will only be produced if \code{select = TRUE}. The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{glm}, a list with objects of class \code{glm}, or a data frame.
 #' @param verbose Logical. If \code{TRUE} then display intermediate results on the display device.
 #' @param ... Arguments to pass to \code{glm}.
+#' @examples
 #' set.seed(123)
 #' x <- matrix(rnorm(n = 6*100), ncol = 6)
 #' # true variables will be #1, #2, #5, and #6, plus
