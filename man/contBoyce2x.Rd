@@ -2,7 +2,7 @@
 % Please edit documentation in R/contBoyce2x.r
 \name{contBoyce2x}
 \alias{contBoyce2x}
-\title{Calculate the Continuous Boyce Index (CBI) with weighting (2X-coverage version)}
+\title{Continuous Boyce Index (CBI) with weighting (2X-coverage version)}
 \usage{
 contBoyce2x(pres, bg, numClasses = 10, presWeight = rep(1,
   length(pres)), bgWeight = rep(1, length(bg)), upweightTails = TRUE,
@@ -10,15 +10,15 @@ contBoyce2x(pres, bg, numClasses = 10, presWeight = rep(1,
   graph = FALSE)
 }
 \arguments{
-\item{pres}{Numeric list. Predicted values at test presences}
+\item{pres}{Numeric vector. Predicted values at presence sites.}
 
-\item{bg}{Numeric list.  Predicted values at background sites.}
+\item{bg}{Numeric vector.  Predicted values at absence/background sites.}
 
 \item{numClasses}{Positive integer. Number of classes into which to divide predictions at background sites. Hirzel et al. suggest using 10 (default).}
 
-\item{presWeight}{Numeric vector same length as \code{pres}. Relative weights of presence sites.}
+\item{presWeight}{Numeric vector same length as \code{pres}. Relative weights of presence sites. The default is to assign each presence a weight of 1.}
 
-\item{bgWeight}{Numeric vector same length as \code{bg}. Relative weights of background sites.}
+\item{bgWeight}{Numeric vector same length as \code{bg}. Relative weights of background sites. The default is to assign each presence a weight of 1.}
 
 \item{upweightTails}{Logical. \code{TRUE} ==> weights of presences and background sites that occur in the first half of the lowest bin or in the second half of the last bin  have their weights multiplied by 2.}
 

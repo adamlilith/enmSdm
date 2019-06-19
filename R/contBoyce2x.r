@@ -1,11 +1,11 @@
-#' Calculate the Continuous Boyce Index (CBI) with weighting (2X-coverage version)
+#' Continuous Boyce Index (CBI) with weighting (2X-coverage version)
 #'
 #' This function calculates the Continuous Boyce Index (CBI), a measure of model accuracy for presence-only test data. Overlapping bins are placed such that any given point (prediction) along [0, 1] is covered by at most 2 bins. See the function \code{\link[enmSdm]{contBoyce}} for a version that allows coverage by 2 or more bins.
-#' @param pres Numeric list. Predicted values at test presences
-#' @param bg Numeric list.  Predicted values at background sites.
+#' @param pres Numeric vector. Predicted values at presence sites.
+#' @param bg Numeric vector.  Predicted values at absence/background sites.
 #' @param numClasses Positive integer. Number of classes into which to divide predictions at background sites. Hirzel et al. suggest using 10 (default).
-#' @param presWeight Numeric vector same length as \code{pres}. Relative weights of presence sites.
-#' @param bgWeight Numeric vector same length as \code{bg}. Relative weights of background sites.
+#' @param presWeight Numeric vector same length as \code{pres}. Relative weights of presence sites. The default is to assign each presence a weight of 1.
+#' @param bgWeight Numeric vector same length as \code{bg}. Relative weights of background sites. The default is to assign each presence a weight of 1.
 #' @param upweightTails Logical. \code{TRUE} ==> weights of presences and background sites that occur in the first half of the lowest bin or in the second half of the last bin  have their weights multiplied by 2.
 #' @param na.rm Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.
 #' @param autoWindow Logical. If TRUE then calculate bin boundaries starting at minimum predicted value and ending at maximum predicted value (default). If FALSE calculate bin boundaries starting at 0 and ending at 1.
@@ -39,6 +39,13 @@ contBoyce2x <- function(
 	graph = FALSE
 ) {
 
+	# if all NAs
+	if (all(is.na(pres)) | all(is.na(bg)) | all(is.na(presWeight)) | all(is.na(bgWeight))) return(NA)
+
+	# catch errors
+	if (length(presWeight) != length(pres)) stop('You must have the same number of presence predictions and presence weights ("pres" and "presWeight").')
+	if (length(bgWeight) != length(bg)) stop('You must have the same number of absence/background predictions and absence/background weights ("bg" and "bgWeight").')
+	
 	# remove NAs
 	if (na.rm) {
 
