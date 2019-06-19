@@ -6,9 +6,9 @@
 \usage{
 trainByCrossValid(data, resp = names(data)[1],
   preds = names(data)[2:ncol(data)], folds = dismo::kfold(data),
-  trainFx = enmSdm::trainGlm, ..., metrics = c("cbi", "auc", "fpb",
-  "tss", "msss", "mdss", "minTrainPres", "trainPres05", "trainPres10"),
-  w = NULL, weightEvalTrain = TRUE, weightEvalTest = TRUE,
+  trainFx = enmSdm::trainGlm, ..., metrics = c("logLoss", "cbi", "auc",
+  "fpb", "tss", "msss", "mdss", "minTrainPres", "trainSe95", "trainSe90"),
+  weightEvalTrain = TRUE, weightEvalTest = TRUE, na.rm = FALSE,
   out = c("models", "tuning"), verbose = 1)
 }
 \arguments{
@@ -18,25 +18,46 @@ trainByCrossValid(data, resp = names(data)[1],
 
 \item{preds}{Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.}
 
+\item{folds}{Either a numeric vector, or matrix or data frame:
+\itemize{
+    \item If a vector, there must be one value per row in \code{data}. If there are \emph{K} unique values in the vector, then \emph{K} unique models will be trained. Each model will use all of the data except for rows that match a particular value in the \code{folds} vector. For example, if \code{folds = c(1, 1, 1, 2, 2, 2, 3, 3, 3)}, then three models will be trained, one with all rows that match the 2s and 3s, one with all rows matching 1s and 2s, and one will all rows matching 1s and 3s. The models will be evaluated against the withheld data and against the training data. Use \code{NA} to exclude rows from all testing/training. The default is to construct 5 folds of roughly equal size.
+\item If a matrix or data frame, there must be one row per row in \code{data}. Each column corresponds to a different model to be trained. For a given column there should be only two unique values (plus possibly \code{NA}s). When sorted, the lesser value will be used to identify the calibration data and the upper value the evaluation data. For example, a particular column could contain 1s, 2, and \code{NA}s. Data rows corresponding to 1s will be used as training data and rows corresponding to 2s as test data (after rows with \code{NA} are dropped). This option is useful for creating spatially-structured cross-validation folds where training and test sites are separated (spatially) by censored (ignored) data.
+}}
+
 \item{trainFx}{Function, name of the "trainXYZ" function to use (e.g., \code{\link[enmSdm]{trainGlm}} or \code{\link[enmSdm]{trainGam}}).}
 
-\item{...}{Arguments to pass to the "trainXYZ" function and \code{\link{predictEnmSdm}} functions. See help for the appropriate function.}
+\item{...}{Arguments to pass to the "trainXYZ" function, as well as the \code{\link{predictEnmSdm}}, \code{\link{contBoyce}}, \code{\link{tssWeighted}}, and \code{\link{thresholdWeighted}} functions. See help for the appropriate function.}
+
+\item{metrics}{Character vector, names of evaluation metrics to calculate. The default is to calculate all of:
+\itemize{
+    \item \code{'logLoss'}: Log loss.
+    \item \code{'cbi'}: Continuous Boyce Index (CBI). Calculated with \code{\link[enmSdm]{contBoyce}}.
+    \item \code{'auc'}: Area under the receiver-operator characteristic curve (AUC). Calculated with \code{\link[enmSdm]{aucWeighted}}.
+    \item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
+    \item \code{'fpb'}: Mean Fpb across thresholds from 0 to 1 in steps of 0.01. Calculated with \code{\link[enmSdm]{fpb}}. NOT USED AT PRESENT.
+    \item \code{'msss'}: Sensitivity and specificity calculated at the threshold that maximizes sensitivity (true presence prediction rate) plus specificity (true absence prediction rate).
+    \item \code{'mdss'}: Sensitivity (se) and specificity (sp) calculated at the threshold that minimizes the difference between sensitivity and specificity.
+    \item \code{'minTrainPres'}: Sensitivity and specificity at the greatest threshold at which all training presences are classified as "present".
+    \item \code{'trainSe95'} and/or \code{'trainSe90'}: Sensitivity at the threshold that ensures either 95% or 90% of all training presences are classified as "present" (training sensitivity = 0.95 or 0.9).
+}}
 
 \item{weightEvalTrain}{Logical, if \code{TRUE} (default) and an argument named \code{w} is specified in \code{...}, then evaluation statistics that support weighting will use the weights specified by \code{w} \emph{for the "train" version of evaluation statistics}. If \code{FALSE}, there will be no weighting of test sites. Note that this applies \emph{only} to the calculation of evaluation statistics.  If \code{w} is supplied weights they will be used for model calibration.}
 
-\item{weightEvalTest}{Logical, if \code{TRUE} and an argument named \code{w} is specified in \code{...}, then evaluation statistics that support weighting will use the weights specified by \code{w} \emph{for the "test" version of evaluation statistics}. If \code{FALSE} (default), there will be no weighting of test sites. Note that this applies \emph{only} to the calculation of evaluation statistics.  If \code{w} is supplied then weights will be used for model calibration.}
-
-\item{out}{Character. Indicates type of value returned. If \code{model} then returns a model object (e.g., of class \code{MaxEnt}, \code{glm}, etc.). If \code{tuning} then just return the evaluation table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the tuning table.}
-
-\item{verbose}{Numeric. If 0 show no progress updates. If > 0 then show minimal progress updates for this function only. If > 1 show detailed progress for this function. If > 2 show detailed progress plus detailed progress for the "trainXYZ" function.}
+\item{weightEvalTest}{Logical, if \code{TRUE} (default) and an argument named \code{w} is specified in \code{...}, then evaluation statistics that support weighting will use the weights specified by \code{w} \emph{for the "test" version of evaluation statistics}. If \code{FALSE}, there will be no weighting of test sites. Note that this applies \emph{only} to the calculation of evaluation statistics.  If \code{w} is supplied then weights will be used for model calibration.}
 
 \item{na.rm}{Logical, if \code{TRUE} then remove \code{NA} predictions before calculating evaluation statistics. If \code{FALSE} (default), propagate \code{NA}s (meaning if predictions contain \code{NA}s, then the evaluation statistic will most likely also be \code{NA}.)}
+
+\item{out}{Character. Indicates type of value returned. If \code{'models'} then returns a list of a list of candidate models (one sublist per fold. If \code{'tuning'} then just return the evaluation table for candidate models of each fold. If both then return a 2-item list with all candidate models and tuning tables. \emph{WARNING}: Depending on the type of model, using \code{'models'} may produce objects that are very large in memory.}
+
+\item{verbose}{Numeric. If 0 show no progress updates. If > 0 then show minimal progress updates for this function only. If > 1 show detailed progress for this function. If > 2 show detailed progress plus detailed progress for the "trainXYZ" function.}
 }
 \value{
-If \code{out = 'models'} this function returns a list with models. If If \code{out = 'tuning'} this function returns a data frame with performance statistics against the training and testing data set. If \code{out = c('model', 'tuning'} then it returns a list object with the models and tuuning statistics.
+If \code{out = 'models'} this function returns a list with models. If If \code{out = 'tuning'} this function returns a data frame with performance statistics for the training and testing data set. If \code{out = c('model', 'tuning'} then it returns a list object with the models and tuning statistics.
+
+A list object with one element named "models" which will have one set of models per k-fold, and/or another element named "tuning" which will have one data frame per k-fold.
 }
 \description{
-This function is an extension of any of the "trainXYZ" functions for calibrating species distribution and ecological niche models. The "trainXYZ" functions use various criteria to select a "best" model across a suite of models using different sets of variables and/or functional forms and parameterizations. This function uses the "trainXYZ" function to train a suite of models typically calibrated on somewhat non-overlapping data.  The models are evaluated against withheld data to determine the optimal settings for a "final" model using all available data.
+This function is an extension of any of the "trainXYZ" functions for calibrating species distribution and ecological niche models. This function uses the "trainXYZ" function to calibrate and evaluate a suite of models using cross-validation. The models are evaluated against withheld data to determine the optimal settings for a "final" model using all available data.
 }
 \examples{
 set.seed(123)
@@ -57,11 +78,34 @@ presAbs <- runif(n) < y
 trainData <- data.frame(presAbs=presAbs, x1=x1, x2=x2, x3=x3)
 
 model <- trainGlm(trainData)
+summary(model)
 
-out <- trainByCrossValid(data=trainData, verbose=2)
-out$tuning
-lapply(out$models, coefficients)
-lapply(out$models, logLik)
+folds <- dismo::kfold(trainData, 3)
+out <- trainByCrossValid(data=trainData, folds=folds, verbose=1)
+str(out, 1)
+head(out$tuning)
+# can do following for each fold (3 of them)
+lapply(out$models[[1]], coefficients)
+sapply(out$models[[1]], logLik)
+sapply(out$models[[1]], AIC)
+
+# select model for k = 1 with greatest CBI
+top <- which.max(out$tuning[[1]]$cbiTest)
+summary(out$models[[1]][[top]])
+
+# in fold k = 1, which models perform well but aren not overfit?
+plot(out$tuning[[1]]$cbiTrain, out$tuning[[1]]$cbiTest, pch='.',
+		main='Model Numbers for k = 1')
+abline(0, 1, col='red')
+numModels <- nrow(out$tuning[[1]])
+text(out$tuning[[1]]$cbiTrain, out$tuning[[1]]$cbiTest, labels=1:numModels)
+usr <- par('usr')
+x <- usr[1] + 0.9 * (usr[4] - usr[3])
+y <- usr[3] + 0.1 * (usr[4] - usr[3])
+text(x, y, labels='overfit', col='red', xpd=NA)
+x <- usr[1] + 0.1 * (usr[4] - usr[3])
+y <- usr[3] + 0.9 * (usr[4] - usr[3])
+text(x, y, labels='suspicious', col='red', xpd=NA)
 }
 \seealso{
 \code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainCrf}}, \code{\link[enmSdm]{trainGam}}, \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainMaxEnt}}, \code{\link[enmSdm]{trainLars}}, \code{\link[enmSdm]{trainMaxNet}}, \code{\link[enmSdm]{trainRf}}
