@@ -1,6 +1,6 @@
 #' Calibrate a generalized linear model (GLM)
 #'
-#' This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, and 2-way-interaction terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias.
+#' This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, and 2-way-interaction terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is any or all of: a table with AICc for all possible models, all possible models (after model construction), and/or the model with the lowest AICc.
 #' @param data Data frame. Must contain fields with same names as in \code{preds} object.
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
@@ -17,8 +17,8 @@
 #' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is \code{TRUE}.
 #' @param w Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign equal total weights to presences and contrast sites (\code{TRUE}).
 #' @param method Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.
-#' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
-#' @param verbose Logical. If TRUE then display intermediate results on the display device.
+#' @param out Character. Indicates type of value returned. Values can be \code{'model'} (default; return and object with the best model), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with (possible) names of "model", "models", and/or "tuning". If \code{'models'} is specified, they will only be produced if \code{select = TRUE}. The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{glm}, a list with objects of class \code{glm}, or a data frame.
+#' @param verbose Logical. If \code{TRUE} then display intermediate results on the display device.
 #' @param ... Arguments to pass to \code{glm}.
 #' set.seed(123)
 #' x <- matrix(rnorm(n = 6*100), ncol = 6)
@@ -113,9 +113,8 @@ trainGlm <- function(
 
 	w <<- w / max(w) # declare to global because dredge() has problems if it is not
 
-	################################
-	## initial model construction ##
-	################################
+	## MODEL CONSTRUCTION
+	#####################
 
 	# create starting formula
 	form <- paste0(resp, ' ~ 1')
@@ -373,9 +372,8 @@ trainGlm <- function(
 	# convert to formula
 	form <- as.formula(form)
 
-	########################################################################################
-	## if doing model construction, evaluate all possible models using AICc then get best ##
-	########################################################################################
+	## MODEL SELECTION
+	##################
 
 	if (!select) {
 
@@ -390,12 +388,17 @@ trainGlm <- function(
 		
 	} else {
 
+		# store *all* models
+		models <- list()
+
+		# maximum number of terms to accommodate in any model
 		maxTerms <- if (family == 'binomial') {
 			max(1, 1 + floor(sampleSize / presPerTermFinal))
 		} else {
 			Inf
 		}
 
+		# make all possible formula
 		forms <- statisfactory::makeFormulae(
 			form,
 			maxTerms=maxTerms,
@@ -416,9 +419,10 @@ trainGlm <- function(
 		
 			form <- as.formula(forms[[i]])
 			
-			model <- glm(form, family=family, data=data, weights=w, method=method, ...)
-			ll <- logLik(model)
-			aicc <- MuMIn::AICc(model)
+			models[[i]] <- glm(form, family=family, data=data, weights=w, method=method, ...)
+			ll <- logLik(models[[i]])
+			aicc <- MuMIn::AICc(models[[i]])
+			models[[i]]$aicc <- aicc
 			
 			tuning <- rbind(
 				tuning,
@@ -429,8 +433,10 @@ trainGlm <- function(
 				)
 			)
 			
+			
 		}
-
+		
+		models <- rlist::list.sort(models, aicc)
 		tuning <- tuning[order(tuning$aicc), ]
 		
 		if (verbose) {
@@ -439,14 +445,11 @@ trainGlm <- function(
 			omnibus::say('')
 		}
 
-		# retrain best model
+		# get best model
 		if ('model' %in% out) {
 
-			form <- tuning$model[1]
-			form <- as.formula(form)
+			model <- models[[1]]
 			
-			model <- glm(form, family=family, data=data, weights=w, method=method, ...)
-
 			if (verbose) {
 				omnibus::say('Final model:', pre=1);
 				print(summary(model))
@@ -455,18 +458,21 @@ trainGlm <- function(
 
 		}
 
-	} # if want model construction
+	} # model selection
 
 	# return
-	if ('model' %in% out & 'tuning' %in% out) {
-		out <- list()
-		out$tuning <- tuning
-		out$model <- model
-		out
+	if (length(out) > 1) {
+		output <- list()
+		if ('models' %in% out & select) output$models <- models
+		if ('model' %in% out) output$model <- model
+		if ('tuning' %in% out) output$tuning <- tuning
+		output
+	} else if ('models' %in% out) {
+		models
+	} else if ('model' %in% out) {
+		model
 	} else if ('tuning' %in% out) {
 		tuning
-	} else {
-		model
 	}
 
 }

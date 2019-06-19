@@ -45,9 +45,9 @@ trainGlm(data, resp = names(data)[1],
 
 \item{method}{Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.}
 
-\item{out}{Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
+\item{out}{Character. Indicates type of value returned. Values can be \code{'model'} (default; return and object with the best model), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with (possible) names of "model", "models", and/or "tuning". If \code{'models'} is specified, they will only be produced if \code{select = TRUE}. The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{glm}, a list with objects of class \code{glm}, or a data frame.}
 
-\item{verbose}{Logical. If TRUE then display intermediate results on the display device.}
+\item{verbose}{Logical. If \code{TRUE} then display intermediate results on the display device.}
 
 \item{...}{Arguments to pass to \code{glm}.
 set.seed(123)
@@ -68,7 +68,7 @@ names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
 model <- trainGlmDredge(x, verbose=TRUE)}
 }
 \description{
-This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, and 2-way-interaction terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias.
+This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, and 2-way-interaction terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is any or all of: a table with AICc for all possible models, all possible models (after model construction), and/or the model with the lowest AICc.
 }
 \examples{
 \donttest{
