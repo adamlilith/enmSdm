@@ -4,22 +4,26 @@
 \alias{tssWeighted}
 \title{Weighted True Skill Statistic (TSS)}
 \usage{
-tssWeighted(pres, bg, presWeight = rep(1, length(pres)),
-  bgWeight = rep(1, length(bg)), thresholds = seq(0, 1, by = 0.01),
-  na.rm = FALSE)
+tssWeighted(pres, contrast, presWeight = rep(1, length(pres)),
+  contrastWeight = rep(1, length(contrast)), thresholds = seq(0, 1, by
+  = 0.01), na.rm = FALSE, bg = NULL, bgWeight = NULL)
 }
 \arguments{
 \item{pres}{Numeric vector. Predicted values at test presences}
 
-\item{bg}{Numeric vector. Predicted values at background/absence sites.}
+\item{contrast}{Numeric vector. Predicted values at background/absence sites.}
 
 \item{presWeight}{Numeric vector same length as \code{pres}. Relative weights of presence sites. The default is to assign each presence a weight of 1.}
 
-\item{bgWeight}{Numeric vector same length as \code{bg}. Relative weights of background sites. The default is to assign each presence a weight of 1.}
+\item{contrastWeight}{Numeric vector same length as \code{contrast}. Relative weights of background sites. The default is to assign each presence a weight of 1.}
 
 \item{thresholds}{Numeric vector. Thresholds at which to calculate the sum of sensitivity and specificity. The default evaluates all values from 0 to 1 in steps of 0.01.}
 
 \item{na.rm}{Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.}
+
+\item{bg}{Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.}
+
+\item{bgWeight}{Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.}
 }
 \value{
 Numeric value.
@@ -39,18 +43,18 @@ good <- runif(100)^0.1
 hist(good, breaks=seq(0, 1, by=0.1), border='green', main='Presences')
 hist(bad, breaks=seq(0, 1, by=0.1), border='red', add=TRUE)
 pres <- c(bad, good)
-bg <- runif(1000)
-tssWeighted(pres, bg)
+contrast <- runif(1000)
+tssWeighted(pres, contrast)
 
 # upweight bad predictions
 presWeight <- c(rep(1, 100), rep(0.1, 100))
-tssWeighted(pres, bg, presWeight=presWeight)
+tssWeighted(pres, contrast, presWeight=presWeight)
 
 # upweight good predictions
 presWeight <- c(rep(0.1, 100), rep(1, 100))
-tssWeighted(pres, bg, presWeight=presWeight)
+tssWeighted(pres, contrast, presWeight=presWeight)
 
-e <- dismo::evaluate(pres, bg)
+e <- dismo::evaluate(pres, contrast)
 max(e@TPR + e@TNR) - 1
 
 # why different from dismo's evaluate() function?
