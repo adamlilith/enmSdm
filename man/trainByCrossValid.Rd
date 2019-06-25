@@ -7,9 +7,10 @@
 trainByCrossValid(data, resp = names(data)[1],
   preds = names(data)[2:ncol(data)], folds = dismo::kfold(data),
   trainFx = enmSdm::trainGlm, ..., metrics = c("logLoss", "cbi", "auc",
-  "fpb", "tss", "msss", "mdss", "minTrainPres", "trainSe95", "trainSe90"),
-  weightEvalTrain = TRUE, weightEvalTest = TRUE, na.rm = FALSE,
-  out = c("models", "tuning"), verbose = 1)
+  "fpb", "tss", "msss", "mdss", "orss", "sedi", "minTrainPres",
+  "trainSe95", "trainSe90"), sensitivity = 0.9, weightEvalTrain = TRUE,
+  weightEvalTest = TRUE, na.rm = FALSE, out = c("models", "tuning"),
+  verbose = 1)
 }
 \arguments{
 \item{data}{Data frame or matrix. Environmental predictors (and no other fields) for presences and background sites.}
@@ -37,6 +38,8 @@ trainByCrossValid(data, resp = names(data)[1],
     \item \code{'fpb'}: Mean Fpb across thresholds from 0 to 1 in steps of 0.01. Calculated with \code{\link[enmSdm]{fpb}}. NOT USED AT PRESENT.
     \item \code{'msss'}: Sensitivity and specificity calculated at the threshold that maximizes sensitivity (true presence prediction rate) plus specificity (true absence prediction rate).
     \item \code{'mdss'}: Sensitivity (se) and specificity (sp) calculated at the threshold that minimizes the difference between sensitivity and specificity.
+    \item \code{'orss'}: Maximum odds ratio skill score (Wunderlich et al. 2019).
+    \item \code{'sedi'}: Maximum of symmetrical extremal dependence index (Wunderlich et al. 2019).
     \item \code{'minTrainPres'}: Sensitivity and specificity at the greatest threshold at which all training presences are classified as "present".
     \item \code{'trainSe95'} and/or \code{'trainSe90'}: Sensitivity at the threshold that ensures either 95% or 90% of all training presences are classified as "present" (training sensitivity = 0.95 or 0.9).
 }}
@@ -82,8 +85,11 @@ summary(model)
 
 folds <- dismo::kfold(trainData, 3)
 out <- trainByCrossValid(data=trainData, folds=folds, verbose=1)
-str(out, 1)
-head(out$tuning)
+str(out, 2)
+head(out$tuning[[1]])
+head(out$tuning[[2]])
+head(out$tuning[[3]])
+
 # can do following for each fold (3 of them)
 lapply(out$models[[1]], coefficients)
 sapply(out$models[[1]], logLik)
@@ -106,6 +112,11 @@ text(x, y, labels='overfit', col='red', xpd=NA)
 x <- usr[1] + 0.1 * (usr[4] - usr[3])
 y <- usr[3] + 0.9 * (usr[4] - usr[3])
 text(x, y, labels='suspicious', col='red', xpd=NA)
+}
+\references{
+Fielding, A.H. and J.F. Bell. 1997. A review of methods for the assessment of prediction errors in conservation presence/absence models. \emph{Environmental Conservation} 24:38-49.
+
+Wunderlich, R.F., Lin, P-Y., Anthony, J., and Petway, J.R. 2019. Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribition models. Nature Conservation 35:97-116.
 }
 \seealso{
 \code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainCrf}}, \code{\link[enmSdm]{trainGam}}, \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainMaxEnt}}, \code{\link[enmSdm]{trainLars}}, \code{\link[enmSdm]{trainMaxNet}}, \code{\link[enmSdm]{trainRf}}
