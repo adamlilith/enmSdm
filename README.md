@@ -34,6 +34,7 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `contBoyce2x`: "2X coverage" version of the Continuous Boyce Index (with/out site weights)
 * `fpb`: Fpb (with/out site weights)
 * `thresholdWeighted`: Thresholds to convert continuous predictions to binary predictions (with/out site weights)
+* `thresholdStats`: Model performance statistics based on thresholded predictions (with/out site weights)
 * `tssWeighted`: True Skill Statistic (TSS) (with/out site weights)
 
 ## Model information
@@ -52,10 +53,11 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `randPointsBatchNicheOverlap`: Calculate niche overlap between sets of randomized points that were generated using `randPointsBatch`
 
 ## Spatial autocorrelation ##
-* `spatialCorrForPoints`: Calculate pairwise distance-based measure of spatial autocorrelation between geographic points
-* `spatialCorrForPointsSummary`: Characteristic cluster size of spatial points (distance of autocorrelation)
-* `spatialCorrForPointsPlot`: Plot observed and null distributions of pairwise distance-based measure of spatial autocorrelation
-* `spatialCorrForPointsWeight`: Assign weights to points based on pairwise distance-based measure of spatial autocorrelation
+* `localSpatialCorrForValues`: Calculate site-specific characteristic distance of local spatial autocorrelation for values associated with points or rasters
+* `spatialCorrForPoints`: Calculate pairwise distance-based measure of global spatial autocorrelation between geographic points
+* `spatialCorrForPointsSummary`: Characteristic cluster size of spatial points (distance of global autocorrelation)
+* `spatialCorrForPointsPlot`: Plot observed and null distributions of pairwise distance-based measure of global spatial autocorrelation
+* `spatialCorrForPointsWeight`: Assign weights to points based on pairwise distance-based measure of global spatial autocorrelation
 
 ## Functions for rasters
 * `bioticVelocity`: Velocity of movement across a series of rasters
