@@ -45,7 +45,7 @@ trainGlm(data, resp = names(data)[1],
 
 \item{method}{Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.}
 
-\item{out}{Character. Indicates type of value returned. Values can be \code{'model'} (default; return and object with the best model), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with (possible) names of "model", "models", and/or "tuning". If \code{'models'} is specified, they will only be produced if \code{select = TRUE}. The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{glm}, a list with objects of class \code{glm}, or a data frame.}
+\item{out}{Character. Indicates type of value returned. Values can be \code{'model'} (default; return model with lowest AICc), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with elements named "model", "models", and/or "tuning". The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{MaxEnt}, a list with objects of class \code{MaxEnt}, or a data frame.}
 
 \item{verbose}{Logical. If \code{TRUE} then display intermediate results on the display device.}
 
