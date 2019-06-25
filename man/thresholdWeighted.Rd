@@ -2,27 +2,31 @@
 % Please edit documentation in R/thresholdWeighted.r
 \name{thresholdWeighted}
 \alias{thresholdWeighted}
-\title{Weighted thresholds for predictions}
+\title{Weighted thresholds for predictions
+Weighted thresholds for predictions}
 \usage{
-thresholdWeighted(pres, bg, presWeight = rep(1, length(pres)),
-  bgWeight = rep(1, length(bg)), at = c("msss", "mdss", "minPres",
-  "prevalence", "sensitivity"), sensitivity = 0.9, thresholds = seq(0,
-  1, by = 0.01), na.rm = FALSE)
+thresholdWeighted(pres, contrast, presWeight = rep(1, length(pres)),
+  contrastWeight = rep(1, length(contrast)), at = c("msss", "mdss",
+  "minPres", "orss", "sedi", "prevalence", "sensitivity"),
+  sensitivity = 0.9, thresholds = seq(0, 1, by = 0.01),
+  delta = 0.001, na.rm = FALSE, bg = NULL)
 }
 \arguments{
 \item{pres}{Numeric vector. Predicted values at test presences}
 
-\item{bg}{Numeric vector. Predicted values at background/absence sites.}
+\item{contrast}{Numeric vector. Predicted values at background/absence sites.}
 
 \item{presWeight}{Numeric vector same length as \code{pres}. Relative weights of presence sites. The default is to assign each presence a weight of 1.}
 
-\item{bgWeight}{Numeric vector same length as \code{bg}. Relative weights of background sites. The default is to assign each presence a weight of 1.}
+\item{contrastWeight}{Numeric vector same length as \code{contrast}. Relative weights of background sites. The default is to assign each presence a weight of 1.}
 
 \item{at}{Character or character vector, name(s) of threshold(s) to calculate. The default is to calculate them all.
 \itemize{
         \item \code{'msss'}: Threshold that the maximums sum of sensitivity and specificity.
         \item \code{'mdss'}: Threshold that minimizes the difference between sensitivity and specificity.
         \item \code{'minPres'}: Minimum prediction across presences. This threshold is not weighted.
+        \item \code{'orss'}: Threshold that maximizes the odds ratio skill score (Wunderlich et al. 2019).
+        \item \code{'sedi'}: Threshold that maximizes the symmetrical extremal dependence index (Wunderlich et al. 2019).
         \item \code{'prevalence'}: Prevalence of presences (sum(presence weights) / sum(presence weights + background weights))'
         \item \code{'sensitivity'}: Threshold that most closely returns the sensitivity specified by \code{sensitivity}.
 }}
@@ -31,7 +35,11 @@ thresholdWeighted(pres, bg, presWeight = rep(1, length(pres)),
 
 \item{thresholds}{Numeric vector. Thresholds at which to calculate the sum of sensitivity and specificity. The default evaluates all values from 0 to 1 in steps of 0.01.}
 
+\item{delta}{Positive numeric >0 in the range [0, 1] and usually very small. This value is used only if calculating the SEDI threshold when any true positive rate or false negative rate is 0 or the false negative rate is 1. Since SEDI uses log(x) and log(1 - x), values of 0 and 1 will produce \code{NA}s. To obviate this, a small amount can be added to rates that equal 0 and subtracted from rates that equal 1.}
+
 \item{na.rm}{Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.}
+
+\item{bg}{Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.}
 }
 \value{
 Named numeric vector.
@@ -48,19 +56,21 @@ good <- runif(100)^0.1
 hist(good, breaks=seq(0, 1, by=0.1), border='green', main='Presences')
 hist(bad, breaks=seq(0, 1, by=0.1), border='red', add=TRUE)
 pres <- c(bad, good)
-bg <- runif(1000)
-thresholdWeighted(pres, bg)
+contrast <- runif(1000)
+thresholdWeighted(pres, contrast)
 
 # upweight bad predictions
 presWeight <- c(rep(1, 100), rep(0.1, 100))
-thresholdWeighted(pres, bg, presWeight=presWeight)
+thresholdWeighted(pres, contrast, presWeight=presWeight)
 
 # upweight good predictions
 presWeight <- c(rep(0.1, 100), rep(1, 100))
-thresholdWeighted(pres, bg, presWeight=presWeight)
+thresholdWeighted(pres, contrast, presWeight=presWeight)
 }
 \references{
 Fielding, A.H. and J.F. Bell. 1997. A review of methods for the assessment of prediction errors in conservation presence/absence models. \emph{Environmental Conservation} 24:38-49.
+
+Wunderlich, R.F., Lin, P-Y., Anthony, J., and Petway, J.R. 2019. Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribition models. Nature Conservation 35:97-116.
 }
 \seealso{
 \code{\link[dismo]{threshold}}, \code{\link[dismo]{evaluate}}

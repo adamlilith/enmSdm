@@ -5,6 +5,7 @@
 #' @param rast Raster, raster stack, or raster brick object. Randomly located sites will be placed in any non-\code{NA} cell on this raster. If this is a raster stack or brick, the first layer will be used.
 #' @param breaks Three numeric values or a matrix or data frame with at least two columns:
 #' \itemize{
+#' \item A positive integer: Number of overlapping bins to use. The minimum bin distance will be >0 and maximum <= the maximum inter-point distance. Default is 20.
 #' \item Three numeric values: The first two values are smallest and largest distances (in units used in coordinate reference system of \code{rast}, typically meters) across which to tabulate distance frequencies. The third value is the number of bins.
 #' \item Matrix or data frame with at least two columns. Each row corresponds to a different bin. The first column represents the minimum distance in each bin (in units used in coordinate reference system of \code{rast}, typically meters) and the second column the maximum distance. Subsequent columns are ignored. Note that by using this option arbitrary bins can be used--they need not overlap or even be continuous in coverage.
 #' }
@@ -16,7 +17,7 @@
 #' The function \code{spatialCorrForPoints} first calculates the observed distance distribution and tabulates the frequency of distances into bins. Then, it generates a set of randomly located points equal to the same number of points as in the observed set. It then calculates the randomized distance distribution and tabulates the distances. The randomization is repeated a large number of times (the default is 100). The observed frequency of distances can be compared to the set of random distances using \code{spatialCorForPointsSummary} and \code{spatialCorForPointsPlot}. The default values in those functions assume that clustering occurs if the observed pairwise distance is > the 95th quantile of the null frequency distribution for that bin (i.e., a 1-tailed test), but users can specify a different percentile to demarcate significance. In practice a series of distance bins often show clustering, but the one usually of interest is the first distance bin (the one closest to 0) that has a non-significant difference between observed and expected distances. This is the characteristic diameter of a cluster of points. Points closer than this distance can be considered non-independent of one another.  
 #' Alternatively, one can specify a set of points using the \code{fixed} argument. In this case, the "observed" pairwise distance distribution is tabulated from the set of pairwise distances between the points specified by argument \code{pts} and \code{fixed}. The randomized distance distribution is calculated by randomly re-locating points in \code{pts} and calculating distances to \code{fixed}.  
 #' The function \code{spatialCorrForPointsWeight} calculates weights for a set of points based on the characteristic scale of spatial autocorrelation.
-#' @seealso \code{\link[enmSdm]{spatialCorForPointsSummary}}, \code{\link[enmSdm]{spatialCorForPointsPlot}}, \code{\link[enmSdm]{spatialCorForPointsWeight}}
+#' @seealso \code{\link[enmSdm]{spatialCorForPointsSummary}}, \code{\link[enmSdm]{spatialCorForPointsPlot}}, \code{\link[enmSdm]{spatialCorForPointsWeight}}, \code{\link[enmSdm]{localSpatialCorrForPointValues}}
 #' @examples
 #' \donttest{
 #' # create raster of Madagascar
@@ -71,7 +72,7 @@
 spatialCorrForPoints <- function(
 	pts,
 	rast,
-	breaks,
+	breaks = 20,
 	iters = 100,
 	fixed = NULL,
 	verbose = FALSE,
@@ -96,6 +97,7 @@ spatialCorrForPoints <- function(
 	}
 	
 	obsDist <- c(obsDist)
+	if (class(breaks) != 'matrix' & class(breaks) != 'data.frame' & length(breaks) == 1) breaks <- c(omnibus::eps(), max(obsDist) + omnibus::eps(), breaks)
 	distDistrib <- statisfactory::histOverlap(obsDist, breaks=breaks, graph=FALSE)
 	
 	# create bank of random points
