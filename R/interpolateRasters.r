@@ -43,6 +43,7 @@ interpolateRasters <- function(
 	### check for errors
 	####################
 		
+		if (!any(c('linear', 'spline') %in% type)) stop('Argument "type" must be "linear" or "spline".')
 		if (nlayers(rasts) < 2) stop('Argument "rasts" must have >1 raster layer.')
 		if (length(interpFrom) != raster::nlayers(rasts)) stop('Argument "interpFrom" must have same length as number of rasters in argument "rasts".')
 		
