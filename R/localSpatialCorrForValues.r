@@ -334,11 +334,11 @@ localSpatialCorrForValues <- function(
 				focal@data[countFocal, paste0('sacDistMax_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'upper'])
 			}
 			
-			setTxtProgressBar(progress, countFocal)
+			if (verbose) setTxtProgressBar(progress, countFocal)
 			
 		} # next "focal" site
 		
-		close(progress)
+		if (verbose) close(progress)
 		
 	} # next variable
 	
