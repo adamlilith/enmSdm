@@ -46,5 +46,5 @@ aucMultiWeighted(low, middle, high)
 aucMultiWeighted(low, middle, high, weightBySize=TRUE)
 }
 \seealso{
-\code{\link{Fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}, \code{link[enmSdm]{aucWeighted}}
+\code{\link{fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}, \code{link[enmSdm]{aucWeighted}}
 }

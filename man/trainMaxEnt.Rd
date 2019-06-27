@@ -5,10 +5,10 @@
 \title{Calibrate a Maxent (ver 3.3.3- or "maxent") model using AICc}
 \usage{
 trainMaxEnt(data, resp = names(data)[1],
-  preds = names(data)[2:ncol(data)], regMult = c(seq(0.5, 5, by = 0.5),
-  6:10, 12.5, 15, 17.5, 20), classes = "default", testClasses = TRUE,
-  forceLinear = TRUE, jackknife = TRUE, args = "", out = "model",
-  anyway = TRUE, scratchDir = NULL, verbose = FALSE, ...)
+  preds = names(data)[2:ncol(data)], regMult = c(seq(0.5, 5, by =
+  0.5)), classes = "default", testClasses = TRUE, forceLinear = TRUE,
+  jackknife = TRUE, args = "", dropOverparam = TRUE, out = "model",
+  scratchDir = NULL, verbose = FALSE, anyway = TRUE, ...)
 }
 \arguments{
 \item{data}{Data frame or matrix. Environmental predictors (and no other fields) for presences and background sites.}
@@ -21,21 +21,23 @@ trainMaxEnt(data, resp = names(data)[1],
 
 \item{classes}{Character list. Names of feature classes to use (either \code{default} to use \code{lpqh} or any combination of \code{lpqht}), where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.}
 
-\item{testClasses}{Logical.  If \code{TRUE} then test all possible combinations of classes (note that all tested models will at least have linear features). If \code{FALSE} then use the classes provided (these will not vary between models).}
+\item{testClasses}{Logical.  If \code{TRUE} (default) then test all possible combinations of classes (note that all tested models will at least have linear features). If \code{FALSE} then use the classes provided (these will not vary between models).}
 
-\item{forceLinear}{Logical. If TRUE then require any tested models to include at least linear features.}
+\item{forceLinear}{Logical. If \code{TRUE} (default) then require any tested models to include at least linear features.}
 
-\item{jackknife}{Logical. If TRUE the the returned model will be also include jackknife testing of variable importance.}
+\item{jackknife}{Logical. If \code{TRUE} (default) the the returned model will be also include jackknife testing of variable importance.}
 
 \item{args}{Character list. Options to pass to \code{maxent()}'s \code{args} argument. (Do not include \code{l}, \code{p}, \code{q}, \code{h}, \code{t}, \code{betamultiplier}, or \code{jackknife}!)}
 
-\item{out}{Character. Indicates type of value returned. If \code{model} then returns an object of class \code{MaxEnt}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
+\item{dropOverparam}{Logical, if \code{TRUE} (default), drop models if they have more coefficients than training occurrences. It is possible for no models to fulfill this criterion, in which case no models will be returned.}
 
-\item{anyway}{Logical. If no model has fewer coefficients than predictors, return the model with the lowest AICc anyway.}
+\item{out}{Character. Indicates type of value returned. Values can be \code{'model'} (default; return model with lowest AICc), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with elements named "model", "models", and/or "tuning". If \code{'models'} is specified, they will only be produced if \code{select = TRUE}. The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{glm}, a list with objects of class \code{glm}, or a data frame.}
 
 \item{scratchDir}{Character. Directory to which to write temporary files. Leave as NULL to create a temporary folder in the current working directory.}
 
 \item{verbose}{Logical. If TRUE report progress and AICc table.}
+
+\item{anyway}{Logical. Same as \code{dropOverparam} (included for backwards compatibility. If \code{NULL} (default), then the value of \code{dropOverparam} will take precedence. If \code{TRUE} or \code{FALSE} then \code{anyway} will override the value of \code{dropOverparam}.}
 
 \item{...}{Arguments to pass to \code{maxent()} or \code{predict.maxent()}.}
 }
@@ -43,30 +45,40 @@ trainMaxEnt(data, resp = names(data)[1],
 If \code{out = 'model'} this function returns an object of class \code{MaxEnt}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{MaxEnt} object and the data frame.
 }
 \description{
-This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes.  See Warren, D.L. and S.N. Siefert.  2011.  Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria.  **Ecological Applications** 21:335-342.  The function returns the best model and/or a data frame with AICc for each value of the multipler and combination of classes.
+This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes.  See Warren, D.L. and S.N. Siefert.  2011.  Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria.  **Ecological Applications** 21:335-342.  The function returns the best model and/or a data frame with AICc for each value of the multiplier and combination of classes.
 }
 \details{
 This function is a wrapper for \code{maxent()}. That function relies on a maxent \code{jar} file being placed into the folder \code{./library/dismo/java}. See \code{\link[dismo]{maxent}} for more details. The \code{maxent()} function creates a series of files on disc for each model. This function assumes you do not want those files, so deletes most of them. However, there is one that cannot be deleted and the normal ways of changing its permissions in \code{R} do not work. So the function simply writes over that file (which is allowed) to make it smaller. Regardless, if you run many models your temporary directory (argument \code{scratchDir}) can fill up and require manual deletion.
 }
 \examples{
 set.seed(123)
-x <- matrix(rnorm(n = 6*100), ncol = 6)
-# true variables will be #1, #2, #5, and #6, plus
-# the squares of #1 and #6, plus
-# interaction between #1 and #6
-# the cube of #5
-imp <- c('x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x1_pow2', 'x6_pow2', 'x1_by_x6', 'x5_pow3')
-betas <- c(5, 2, 0, 0, 1, -1, 8, 1, 2, -4)
-names(betas) <- imp
-y <- 0.5 + x \%*\% betas[1:6] + betas[7] * x[ , 1] +
-betas[8] * x[ , 6] + betas[9] * x[ , 1] * x[ , 6] + betas[10] * x[ , 5]^3
-y <- as.integer(y > 10)
-x <- cbind(y, x)
-x <- as.data.frame(x)
-names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
-model <- trainMaxEnt(x, regMult=1:2, out=c('model', 'tuning'), verbose=TRUE)
-model$tuning
-model$model@lambdas
+
+# contrived example
+n <- 10000
+x1 <- seq(-1, 1, length.out=n) + rnorm(n)
+x2 <- seq(10, 0, length.out=n) + rnorm(n)
+x3 <- rnorm(n)
+y <- 2 * x1 + x1^2 - 10 * x2 - x1 * x2
+
+y <- statisfactory::probitAdj(y, 0)
+y <- y^3
+hist(y)
+
+presAbs <- runif(n) < y
+
+trainData <- data.frame(presAbs=presAbs, x1=x1, x2=x2, x3=x3)
+
+out <- trainMaxEnt(trainData, regMult=1:2,
+	out=c('models', 'model', 'tuning'))
+str(out)
+out$model@lambdas
+out$tuning
+
+predsLogistic <- raster::predict(out$model, trainData)
+predsLogistic <- predictMaxEnt(out$model, trainData, type='logistic') # slow
+predsCloglog <- predictMaxEnt(out$model, trainData)
+plot(predsLogistic, predsCloglog, xlim=c(0, 1), ylim=c(0, 1))
+abline(0, 1, col='gray')
 }
 \seealso{
 \code{\link[maxnet]{maxnet}}, \code{\link[dismo]{maxent}}, \code{\link{trainMaxNet}}

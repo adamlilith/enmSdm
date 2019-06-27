@@ -4,44 +4,52 @@
 \alias{aucWeighted}
 \title{Weighted AUC}
 \usage{
-aucWeighted(pres, bg, presWeight = rep(1, length(pres)),
-  bgWeight = rep(1, length(bg)), na.rm = FALSE)
+aucWeighted(pres, contrast, presWeight = rep(1, length(pres)),
+  contrastWeight = rep(1, length(contrast)), na.rm = FALSE,
+  bg = NULL, bgWeight = NULL)
 }
 \arguments{
 \item{pres}{Predictions at presence sites.}
 
-\item{bg}{Predictions at absence sites.}
+\item{contrast}{Predictions at absence/background sites.}
 
-\item{presWeight}{Weights of presences. The default is to assign each presence a weight of 1.}
+\item{presWeight}{Weights of presence cases. The default is to assign each presence case a weight of 1.}
 
-\item{bgWeight}{Weights of absences. The default is to assign each presence a weight of 1.}
+\item{contrastWeight}{Weights of absence/background cases. The default is to assign each case a weight of 1.}
 
 \item{na.rm}{Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.}
+
+\item{bg}{Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.}
+
+\item{bgWeight}{Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.}
 }
 \value{
 Numeric value.
 }
 \description{
-This function calculates the area under the receiver-operator characteristic curve (AUC) following Mason, S.J. and N.E. Graham.  2002.  Areas beneath the relative operating characteristics (ROC) and relative operating levels (ROL) curves: Statistical significance and interpretation.  \emph{Quarterly Journal of the Royal Meteorological Society} 128:2145-2166. Positives and negatives values can be given weights.
+This function calculates the area under the receiver-operator characteristic curve (AUC) following Mason & Graham (2002). Positives and negatives values can be given weights.
 }
 \examples{
 pres <- seq(0.5, 1, by=0.1)
-bg <- seq(0, 1, by=0.01)
+contrast <- seq(0, 1, by=0.01)
 
 # unweighted
-aucWeighted(pres, bg)
+aucWeighted(pres, contrast)
 
 # weighted (weight presences with low predictions more)
 presWeight <- c(1, 1, 1, 0.5, 0.5, 0.5)
-aucWeighted(pres, bg, presWeight=presWeight)
+aucWeighted(pres, contrast, presWeight=presWeight)
 
 # weighted (weight presences with high predictions more)
 presWeight <- c(0.5, 0.5, 0.5, 1, 1, 1)
-aucWeighted(pres, bg, presWeight=presWeight)
+aucWeighted(pres, contrast, presWeight=presWeight)
 
 # weight presences and absences
-bgWeight <- sqrt(bg)
-aucWeighted(pres, bg, presWeight=presWeight, bgWeight=bgWeight)
+contrastWeight <- sqrt(contrast)
+aucWeighted(pres, contrast, presWeight=presWeight, contrastWeight=contrastWeight)
+}
+\references{
+Mason, S.J. and N.E. Graham.  2002.  Areas beneath the relative operating characteristics (ROC) and relative operating levels (ROL) curves: Statistical significance and interpretation.  \emph{Quarterly Journal of the Royal Meteorological Society} 128:2145-2166.
 }
 \seealso{
 \code{\link{fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}

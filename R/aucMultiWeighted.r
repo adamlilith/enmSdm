@@ -5,7 +5,7 @@
 #' @param weightBySize Logical, if \code{FALSE} then the multivariate measure of AUC will treat all comparisons as equal (e.g., low versus middle will weigh as much as middle versus high), and so will simply be the mean AUC across all possible comparisons. If \code{TRUE} then multivariate AUC is the weighted mean across all possible comparisons where weights are the number of comparisons between each of the two cases. For example, if a set of "low" predictions ("low") has 10 data points, "middle" has 10, and "high" has 20, then the multivariate AUC will be (10 * low + 10 * middle + 20 * high) / (10 + 10 + 20).
 #' @param na.rm Logical. If \code{TRUE} then remove any cases in \code{...} that are \code{NA}.
 #' @return Named numeric vector.
-#' @seealso \code{\link{Fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}, \code{link[enmSdm]{aucWeighted}}
+#' @seealso \code{\link{fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}, \code{link[enmSdm]{aucWeighted}}
 #' @examples
 #' set.seed(123)
 #' 
@@ -82,18 +82,18 @@ aucMultiWeighted <- function(
 		for (two in (one + 1):length(cases)) {
 
 			# neatify
-			bg <- cases[[one]][ , 1]
+			contrast <- cases[[one]][ , 1]
 			pres <- cases[[two]][ , 1]
 			
-			bgWeight <- cases[[one]][ , 2]
+			contrastWeight <- cases[[one]][ , 2]
 			presWeight <- cases[[two]][ , 2]
 			
 			# pairwise AUC
 			thisAuc <- aucWeighted(
 				pres=pres,
-				bg=bg,
+				contrast=contrast,
 				presWeight=presWeight,
-				bgWeight=bgWeight
+				contrastWeight=contrastWeight
 			)
 			
 			# remember and assign name
@@ -104,7 +104,7 @@ aucMultiWeighted <- function(
 			names(aucs)[length(aucs)] <- name
 			
 			# remember number of cases
-			thisNumCases <- length(pres) * length(bg)
+			thisNumCases <- length(pres) * length(contrast)
 			numCases <- c(numCases, thisNumCases)
 			names(numCases)[length(numCases)] <- name
 			

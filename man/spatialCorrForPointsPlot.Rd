@@ -12,7 +12,7 @@ spatialCorrForPointsPlot(x, perc = 95, rescale = 1, nullCol = "gray",
 
 \item{perc}{Numeric value in the range [0, 100], indicates the upper quantile of randomized distance frequencies above which observed distance frequencies are considered significant. Default is 95.}
 
-\item{rescale}{Numeric, value by which to multiple distances. Typically if distances are in meters, but it is visually more appealing to display them in kilometers, so in that case \code{rescale} should equal 0.001. Default is 1 (no re-scaling).}
+\item{rescale}{Numeric, value by which to multiple distances. For example, if distances are in meters, but it is visually more appealing to display them in kilometers, then \code{rescale} should equal 0.001 (km / m). Default is 1 (no re-scaling).}
 
 \item{nullCol}{Character or non-negative integer indicating fill color for null distribution.}
 
