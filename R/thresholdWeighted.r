@@ -58,6 +58,7 @@ thresholdWeighted <- function(
 	delta = 0.001,
 	na.rm = FALSE,
 	bg = NULL,
+	bgWeight = NULL,
 	...
 ) {
 

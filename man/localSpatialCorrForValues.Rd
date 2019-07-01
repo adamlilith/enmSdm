@@ -2,7 +2,7 @@
 % Please edit documentation in R/localSpatialCorrForValues.r
 \name{localSpatialCorrForValues}
 \alias{localSpatialCorrForValues}
-\title{Calculate local scale of spatial autocorrelation for a set of variables}
+\title{Local characteristic distance of spatial autocorrelation for variables}
 \usage{
 localSpatialCorrForValues(x, focal = NULL, vars = NULL, breaks = 20,
   iters = 100, perc = 95, verbose = TRUE, ...)

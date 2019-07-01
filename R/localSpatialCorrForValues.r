@@ -1,4 +1,4 @@
-#' Calculate local scale of spatial autocorrelation for a set of variables
+#' Local characteristic distance of spatial autocorrelation for variables
 #'
 #' This function calculates the range of spatial autocorrelation for a set of predictors at a set of sites. Input can be a raster or raster stack, in which case the output is a raster stack, one layer per layer of input, with cell values equal to the characteristic distance of spatial autocorrelation for each cell.  Alternatively, input can be a raster and a matrix, data frame, SpatialPoints, or SpatialPoointsDataFrame object, in which case the output will be a matrix, data frame, or SpatialPointsDataFrame with the characteristic distance of spatial autocorrelation for each layer in the raster set at each point. Finally, input can simply be a matrix, data frame, of SpatialPointsDataFrame in which case the scale of autocorrelation is calculated using data from the sites, with output format matching the input format. See \emph{Details} for information on how the characteristic scale of spatial autocorrelation is estimated. This function is related to \code{\link[enmSdm]{spatialCorrForPoints}} which calculates spatial autocorrelation for distances between points, whereas this function calculates spatial autocorrelation for measurements taken at points (or raster cell centers).
 #' @param x Either a raster, raster stack/brick, matrix with column names, data frame, or SpatialPointsDataFrame. If you use a matrix or data frame then the first two columns will be assumed to represent longitude and latitude, in that order, and their coordinate reference system will be assumed to be WGS84 (unprojected).
@@ -216,6 +216,9 @@ localSpatialCorrForValues <- function(
 	oneTailMid <- 0.5 * (2 - perc / 100)
 	oneTailUpper <- 1
 	
+	# pre-calculate length of reference vector
+	refsSize <- nrow(refs)
+
 	# pre-calculate breaks if not supplied
 	numBreaks <- if (!any(c('matrix', 'data.frame') %in% class(breaks)) && length(breaks) == 1) {
 		breaks
@@ -228,9 +231,6 @@ localSpatialCorrForValues <- function(
 	# pre-allocate matrix for permuted lower/middle/upper quantiles of null difference distribution
 	randAbsDiffBlank <- matrix(NA, ncol=numBreaks, nrow=iters)
 			
-	# pre-calculate length of reference vector
-	refsSize <- nrow(refs)
-
 	### calculate characteristic scale of spatial autocorrelation for each variable
 	###############################################################################
 	
@@ -264,7 +264,7 @@ localSpatialCorrForValues <- function(
 			# remove distance to self
 			if (refsAndFocalSame) dists[countFocal] <- NA
 
-			distDistrib <- statisfactory::histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE)
+			distDistrib <- statisfactory::histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE, ...)
 			# distDistrib <- histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE)
 			indices <- attr(distDistrib, 'indices')
 
@@ -279,10 +279,10 @@ localSpatialCorrForValues <- function(
 			}
 
 			# observed lower/middle/upper quantiles of observed difference distribution
-			obsAbsDiffLower <- sapply(obsAbsDiff, quantile, twoTailLower, na.rm=TRUE)
+			obsAbsDiffLower <- sapply(obsAbsDiff, quantile, p=twoTailLower, na.rm=TRUE)
 			# obsAbsDiffMid <- sapply(obsAbsDiff, quantile, twoTailMid, na.rm=TRUE)
 			obsAbsDiffMid <- sapply(obsAbsDiff, mean, na.rm=TRUE)
-			obsAbsDiffUpper <- sapply(obsAbsDiff, quantile, twoTailUpper, na.rm=TRUE)
+			obsAbsDiffUpper <- sapply(obsAbsDiff, quantile, p=twoTailUpper, na.rm=TRUE)
 
 			# matrices to store lower/middle/upper quantiles of each iterations differences for each distance
 			randAbsDiffUpper <- randAbsDiffMid <- randAbsDiffLower <- randAbsDiffBlank

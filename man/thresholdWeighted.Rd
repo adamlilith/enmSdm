@@ -8,7 +8,7 @@ thresholdWeighted(pres, contrast, presWeight = rep(1, length(pres)),
   contrastWeight = rep(1, length(contrast)), at = c("msss", "mdss",
   "minPres", "orss", "sedi", "prevalence", "sensitivity"),
   sensitivity = 0.9, thresholds = seq(0, 1, by = 0.01),
-  delta = 0.001, na.rm = FALSE, bg = NULL, ...)
+  delta = 0.001, na.rm = FALSE, bg = NULL, bgWeight = NULL, ...)
 }
 \arguments{
 \item{pres}{Numeric vector. Predicted values at test presences}
@@ -40,9 +40,9 @@ thresholdWeighted(pres, contrast, presWeight = rep(1, length(pres)),
 
 \item{bg}{Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.}
 
-\item{...}{Other arguments (unused).}
-
 \item{bgWeight}{Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.}
+
+\item{...}{Other arguments (unused).}
 }
 \value{
 Named numeric vector.

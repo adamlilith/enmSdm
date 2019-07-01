@@ -55,37 +55,41 @@ trainByCrossValid(data, resp = names(data)[1],
 \item{verbose}{Numeric. If 0 show no progress updates. If > 0 then show minimal progress updates for this function only. If > 1 show detailed progress for this function. If > 2 show detailed progress plus detailed progress for the "trainXYZ" function.}
 }
 \value{
-If \code{out = 'models'} this function returns a list with models. If If \code{out = 'tuning'} this function returns a data frame with performance statistics for the training and testing data set. If \code{out = c('model', 'tuning'} then it returns a list object with the models and tuning statistics.
-
-A list object with one element named "models" which will have one set of models per k-fold, and/or another element named "tuning" which will have one data frame per k-fold.
+A list object with several named elements:
+\itemize{
+		\item \code{meta}: Meta-data on the model call.
+		\item \code{folds}: the \code{folds} object.
+		\item \code{models} (if \code{'models'} is in argument \code{out}): A list of model objects, one per k-fold
+	\item \code{tuning} (if \code{'tuning'} is in argument \code{out}): One data frame per k-fold, each containing evaluation statistics for all candidate models in the fold.
+}
 }
 \description{
 This function is an extension of any of the "trainXYZ" functions for calibrating species distribution and ecological niche models. This function uses the "trainXYZ" function to calibrate and evaluate a suite of models using cross-validation. The models are evaluated against withheld data to determine the optimal settings for a "final" model using all available data.
 }
 \examples{
+\dontrun{
 set.seed(123)
-
 ### contrived example
+# generate training/testing data
 n <- 10000
 x1 <- seq(-1, 1, length.out=n) + rnorm(n)
 x2 <- seq(10, 0, length.out=n) + rnorm(n)
 x3 <- rnorm(n)
 y <- 2 * x1 + x1^2 - 10 * x2 - x1 * x2
-
 y <- statisfactory::probitAdj(y, 0)
 y <- y^3
-hist(y)
-
 presAbs <- runif(n) < y
+data <- data.frame(presAbs=presAbs, x1=x1, x2=x2, x3=x3)
 
-trainData <- data.frame(presAbs=presAbs, x1=x1, x2=x2, x3=x3)
-
-model <- trainGlm(trainData)
+model <- trainGlm(data)
 summary(model)
 
-folds <- dismo::kfold(trainData, 3)
-out <- trainByCrossValid(data=trainData, folds=folds, verbose=1)
-str(out, 2)
+folds <- dismo::kfold(data, 3)
+out <- trainByCrossValid(data, folds=folds, verbose=1)
+
+summaryByCrossValid(out)
+
+str(out, 1)
 head(out$tuning[[1]])
 head(out$tuning[[2]])
 head(out$tuning[[3]])
@@ -113,10 +117,11 @@ x <- usr[1] + 0.1 * (usr[4] - usr[3])
 y <- usr[3] + 0.9 * (usr[4] - usr[3])
 text(x, y, labels='suspicious', col='red', xpd=NA)
 }
+}
 \references{
 Fielding, A.H. and J.F. Bell. 1997. A review of methods for the assessment of prediction errors in conservation presence/absence models. \emph{Environmental Conservation} 24:38-49.
 
-Wunderlich, R.F., Lin, P-Y., Anthony, J., and Petway, J.R. 2019. Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribition models. Nature Conservation 35:97-116.
+Wunderlich, R.F., Lin, P-Y., Anthony, J., and Petway, J.R. 2019. Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribution models. Nature Conservation 35:97-116.
 }
 \seealso{
 \code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainCrf}}, \code{\link[enmSdm]{trainGam}}, \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainMaxEnt}}, \code{\link[enmSdm]{trainLars}}, \code{\link[enmSdm]{trainMaxNet}}, \code{\link[enmSdm]{trainRf}}

@@ -19,6 +19,12 @@ predictEnmSdm <- function(
 ) {
 
 	modelClass <- class(model)
+	dataClass <- class(data)
+	dataType <- if (any(c('matrix', 'data.frame') %in% dataClass)) {
+		'table'
+	} else (any(c('RasterLayer', 'RasterStack', 'RasterBrick') %in% dataClass)) {
+		'raster'
+	}
 
 	# GAM
 	if ('gam' %in% modelClass) {
@@ -28,7 +34,11 @@ predictEnmSdm <- function(
 	# GLM
 	} else if ('glm' %in% modelClass) {
 	
-		out <- stats::predict.glm(model, newdata, type='response', ...)
+		out <- if (dataType == 'table') {
+			stats::predict.glm(model, newdata, type='response', ...)
+		} else if (dataType == 'raster') {
+			raster::predict(newdata, mdoel, type='response', ...)
+		}
 		
 	# LM
 	} else if ('lm' %in% modelClass) {
