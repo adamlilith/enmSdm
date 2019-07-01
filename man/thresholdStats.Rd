@@ -6,7 +6,7 @@
 \usage{
 thresholdStats(thresholds, pres, contrast, presWeight = rep(1,
   length(pres)), contrastWeight = rep(1, length(contrast)),
-  delta = 0.001, na.rm = FALSE)
+  delta = 0.001, na.rm = FALSE, bg = NULL, bgWeight = NULL, ...)
 }
 \arguments{
 \item{thresholds}{Numeric or numeric vector. Threshold(s) at which to calculate sensitivity and specificity.}
@@ -22,6 +22,12 @@ thresholdStats(thresholds, pres, contrast, presWeight = rep(1,
 \item{delta}{Positive numeric >0 in the range [0, 1] and usually very small. This value is used only if calculating the SEDI threshold when any true positive rate or false negative rate is 0 or the false negative rate is 1. Since SEDI uses log(x) and log(1 - x), values of 0 and 1 will produce \code{NA}s. To obviate this, a small amount can be added to rates that equal 0 and subtracted from rates that equal 1.}
 
 \item{na.rm}{Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.}
+
+\item{bg}{Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.}
+
+\item{bgWeight}{Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.}
+
+\item{...}{Other arguments (unused).}
 }
 \value{
 8-column matrix with the following named columns. \emph{a} = weight of presences >= threshold, \emph{b} = weight of backgrounds >= threshold, \emph{c} = weight of presences < threshold, \emph{d} = weight of backgrounds < threshold, and \emph{N} = sum of presence and background weights.

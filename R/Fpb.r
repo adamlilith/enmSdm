@@ -8,6 +8,7 @@
 #' @param bgWeight Numeric same length as \code{bg}. Weights for background predictions. The default is to assign each presence a weight of 1.
 #' @param na.rm Logical. If \code{TRUE} remove any \code{NA}s in predictions at presences and/or absences before calculation. If \code{NA}s occur but are not removed then the output will be \code{NA}.
 #' @param tr Same as \code{thresholds}. Deprecated, but included for backwards compatibility.
+#' @param ... Other arguments (unused).
 #' @return Numeric.
 #' @references Li, W. and Guo, Q.  2013.  How to assess the prediction accuracy of species presence-absence models without absence data? \emph{Ecography} 36:788-799.
 #' @seealso \code{\link{aucWeighted}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}
@@ -48,7 +49,8 @@ fpb <- function(
 	presWeight = rep(1, length(pres)),
 	bgWeight = rep(1, length(bg)),
 	na.rm = FALSE,
-	tr = NULL
+	tr = NULL,
+	...
 ) {
 
 	# if all NAs

@@ -8,6 +8,7 @@
 #' @param na.rm Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.
 #' @param bg Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.
 #' @param bgWeight Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.
+#' @param ... Other arguments (unused).
 #' @return Numeric value.
 #' @references Mason, S.J. and N.E. Graham.  2002.  Areas beneath the relative operating characteristics (ROC) and relative operating levels (ROL) curves: Statistical significance and interpretation.  \emph{Quarterly Journal of the Royal Meteorological Society} 128:2145-2166. 
 #' @seealso \code{\link{fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}
@@ -38,7 +39,8 @@ aucWeighted <- function(
 	contrastWeight = rep(1, length(contrast)),
 	na.rm = FALSE,
 	bg = NULL,
-	bgWeight = NULL
+	bgWeight = NULL,
+	...
 ) {
 
 	if (missing(contrast) & !is.null(bg)) contrast <- bg

@@ -6,7 +6,7 @@
 \usage{
 fpb(pres, bg, thresholds = seq(0, 1, by = 0.01), presWeight = rep(1,
   length(pres)), bgWeight = rep(1, length(bg)), na.rm = FALSE,
-  tr = NULL)
+  tr = NULL, ...)
 }
 \arguments{
 \item{pres}{Numeric vector. Predictions at presence sites.}
@@ -22,6 +22,8 @@ fpb(pres, bg, thresholds = seq(0, 1, by = 0.01), presWeight = rep(1,
 \item{na.rm}{Logical. If \code{TRUE} remove any \code{NA}s in predictions at presences and/or absences before calculation. If \code{NA}s occur but are not removed then the output will be \code{NA}.}
 
 \item{tr}{Same as \code{thresholds}. Deprecated, but included for backwards compatibility.}
+
+\item{...}{Other arguments (unused).}
 }
 \value{
 Numeric.

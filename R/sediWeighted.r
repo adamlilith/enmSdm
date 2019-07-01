@@ -9,6 +9,8 @@
 #' @param delta Positive numeric >0 in the range [0, 1] and usually very small. This value is used only if calculating the SEDI threshold when any true positive rate or false negative rate is 0 or the false negative rate is 1. Since SEDI uses log(x) and log(1 - x), values of 0 and 1 will produce \code{NA}s. To obviate this, a small amount can be added to rates that equal 0 and subtracted from rates that equal 1.
 #' @param na.rm Logical. If \code{TRUE} then remove any presences and associated weights and absence/background predictions and associated weights with \code{NA}s.
 #' @param bg Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.
+#' @param bgWeight Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.
+#' @param ... Other arguments (unused).
 #' @return Numeric value.
 #' @references Wunderlich, R.F., Lin, Y-P., Anthony, J., and Petway, J.R.  2019.  Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribution models.  Nature Conservation 35:97-116.
 #' @seealso \code{\link[stats]{cor}}, \code{\link{fpb}}, \code{\link{aucWeighted}}, \code{link[enmSdm]{contBoyce}}, \code{link[enmSdm]{contBoyce2x}}, \code{link[enmSdm]{orssWeighted}}, \code{link[enmSdm]{thresholdWeighted}}, \code{link[enmSdm]{thresholdStats}}
@@ -32,10 +34,13 @@ sediWeighted <- function(
 	thresholds = seq(0, 1, by=0.01),
 	delta = 0.001,
 	na.rm = FALSE,
-	bg = NULL
+	bg = NULL,
+	bgWeight = NULL,
+	...
 ) {
 
 	if (missing(contrast) & !is.null(bg)) contrast <- bg
+	if (missing(contrastWeight) & !is.null(bgWeight)) contrastWeight <- bgWeight
 
 	# if all NAs
 	if (all(is.na(pres)) | all(is.na(contrast)) | all(is.na(presWeight)) | all(is.na(contrastWeight))) return(NA)

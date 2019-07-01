@@ -6,7 +6,7 @@
 \usage{
 sediWeighted(pres, contrast, presWeight = rep(1, length(pres)),
   contrastWeight = rep(1, length(contrast)), thresholds = seq(0, 1, by
-  = 0.01), delta = 0.001, na.rm = FALSE, bg = NULL)
+  = 0.01), delta = 0.001, na.rm = FALSE, bg = NULL, ...)
 }
 \arguments{
 \item{pres}{Numeric vector. Predicted values at presence sites.}
@@ -24,6 +24,10 @@ sediWeighted(pres, contrast, presWeight = rep(1, length(pres)),
 \item{na.rm}{Logical. If \code{TRUE} then remove any presences and associated weights and absence/background predictions and associated weights with \code{NA}s.}
 
 \item{bg}{Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.}
+
+\item{...}{Other arguments (unused).}
+
+\item{bgWeight}{Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.}
 }
 \value{
 Numeric value.
