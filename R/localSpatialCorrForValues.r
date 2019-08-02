@@ -40,6 +40,11 @@
 #' data(mad0)
 #' madClim <- raster::crop(worldClim, mad0)
 #' 
+#' # remove non-Malagasy islands
+#' madRast <- raster::rasterize(mad0, madClim)
+#' madClim <- madClim * madRast
+#' names(madClim) <- c('bio1', 'bio12')
+#' 
 #' ### spatial autocorrelation for raster (can take a long time!)
 #' sacRast <- localSpatialCorrForValues(x=madClim, focal=NULL)
 #' sacRast <- sacRast / 1000 # convert to km
@@ -57,20 +62,21 @@
 #' x <- dismo::randomPoints(madClim, 200)
 #' env <- raster::extract(madClim, x)
 #' x <- cbind(x, env)
-#' sacPoints <- localSpatialCorrForValues(x=x, focal=NULL)
+#' breaks <- c(0, 100000, 10)
+#' sacPoints <- localSpatialCorrForValues(x=x, breaks=breaks)
 #' 
 #' # plot: code point color by characteristic distance of spatial autocorrelation
 #' maxSacBio1 <- max(sacPoints$sacDistMid_bio1, na.rm=TRUE)
-#' maxSacBio12 <- max(sacPoints$sacDistMid_bio1, na.rm=TRUE)
-#' grayBio1 <- 100 - round(100 * sacPoints$sacDistMid_bio1 / maxSacBio1)
-#' grayBio12 <- 100 - round(100 * sacPoints$sacDistMid_bio12 / maxSacBio12)
+#' maxSacBio12 <- max(sacPoints$sacDistMid_bio12, na.rm=TRUE)
+#' sacBio1 <- 4 * sacPoints$sacDistMid_bio1 / maxSacBio1
+#' sacBio12 <- 4 * sacPoints$sacDistMid_bio12 / maxSacBio12
 #' 
 #' par(mfrow=c(1, 2))
-#' leg <- '\n(dark: short dist, light: long dist)'
+#' leg <- '\n(small: short dist, large: long dist)'
 #' sp::plot(mad0, main=paste0('BIO 01', leg))
-#' points(sacPoints, pch=16, col=paste0('gray', grayBio1))
+#' points(sacPoints, pch=1, cex=sacBio1, col='red')
 #' sp::plot(mad0, main=paste0('BIO 12', leg))
-#' points(sacPoints, pch=16, col=paste0('gray', grayBio12))
+#' points(sacPoints, pch=1, cex=sacBio12, col='blue')
 #'
 #' par(mfrow=c(1, 1))
 #' maxDist <- max(c(sacPoints$sacDistMid_bio1, sacPoints$sacDistMid_bio12),
@@ -339,16 +345,8 @@ localSpatialCorrForValues <- function(
 				randAbsDiffMid <- apply(randAbsDiffMid, 2, mean, na.rm=TRUE)
 				randAbsDiffUpper <- apply(randAbsDiffUpper, 2, mean, na.rm=TRUE)
 		
-				# plot(distDistrib[ , 'middle'], obsAbsDiffUpper, ylim=c(0, max(obsAbsDiffUpper,randAbsDiffLower, randAbsDiffUpper, na.rm=TRUE)), lty='dashed')
-				
-				# polygon(c(distDistrib[ , 'middle'], rev(distDistrib[ , 'middle'])), c(randAbsDiffLower, rev(randAbsDiffUpper)), col='gray')
-				# lines(distDistrib[ , 'middle'], randAbsDiffMid, col='black', lwd=2)
-				
-				# polygon(c(distDistrib[ , 'middle'], rev(distDistrib[ , 'middle'])), c(obsAbsDiffLower, rev(obsAbsDiffUpper)), col=scales::alpha('darkgreen', 0.5))
-				# lines(distDistrib[ , 'middle'], obsAbsDiffMid, col='darkgreen', lwd=2)
-				
 				### remember the least/middle/most distance focal which spatial autocorrelation for this variable disappears
-				sacMinDistIndex <- which.min(randAbsDiffLower <= obsAbsDiffUpper)
+				sacMinDistIndex <- which(randAbsDiffLower <= obsAbsDiffUpper)[1]
 				
 				# if there is a characteristic distance of SAC
 				if (length(sacMinDistIndex) > 0) {
@@ -363,6 +361,18 @@ localSpatialCorrForValues <- function(
 					focal@data[countFocal, paste0('sacDistMax_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
 				}
 				
+			# plot(distDistrib[ , 'middle'], obsAbsDiffUpper, ylim=c(0, max(obsAbsDiffUpper,randAbsDiffLower, randAbsDiffUpper, na.rm=TRUE)), lty='dashed')
+			
+			# polygon(c(distDistrib[ , 'middle'], rev(distDistrib[ , 'middle'])), c(randAbsDiffLower, rev(randAbsDiffUpper)), col='gray')
+			# lines(distDistrib[ , 'middle'], randAbsDiffMid, col='black', lwd=2)
+			
+			# polygon(c(distDistrib[ , 'middle'], rev(distDistrib[ , 'middle'])), c(obsAbsDiffLower, rev(obsAbsDiffUpper)), col=scales::alpha('darkgreen', 0.5))
+			# lines(distDistrib[ , 'middle'], obsAbsDiffMid, col='darkgreen', lwd=2)
+
+			# legend('topleft', bty='n', legend=c('random', 'random mean', 'observed', 'observed mean'), fill=c('gray', NA, 'darkgreen', NA, 'darkgreen'), col=c(NA, 'gray', NA, 'darkgreen'), lwd=c(NA, 2, NA, 2))
+			
+			# abline(v=distDistrib[sacMinDistIndex, 'middle'], col='red')
+			
 			
 			} # if any inter-point distances in the set being considered
 				

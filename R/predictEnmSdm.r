@@ -22,7 +22,7 @@ predictEnmSdm <- function(
 	dataClass <- class(data)
 	dataType <- if (any(c('matrix', 'data.frame') %in% dataClass)) {
 		'table'
-	} else (any(c('RasterLayer', 'RasterStack', 'RasterBrick') %in% dataClass)) {
+	} else if (any(c('RasterLayer', 'RasterStack', 'RasterBrick') %in% dataClass)) {
 		'raster'
 	}
 

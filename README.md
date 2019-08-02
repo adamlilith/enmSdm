@@ -1,22 +1,20 @@
 # enmSdm
-This package is a complement to the popular **dismo** package for R by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating *species distribution models*, and comparing ecological niches.
+This package is a complement to the popular `dismo` package for R by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating species distribution models, and comparing ecological niches.
 
 You can install this package in R using these commands:
 
 `install.packages('devtools') # if you haven't done this already`  
 `library(devtools)`  
-`install_github('adamlilith/omnibus')`  
-`install_github('adamlilith/statisfactory')`  
 `install_github('adamlilith/enmSdm')`  
 
-NB: If for some reason these commands don't work, you can install the package(s) by downloading the latest zip/tar file from the `zipTarFiles` directory and installing the package(s) manually.
+NB: If for some reason these commands don't work, you can install the package(s) by downloading the latest zip/tar file from the `zipTarFiles` directory and installing the package(s) manually. If you do this, you will also have to install the `omnibus` and `statisfactory` packages, which are on GitHub under my account.
 
 ## Data preparation ##
 * `geoFold`: Generate geographically distinct k-folds
 * `geoThin` and `geoThinApprox`: Geographically thin points
 
 ## Model training ###
-* `trainByCrossValid`: Wrapper for implementing any "trainXYZ" function across cross-validation folds
+* `trainByCrossValid`: Wrapper for implementing any `trainXYZ` function across cross-validation folds
 * `trainBrt`: Boosted regression trees (BRTs)
 * `trainCrf`: Conditional regression trees (CRFs)
 * `trainGam`: Generalized additive models (GAMs)
@@ -36,8 +34,6 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `thresholdWeighted`: Thresholds to convert continuous predictions to binary predictions (with/out site weights)
 * `thresholdStats`: Model performance statistics based on thresholded predictions (with/out site weights)
 * `tssWeighted`: True Skill Statistic (TSS) (with/out site weights)
-
-## Model information
 * `modelSize`: Number of response values in a model object
 
 ## Niche overlap ##
