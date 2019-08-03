@@ -8,6 +8,9 @@
 #' @param contrastWeight Numeric vector same length as \code{contrast}. Relative weights of background sites. The default is to assign each presence a weight of 1.
 #' @param delta Positive numeric >0 in the range [0, 1] and usually very small. This value is used only if calculating the SEDI threshold when any true positive rate or false negative rate is 0 or the false negative rate is 1. Since SEDI uses log(x) and log(1 - x), values of 0 and 1 will produce \code{NA}s. To obviate this, a small amount can be added to rates that equal 0 and subtracted from rates that equal 1.
 #' @param na.rm Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.
+#' @param bg Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.
+#' @param bgWeight Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.
+#' @param ... Other arguments (unused).
 #' @return 8-column matrix with the following named columns. \emph{a} = weight of presences >= threshold, \emph{b} = weight of backgrounds >= threshold, \emph{c} = weight of presences < threshold, \emph{d} = weight of backgrounds < threshold, and \emph{N} = sum of presence and background weights.
 #' \itemize{
 #' 		\item \code{'threshold'}: Threshold
@@ -52,8 +55,14 @@ thresholdStats <- function(
 	presWeight = rep(1, length(pres)),
 	contrastWeight = rep(1, length(contrast)),
 	delta = 0.001,
-	na.rm = FALSE
+	na.rm = FALSE,
+	bg = NULL,
+	bgWeight = NULL,
+	...
 ) {
+
+	if (missing(contrast) & !is.null(bg)) contrast <- bg
+	if (missing(contrastWeight) & !is.null(bgWeight)) contrastWeight <- bgWeight
 
 	# names of statistics to calculate
 	stats <- c('threshold', 'sensitivity', 'specificity', 'ccr', 'ppp', 'npp', 'mr', 'orss', 'sedi')

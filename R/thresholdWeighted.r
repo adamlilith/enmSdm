@@ -1,5 +1,4 @@
 #' Weighted thresholds for predictions
-#' Weighted thresholds for predictions
 #'
 #' This function is similar to the \code{\link[dismo]{threshold}} function in the \pkg{dismo} package, which calculates thresholds to create binary predictions from continuous values. However, unlike that function is allows the user to specify weights for presences and absence/background predictions. The output will thus be the threshold that best matches the specified criterion taking into account the relative weights of the inpyt values.
 #' @param pres Numeric vector. Predicted values at test presences
@@ -21,6 +20,8 @@
 #' @param delta Positive numeric >0 in the range [0, 1] and usually very small. This value is used only if calculating the SEDI threshold when any true positive rate or false negative rate is 0 or the false negative rate is 1. Since SEDI uses log(x) and log(1 - x), values of 0 and 1 will produce \code{NA}s. To obviate this, a small amount can be added to rates that equal 0 and subtracted from rates that equal 1.
 #' @param na.rm Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.
 #' @param bg Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.
+#' @param bgWeight Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.
+#' @param ... Other arguments (unused).
 #' @return Named numeric vector.
 #' @references Fielding, A.H. and J.F. Bell. 1997. A review of methods for the assessment of prediction errors in conservation presence/absence models. \emph{Environmental Conservation} 24:38-49.
 #' @references Wunderlich, R.F., Lin, P-Y., Anthony, J., and Petway, J.R. 2019. Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribition models. Nature Conservation 35:97-116.
@@ -56,10 +57,13 @@ thresholdWeighted <- function(
 	thresholds = seq(0, 1, by=0.01),
 	delta = 0.001,
 	na.rm = FALSE,
-	bg = NULL
+	bg = NULL,
+	bgWeight = NULL,
+	...
 ) {
 
 	if (missing(contrast) & !is.null(bg)) contrast <- bg
+	if (missing(contrastWeight) & !is.null(bgWeight)) contrastWeight <- bgWeight
 
 	# if all NAs
 	if (all(is.na(pres)) | all(is.na(contrast))) return(NA)

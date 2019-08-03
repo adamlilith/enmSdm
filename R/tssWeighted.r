@@ -9,6 +9,7 @@
 #' @param na.rm Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.
 #' @param bg Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.
 #' @param bgWeight Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.
+#' @param ... Other arguments (unused).
 #' @return Numeric value.
 #' @details This function calculates the maximum value of the True Skill Statistic (i.e., across all thresholds, the values that maximizes sensitivity plus specificity).
 #' @references  See Allouche, O., Tsoar, A., and Kadmon, R. 2006. Assessing the accuracy of species distribution models: Prevalence, kappa and the true skill statistic (TSS). \emph{Journal of Applied Ecology} 43:1223-1232.
@@ -50,7 +51,8 @@ tssWeighted <- function(
 	thresholds = seq(0, 1, by=0.01),
 	na.rm = FALSE,
 	bg = NULL,
-	bgWeight = NULL
+	bgWeight = NULL,
+	...
 ) {
 
 	if (missing(contrast) & !is.null(bg)) contrast <- bg

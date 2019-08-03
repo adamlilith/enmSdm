@@ -1,4 +1,4 @@
-#' Calculate local scale of spatial autocorrelation for a set of variables
+#' Local characteristic distance of spatial autocorrelation for variables
 #'
 #' This function calculates the range of spatial autocorrelation for a set of predictors at a set of sites. Input can be a raster or raster stack, in which case the output is a raster stack, one layer per layer of input, with cell values equal to the characteristic distance of spatial autocorrelation for each cell.  Alternatively, input can be a raster and a matrix, data frame, SpatialPoints, or SpatialPoointsDataFrame object, in which case the output will be a matrix, data frame, or SpatialPointsDataFrame with the characteristic distance of spatial autocorrelation for each layer in the raster set at each point. Finally, input can simply be a matrix, data frame, of SpatialPointsDataFrame in which case the scale of autocorrelation is calculated using data from the sites, with output format matching the input format. See \emph{Details} for information on how the characteristic scale of spatial autocorrelation is estimated. This function is related to \code{\link[enmSdm]{spatialCorrForPoints}} which calculates spatial autocorrelation for distances between points, whereas this function calculates spatial autocorrelation for measurements taken at points (or raster cell centers).
 #' @param x Either a raster, raster stack/brick, matrix with column names, data frame, or SpatialPointsDataFrame. If you use a matrix or data frame then the first two columns will be assumed to represent longitude and latitude, in that order, and their coordinate reference system will be assumed to be WGS84 (unprojected).
@@ -11,10 +11,12 @@
 #' @param vars Character vector or \code{NULL} (default). If \code{x} is a SpatialPointsDataFrame, by default the variables on which to calculate spatial autocorrelation will be taken from the column names of \code{x}. However, you can use \code{vars} to specify the column names in \code{x} to use. This is ignored if \code{x} is not a SpatialPointsDataFrame.
 #' @param breaks Either: A single integer, three numeric values, or a matrix or data frame with at least two columns:
 #' \itemize{
-#' \item A positive integer: Number of overlapping bins to use. The minimum bin distance will be >0 and maximum <= the maximum inter-point distance.
-#' \item Three numeric values: The first two values are smallest and largest distances (in units used in coordinate reference system of \code{rast}, typically meters) across which to tabulate distance frequencies. The third value is the number of bins.
-#' \item Matrix or data frame with at least two columns. Each row corresponds to a different bin. The first column represents the minimum distance in each bin (in units used in coordinate reference system of \code{rast}, typically meters) and the second column the maximum distance. Subsequent columns are ignored. Note that by using this option arbitrary bins can be used--they need not overlap or even be continuous in coverage.
+#' 		\item A positive integer: Number of overlapping bins to use. The minimum bin distance will be >0 and maximum <= the maximum inter-point distance.
+#' 		\item Three numeric values: The first two values are smallest and largest distances (in units used in coordinate reference system of \code{rast}, typically meters) across which to tabulate distance frequencies. The third value is the number of bins.
+#' 		\item Matrix or data frame with at least two columns. Each row corresponds to a different bin. The first column represents the minimum distance in each bin (in units used in coordinate reference system of \code{rast}, typically meters) and the second column the maximum distance. Subsequent columns are ignored. Note that by using this option arbitrary bins can be used--they need not overlap or even be continuous in coverage.
 #' }
+#' @param limitDist Logical, if \code{TRUE}, consider only inter-point distances less than the maximum distance indicated by \code{breaks} (if \code{breaks} is a matrix, data frame, or a 3-element numeric vector). If \code{FALSE} (default), consider all distances. Note that if \code{limitDist} is \code{TRUE}, then there is the possibility that a particular cell/point will have no or very few "neighbors". If there are non,e the value assigned to the neighbor-less point will be \code{NA}, and if there are few neighbors, then statistical power will be diminished and it will be likely that the maximum distance will be assigned to the cell/point.
+#' @param returnMax Logical, if \code{TRUE} (default) and the local characteristic distance of spatial autocorrelation is greater than the maximum distance under consideration, then return the maximum distance (i.e., the upper limit of the last distance bin generated from \code{breaks}). If \code{FALSE} then return \code{NA} in this case.
 #' @param iters Positive integer, number of times to permute the randomization test. Default is \code{NULL}.
 #' @param perc Numeric value in the range [0, 100], indicates the upper quantile of randomized distance frequencies above which observed distance frequencies are considered significant. Default is 95.
 #' @param verbose Logical, if \code{TRUE} (default) show progress.
@@ -38,6 +40,11 @@
 #' data(mad0)
 #' madClim <- raster::crop(worldClim, mad0)
 #' 
+#' # remove non-Malagasy islands
+#' madRast <- raster::rasterize(mad0, madClim)
+#' madClim <- madClim * madRast
+#' names(madClim) <- c('bio1', 'bio12')
+#' 
 #' ### spatial autocorrelation for raster (can take a long time!)
 #' sacRast <- localSpatialCorrForValues(x=madClim, focal=NULL)
 #' sacRast <- sacRast / 1000 # convert to km
@@ -55,20 +62,21 @@
 #' x <- dismo::randomPoints(madClim, 200)
 #' env <- raster::extract(madClim, x)
 #' x <- cbind(x, env)
-#' sacPoints <- localSpatialCorrForValues(x=x, focal=NULL)
+#' breaks <- c(0, 100000, 10)
+#' sacPoints <- localSpatialCorrForValues(x=x, breaks=breaks)
 #' 
 #' # plot: code point color by characteristic distance of spatial autocorrelation
 #' maxSacBio1 <- max(sacPoints$sacDistMid_bio1, na.rm=TRUE)
-#' maxSacBio12 <- max(sacPoints$sacDistMid_bio1, na.rm=TRUE)
-#' grayBio1 <- 100 - round(100 * sacPoints$sacDistMid_bio1 / maxSacBio1)
-#' grayBio12 <- 100 - round(100 * sacPoints$sacDistMid_bio12 / maxSacBio12)
+#' maxSacBio12 <- max(sacPoints$sacDistMid_bio12, na.rm=TRUE)
+#' sacBio1 <- 4 * sacPoints$sacDistMid_bio1 / maxSacBio1
+#' sacBio12 <- 4 * sacPoints$sacDistMid_bio12 / maxSacBio12
 #' 
 #' par(mfrow=c(1, 2))
-#' leg <- '\n(dark: short dist, light: long dist)'
+#' leg <- '\n(small: short dist, large: long dist)'
 #' sp::plot(mad0, main=paste0('BIO 01', leg))
-#' points(sacPoints, pch=16, col=paste0('gray', grayBio1))
+#' points(sacPoints, pch=1, cex=sacBio1, col='red')
 #' sp::plot(mad0, main=paste0('BIO 12', leg))
-#' points(sacPoints, pch=16, col=paste0('gray', grayBio12))
+#' points(sacPoints, pch=1, cex=sacBio12, col='blue')
 #'
 #' par(mfrow=c(1, 1))
 #' maxDist <- max(c(sacPoints$sacDistMid_bio1, sacPoints$sacDistMid_bio12),
@@ -118,6 +126,8 @@ localSpatialCorrForValues <- function(
 	focal = NULL,
 	vars = NULL,
 	breaks = 20,
+	limitDist = FALSE,
+	returnMax = TRUE,
 	iters = 100,
 	perc = 95,
 	verbose = TRUE,
@@ -216,7 +226,10 @@ localSpatialCorrForValues <- function(
 	oneTailMid <- 0.5 * (2 - perc / 100)
 	oneTailUpper <- 1
 	
-	# pre-calculate breaks if not supplied
+	# pre-calculate length of reference vector
+	refsSize <- nrow(refs)
+
+	# pre-calculate number of breaks if not supplied
 	numBreaks <- if (!any(c('matrix', 'data.frame') %in% class(breaks)) && length(breaks) == 1) {
 		breaks
 	} else if (!any(c('matrix', 'data.frame') %in% class(breaks)) && length(breaks) == 3) {
@@ -225,12 +238,18 @@ localSpatialCorrForValues <- function(
 		nrow(breaks)
 	}
 
+	# maximum distance to account for
+	maxDistToInc <- if (!any(c('matrix', 'data.frame') %in% class(breaks)) && length(breaks) == 1) {
+		Inf
+	} else if (!any(c('matrix', 'data.frame') %in% class(breaks)) && length(breaks) == 3) {
+		breaks[2]
+	} else {
+		breaks[numBreaks, 2, drop=TRUE]
+	}
+
 	# pre-allocate matrix for permuted lower/middle/upper quantiles of null difference distribution
 	randAbsDiffBlank <- matrix(NA, ncol=numBreaks, nrow=iters)
 			
-	# pre-calculate length of reference vector
-	refsSize <- nrow(refs)
-
 	### calculate characteristic scale of spatial autocorrelation for each variable
 	###############################################################################
 	
@@ -263,60 +282,85 @@ localSpatialCorrForValues <- function(
 
 			# remove distance to self
 			if (refsAndFocalSame) dists[countFocal] <- NA
-
-			distDistrib <- statisfactory::histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE)
-			# distDistrib <- histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE)
-			indices <- attr(distDistrib, 'indices')
-
-			# observed differences in values
-			obsAbsDiff <- list()
-			for (countBin in 1:nrow(distDistrib)) {
-				obsAbsDiff[[countBin]] <- if (distDistrib[countBin, 'count'] > 0) {
-					abs(refsObs[indices[[countBin]]] - thisFocal@data[ , thisVar])
-				} else {
-					NA
-				}
+			
+			# limit distances being considered
+			if (limitDist) {
+				dists <- c(dists[dists <= maxDistToInc])
+				if (length(dists) > 0) dists <- na.omit(dists)
 			}
 
-			# observed lower/middle/upper quantiles of observed difference distribution
-			obsAbsDiffLower <- sapply(obsAbsDiff, quantile, twoTailLower, na.rm=TRUE)
-			# obsAbsDiffMid <- sapply(obsAbsDiff, quantile, twoTailMid, na.rm=TRUE)
-			obsAbsDiffMid <- sapply(obsAbsDiff, mean, na.rm=TRUE)
-			obsAbsDiffUpper <- sapply(obsAbsDiff, quantile, twoTailUpper, na.rm=TRUE)
-
-			# matrices to store lower/middle/upper quantiles of each iterations differences for each distance
-			randAbsDiffUpper <- randAbsDiffMid <- randAbsDiffLower <- randAbsDiffBlank
-			
-			# initialize list to store randomized differences, one per distance bin
-			randAbsDiff <- list()
-
-			# for each iteration
-			for (iter in 1:iters) {
-			
-				# scramble reference values
-				refsRand <- sample(refsObs, refsSize)
+			# if any inter-point distances are in the set being considered
+			if (length(dists) > 0) {
 				
-				# re-assign scrambled reference values
+				distDistrib <- statisfactory::histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE, ...)
+				# distDistrib <- histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE)
+				indices <- attr(distDistrib, 'indices')
+
+				# observed differences in values
+				obsAbsDiff <- list()
 				for (countBin in 1:nrow(distDistrib)) {
-					randAbsDiff[[countBin]] <- if (distDistrib[countBin, 'count'] > 0) {
-						abs(refsRand[indices[[countBin]]] - thisFocal@data[ , thisVar])
+					obsAbsDiff[[countBin]] <- if (distDistrib[countBin, 'count'] > 0) {
+						abs(refsObs[indices[[countBin]]] - thisFocal@data[ , thisVar])
 					} else {
 						NA
 					}
 				}
+
+				# observed lower/middle/upper quantiles of observed difference distribution
+				obsAbsDiffLower <- sapply(obsAbsDiff, quantile, p=twoTailLower, na.rm=TRUE)
+				# obsAbsDiffMid <- sapply(obsAbsDiff, quantile, twoTailMid, na.rm=TRUE)
+				obsAbsDiffMid <- sapply(obsAbsDiff, mean, na.rm=TRUE)
+				obsAbsDiffUpper <- sapply(obsAbsDiff, quantile, p=twoTailUpper, na.rm=TRUE)
+
+				# matrices to store lower/middle/upper quantiles of each iterations differences for each distance
+				randAbsDiffUpper <- randAbsDiffMid <- randAbsDiffLower <- randAbsDiffBlank
+				
+				# initialize list to store randomized differences, one per distance bin
+				randAbsDiff <- list()
+
+				# for each iteration
+				for (iter in 1:iters) {
+				
+					# scramble reference values
+					refsRand <- sample(refsObs, refsSize)
+					
+					# re-assign scrambled reference values
+					for (countBin in 1:nrow(distDistrib)) {
+						randAbsDiff[[countBin]] <- if (distDistrib[countBin, 'count'] > 0) {
+							abs(refsRand[indices[[countBin]]] - thisFocal@data[ , thisVar])
+						} else {
+							NA
+						}
+					}
+				
+					randAbsDiffLower[iter, ] <- sapply(randAbsDiff, quantile, oneTailLower, na.rm=TRUE)
+					# randAbsDiffMid[iter, ] <- sapply(randAbsDiff, quantile, oneTailMid, na.rm=TRUE)
+					randAbsDiffMid[iter, ] <- sapply(randAbsDiff, mean, na.rm=TRUE)
+					randAbsDiffUpper[iter, ] <- sapply(randAbsDiff, quantile, oneTailUpper, na.rm=TRUE)
+				
+				} # next iteration
 			
-				randAbsDiffLower[iter, ] <- sapply(randAbsDiff, quantile, oneTailLower, na.rm=TRUE)
-				# randAbsDiffMid[iter, ] <- sapply(randAbsDiff, quantile, oneTailMid, na.rm=TRUE)
-				randAbsDiffMid[iter, ] <- sapply(randAbsDiff, mean, na.rm=TRUE)
-				randAbsDiffUpper[iter, ] <- sapply(randAbsDiff, quantile, oneTailUpper, na.rm=TRUE)
-			
-			} # next iteration
+				# calculate average lower quantile value for randomized distance distributions
+				randAbsDiffLower <- apply(randAbsDiffLower, 2, mean, na.rm=TRUE)
+				randAbsDiffMid <- apply(randAbsDiffMid, 2, mean, na.rm=TRUE)
+				randAbsDiffUpper <- apply(randAbsDiffUpper, 2, mean, na.rm=TRUE)
 		
-			# calculate average lower quantile value for randomized distance distributions
-			randAbsDiffLower <- apply(randAbsDiffLower, 2, mean, na.rm=TRUE)
-			randAbsDiffMid <- apply(randAbsDiffMid, 2, mean, na.rm=TRUE)
-			randAbsDiffUpper <- apply(randAbsDiffUpper, 2, mean, na.rm=TRUE)
-	
+				### remember the least/middle/most distance focal which spatial autocorrelation for this variable disappears
+				sacMinDistIndex <- which(randAbsDiffLower <= obsAbsDiffUpper)[1]
+				
+				# if there is a characteristic distance of SAC
+				if (length(sacMinDistIndex) > 0) {
+					focal@data[countFocal, paste0('sacDistMin_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'lower'])
+					focal@data[countFocal, paste0('sacDistMid_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'middle'])
+					focal@data[countFocal, paste0('sacDistMax_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'upper'])
+				# if none occurred in the intervals considered, return maximum value (if desired)
+				} else if (returnMax) {
+					numDistBins <- nrow(distDistrib)
+					focal@data[countFocal, paste0('sacDistMin_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
+					focal@data[countFocal, paste0('sacDistMid_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
+					focal@data[countFocal, paste0('sacDistMax_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
+				}
+				
 			# plot(distDistrib[ , 'middle'], obsAbsDiffUpper, ylim=c(0, max(obsAbsDiffUpper,randAbsDiffLower, randAbsDiffUpper, na.rm=TRUE)), lty='dashed')
 			
 			# polygon(c(distDistrib[ , 'middle'], rev(distDistrib[ , 'middle'])), c(randAbsDiffLower, rev(randAbsDiffUpper)), col='gray')
@@ -324,16 +368,14 @@ localSpatialCorrForValues <- function(
 			
 			# polygon(c(distDistrib[ , 'middle'], rev(distDistrib[ , 'middle'])), c(obsAbsDiffLower, rev(obsAbsDiffUpper)), col=scales::alpha('darkgreen', 0.5))
 			# lines(distDistrib[ , 'middle'], obsAbsDiffMid, col='darkgreen', lwd=2)
+
+			# legend('topleft', bty='n', legend=c('random', 'random mean', 'observed', 'observed mean'), fill=c('gray', NA, 'darkgreen', NA, 'darkgreen'), col=c(NA, 'gray', NA, 'darkgreen'), lwd=c(NA, 2, NA, 2))
 			
-			# remember the least/middle/most distance focal which spatial autocorrelation for this variable disappears
-			sacMinDistIndex <- which.min(randAbsDiffLower <= obsAbsDiffUpper)
+			# abline(v=distDistrib[sacMinDistIndex, 'middle'], col='red')
 			
-			if (length(sacMinDistIndex) > 0) {
-				focal@data[countFocal, paste0('sacDistMin_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'lower'])
-				focal@data[countFocal, paste0('sacDistMid_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'middle'])
-				focal@data[countFocal, paste0('sacDistMax_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'upper'])
-			}
 			
+			} # if any inter-point distances in the set being considered
+				
 			if (verbose) setTxtProgressBar(progress, countFocal)
 			
 		} # next "focal" site

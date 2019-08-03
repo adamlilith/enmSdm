@@ -54,7 +54,7 @@ trainMaxEnt <- function(
 	data,
 	resp = names(data)[1],
 	preds = names(data)[2:ncol(data)],
-	regMult = c(seq(0.5, 5, by = 0.5)),
+	regMult = c(seq(0.5, 5, by = 0.5), 7.5, 10),
 	classes = 'default',
 	testClasses = TRUE,
 	forceLinear = TRUE,

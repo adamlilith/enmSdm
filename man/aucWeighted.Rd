@@ -6,7 +6,7 @@
 \usage{
 aucWeighted(pres, contrast, presWeight = rep(1, length(pres)),
   contrastWeight = rep(1, length(contrast)), na.rm = FALSE,
-  bg = NULL, bgWeight = NULL)
+  bg = NULL, bgWeight = NULL, ...)
 }
 \arguments{
 \item{pres}{Predictions at presence sites.}
@@ -22,6 +22,8 @@ aucWeighted(pres, contrast, presWeight = rep(1, length(pres)),
 \item{bg}{Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.}
 
 \item{bgWeight}{Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.}
+
+\item{...}{Other arguments (unused).}
 }
 \value{
 Numeric value.

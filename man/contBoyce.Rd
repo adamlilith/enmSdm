@@ -4,15 +4,16 @@
 \alias{contBoyce}
 \title{Continuous Boyce Index (CBI) with weighting}
 \usage{
-contBoyce(pres, bg, numBins = 101, binWidth = 0.1,
-  presWeight = rep(1, length(pres)), bgWeight = rep(1, length(bg)),
-  autoWindow = TRUE, method = "spearman", dropZeros = TRUE,
-  graph = FALSE, na.rm = FALSE)
+contBoyce(pres, contrast, numBins = 101, binWidth = 0.1,
+  presWeight = rep(1, length(pres)), contrastWeight = rep(1,
+  length(contrast)), autoWindow = TRUE, method = "spearman",
+  dropZeros = TRUE, graph = FALSE, na.rm = FALSE, bg = NULL,
+  bgWeight = NULL, ...)
 }
 \arguments{
 \item{pres}{Numeric vector. Predicted values at presence sites.}
 
-\item{bg}{Numeric vector. Predicted values at absence/background sites.}
+\item{contrast}{Numeric vector. Predicted values at absence/background sites.}
 
 \item{numBins}{Positive integer. Number of (overlapping) bins into which to divide predictions.}
 
@@ -20,7 +21,7 @@ contBoyce(pres, bg, numBins = 101, binWidth = 0.1,
 
 \item{presWeight}{Numeric vector same length as \code{pres}. Relative weights of presence sites. The default is to assign each presence a weight of 1.}
 
-\item{bgWeight}{Numeric vector same length as \code{bg}. Relative weights of background sites. The default is to assign each presence a weight of 1.}
+\item{contrastWeight}{Numeric vector same length as \code{contrast}. Relative weights of background sites. The default is to assign each presence a weight of 1.}
 
 \item{autoWindow}{Logical. If \code{FALSE} calculate bin boundaries starting at 0 and ending at 1 + epsilon (where epsilon is a very small number to assure inclusion of cases that equal 1 exactly). If \code{TRUE} (default) then calculate bin boundaries starting at minimum predicted value and ending at maximum predicted value.}
 
@@ -31,6 +32,12 @@ contBoyce(pres, bg, numBins = 101, binWidth = 0.1,
 \item{graph}{Logical. If TRUE then plot P vs E and P/E versus bin.}
 
 \item{na.rm}{Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.}
+
+\item{bg}{Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.}
+
+\item{bgWeight}{Same as \code{contrastWeight}. Included for backwards compatibility. Ignored if \code{contrastWeight} is not \code{NULL}.}
+
+\item{...}{Other arguments (not used).}
 }
 \value{
 Numeric value.
@@ -44,12 +51,12 @@ CBI is the Spearman rank correlation coefficient between the proportion of sites
 \examples{
 set.seed(123)
 pres <- sqrt(runif(100))
-bg <- runif(1000)
-contBoyce(pres, bg)
-contBoyce2x(pres, bg)
+contrast <- runif(1000)
+contBoyce(pres, contrast)
+contBoyce2x(pres, contrast)
 presWeight <- c(rep(1, 10), rep(0.5, 40))
-contBoyce(pres, bg, presWeight=presWeight)
-contBoyce2x(pres, bg, presWeight=presWeight)
+contBoyce(pres, contrast, presWeight=presWeight)
+contBoyce2x(pres, contrast, presWeight=presWeight)
 \donttest{
 # compare stability of CBI calculated with ecospat.boyce() in ecospat package
 library(ecospat)
@@ -59,10 +66,10 @@ for (perform in c(1, 1.5, 2)) {
 	for (i in 1:30) {
 
    pres <- runif(100)^(1 / perform)
-   bg <- runif(1000)
+   contrast <- runif(1000)
 
-   cbi_enmSdm <- contBoyce(pres, bg)
-   cbi_ecospat <- ecospat.boyce(bg, pres, PEplot=FALSE)$Spearman.cor
+   cbi_enmSdm <- contBoyce(pres, contrast)
+   cbi_ecospat <- ecospat.boyce(contrast, pres, PEplot=FALSE)$Spearman.cor
 
    results <- rbind(
      results,
@@ -93,7 +100,7 @@ boxplot(cbi ~ category,
 )
 plot(results$cbi,
 	pch=rep(c(21, 22, 23, 24), each=2),
-	bg=ifelse(results$method == 'ecospat', 'darkred', 'cornflowerblue'),
+	contrast=ifelse(results$method == 'ecospat', 'darkred', 'cornflowerblue'),
 	main='Pairs of CBIs',
 	ylab='CBI'
 )

@@ -8,6 +8,7 @@
 #' @param thresholds Numeric vector, Values at which to threshold predictions for calculation of ORSS.
 #' @param na.rm Logical. If \code{TRUE} then remove any presences and associated weights and absence/background predictions and associated weights with \code{NA}s.
 #' @param bg Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.
+#' @param ... Other arguments (unused).
 #' @return Numeric value.
 #' @references Wunderlich, R.F., Lin, Y-P., Anthony, J., and Petway, J.R.  2019.  Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribution models.  Nature Conservation 35:97-116.
 #' @seealso \code{\link[stats]{cor}}, \code{\link{fpb}}, \code{\link{aucWeighted}}, \code{link[enmSdm]{contBoyce}}, \code{link[enmSdm]{contBoyce2x}}, \code{link[enmSdm]{sediWeighted}}, \code{link[enmSdm]{thresholdWeighted}}, \code{link[enmSdm]{thresholdStats}}
@@ -29,7 +30,8 @@ orssWeighted <- function(
 	contrastWeight = rep(1, length(contrast)),
 	thresholds = seq(0, 1, by=0.01),
 	na.rm = FALSE,
-	bg = NULL
+	bg = NULL,
+	...
 ) {
 
 	if (missing(contrast) & !is.null(bg)) contrast <- bg

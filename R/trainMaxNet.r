@@ -38,7 +38,7 @@ trainMaxNet <- function(
 	data,
 	resp=names(data)[1],
 	preds=names(data)[2:ncol(data)],
-	regMult=c(seq(0.5, 5, by=0.5), 6:10, 12.5, 15, 17.5, 20),
+	regMult = c(seq(0.5, 5, by = 0.5), 7.5, 10),
 	classes='default',
 	testClasses=TRUE,
 	out='model',
@@ -102,7 +102,7 @@ trainMaxNet <- function(
 	# for each regularization multiplier
 	for (thisRegMult in regMult) {
 
-		if (verbose) omnibus::say('Calculating AICc for multipler ', thisRegMult, ' with features:', post=0)
+		if (verbose) omnibus::say('Calculating AICc for multiplier ', thisRegMult, ' with features:', post=0)
 
 		# for each combination of class features
 		for (countCombo in 1:nrow(classGrid)) {

@@ -2,10 +2,11 @@
 % Please edit documentation in R/localSpatialCorrForValues.r
 \name{localSpatialCorrForValues}
 \alias{localSpatialCorrForValues}
-\title{Calculate local scale of spatial autocorrelation for a set of variables}
+\title{Local characteristic distance of spatial autocorrelation for variables}
 \usage{
 localSpatialCorrForValues(x, focal = NULL, vars = NULL, breaks = 20,
-  iters = 100, perc = 95, verbose = TRUE, ...)
+  limitDist = FALSE, returnMax = TRUE, iters = 100, perc = 95,
+  verbose = TRUE, ...)
 }
 \arguments{
 \item{x}{Either a raster, raster stack/brick, matrix with column names, data frame, or SpatialPointsDataFrame. If you use a matrix or data frame then the first two columns will be assumed to represent longitude and latitude, in that order, and their coordinate reference system will be assumed to be WGS84 (unprojected).}
@@ -21,10 +22,14 @@ localSpatialCorrForValues(x, focal = NULL, vars = NULL, breaks = 20,
 
 \item{breaks}{Either: A single integer, three numeric values, or a matrix or data frame with at least two columns:
 \itemize{
-\item A positive integer: Number of overlapping bins to use. The minimum bin distance will be >0 and maximum <= the maximum inter-point distance.
-\item Three numeric values: The first two values are smallest and largest distances (in units used in coordinate reference system of \code{rast}, typically meters) across which to tabulate distance frequencies. The third value is the number of bins.
-\item Matrix or data frame with at least two columns. Each row corresponds to a different bin. The first column represents the minimum distance in each bin (in units used in coordinate reference system of \code{rast}, typically meters) and the second column the maximum distance. Subsequent columns are ignored. Note that by using this option arbitrary bins can be used--they need not overlap or even be continuous in coverage.
+        \item A positive integer: Number of overlapping bins to use. The minimum bin distance will be >0 and maximum <= the maximum inter-point distance.
+        \item Three numeric values: The first two values are smallest and largest distances (in units used in coordinate reference system of \code{rast}, typically meters) across which to tabulate distance frequencies. The third value is the number of bins.
+        \item Matrix or data frame with at least two columns. Each row corresponds to a different bin. The first column represents the minimum distance in each bin (in units used in coordinate reference system of \code{rast}, typically meters) and the second column the maximum distance. Subsequent columns are ignored. Note that by using this option arbitrary bins can be used--they need not overlap or even be continuous in coverage.
 }}
+
+\item{limitDist}{Logical, if \code{TRUE}, consider only inter-point distances less than the maximum distance indicated by \code{breaks} (if \code{breaks} is a matrix, data frame, or a 3-element numeric vector). If \code{FALSE} (default), consider all distances. Note that if \code{limitDist} is \code{TRUE}, then there is the possibility that a particular cell/point will have no or very few "neighbors". If there are non,e the value assigned to the neighbor-less point will be \code{NA}, and if there are few neighbors, then statistical power will be diminished and it will be likely that the maximum distance will be assigned to the cell/point.}
+
+\item{returnMax}{Logical, if \code{TRUE} (default) and the local characteristic distance of spatial autocorrelation is greater than the maximum distance under consideration, then return the maximum distance (i.e., the upper limit of the last distance bin generated from \code{breaks}). If \code{FALSE} then return \code{NA} in this case.}
 
 \item{iters}{Positive integer, number of times to permute the randomization test. Default is \code{NULL}.}
 
@@ -58,6 +63,11 @@ worldClim <- raster::subset(worldClim, c(1, 12))
 data(mad0)
 madClim <- raster::crop(worldClim, mad0)
 
+# remove non-Malagasy islands
+madRast <- raster::rasterize(mad0, madClim)
+madClim <- madClim * madRast
+names(madClim) <- c('bio1', 'bio12')
+
 ### spatial autocorrelation for raster (can take a long time!)
 sacRast <- localSpatialCorrForValues(x=madClim, focal=NULL)
 sacRast <- sacRast / 1000 # convert to km
@@ -75,20 +85,21 @@ set.seed(123)
 x <- dismo::randomPoints(madClim, 200)
 env <- raster::extract(madClim, x)
 x <- cbind(x, env)
-sacPoints <- localSpatialCorrForValues(x=x, focal=NULL)
+breaks <- c(0, 100000, 10)
+sacPoints <- localSpatialCorrForValues(x=x, breaks=breaks)
 
 # plot: code point color by characteristic distance of spatial autocorrelation
 maxSacBio1 <- max(sacPoints$sacDistMid_bio1, na.rm=TRUE)
-maxSacBio12 <- max(sacPoints$sacDistMid_bio1, na.rm=TRUE)
-grayBio1 <- 100 - round(100 * sacPoints$sacDistMid_bio1 / maxSacBio1)
-grayBio12 <- 100 - round(100 * sacPoints$sacDistMid_bio12 / maxSacBio12)
+maxSacBio12 <- max(sacPoints$sacDistMid_bio12, na.rm=TRUE)
+sacBio1 <- 4 * sacPoints$sacDistMid_bio1 / maxSacBio1
+sacBio12 <- 4 * sacPoints$sacDistMid_bio12 / maxSacBio12
 
 par(mfrow=c(1, 2))
-leg <- '\\n(dark: short dist, light: long dist)'
+leg <- '\\n(small: short dist, large: long dist)'
 sp::plot(mad0, main=paste0('BIO 01', leg))
-points(sacPoints, pch=16, col=paste0('gray', grayBio1))
+points(sacPoints, pch=1, cex=sacBio1, col='red')
 sp::plot(mad0, main=paste0('BIO 12', leg))
-points(sacPoints, pch=16, col=paste0('gray', grayBio12))
+points(sacPoints, pch=1, cex=sacBio12, col='blue')
 
 par(mfrow=c(1, 1))
 maxDist <- max(c(sacPoints$sacDistMid_bio1, sacPoints$sacDistMid_bio12),
