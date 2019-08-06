@@ -1,15 +1,20 @@
 # enmSdm
+<img align="right" src="enmSdm.jpg" height="190"/>
 This package is a complement to the popular `dismo` package for R by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating species distribution models, and comparing ecological niches.
 
 You can install this package in R using these commands:
 
 `install.packages('devtools') # if you haven't done this already`  
 `library(devtools)`  
+`install_github('adamlilith/omnibus')`  
+`install_github('adamlilith/statisfactory')`  
+`install_github('adamlilith/legendary')`  
 `install_github('adamlilith/enmSdm')`  
 
-NB: If for some reason these commands don't work, you can install the package(s) by downloading the latest zip/tar file from the `zipTarFiles` directory and installing the package(s) manually. If you do this, you will also have to install the `omnibus` and `statisfactory` packages, which are on GitHub under my account.
+NB: If for some reason these commands don't work, you can install the package(s) by downloading the latest zip/tar file from the `zipTarFiles` directory and installing the package(s) manually. If you do this, you will also have to install the `omnibus`,  `statisfactory`, and `legendary` packages, which are on GitHub also under my account (`adamlilith`).
 
 ## Data preparation ##
+* `elimCellDups`: Eliminate duplicate points in each cell of a raster
 * `geoFold`: Generate geographically distinct k-folds
 * `geoThin` and `geoThinApprox`: Geographically thin points
 
@@ -61,11 +66,14 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `longLatRasters`: Generate rasters with values of longitude/latitude for cell values
 * `sampleRast` and `sampleRastStrat`: Sample raster with/out replacement and possibly in a stratified manner
 
+## Range area based on minimum convex polygons
+* `mcpFromPolygons`: Minimum convex polygon from a set of polygons and points
+* `areaFromPointsOrPoly`: Area of a spatial polygon or set of points
+
 ## Geographic utility functions ##
 * `convertTropicosCoords`: Convert coordinates from the TROPICOS database
 * `coordPrecision`: Calculate maximum possible coordinate precision
 * `dmsToDecimal`: Convert degrees-minutes-seconds to decimal
-* `elimCellDups`: Eliminate duplicate points in each cell of a raster
 * `getCRS`: Return a proj4string (coordinate reference system string) using a nickname
 * `pointDist`: Geographic distance between set(s) of points
 * `xToCoords`: Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object
