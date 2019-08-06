@@ -1,8 +1,8 @@
 Package: enmSdm
 Type: Package
 Title: Tools for modeling niches and distributions of species
-Version: 0.3.9.0
-Date: 2019-08-02
+Version: 0.3.9.1
+Date: 2019-08-06
 Author: Adam B. Smith <adam.smith@mobot.org>
 Maintainer: Adam B. Smith <adam.smith@mobot.org>
 Description: Better modeling of niches and distributions.
@@ -22,6 +22,7 @@ Imports:
 	maxnet,
 	mgcv,
 	MuMIn,
+	omnibus,
 	party,
 	rJava,
 	randomForest,
@@ -32,6 +33,7 @@ Imports:
 	scales,
 	sp,
 	splines,
+	statisfactory,
 	stats
 Suggests:
 	brglm2,
