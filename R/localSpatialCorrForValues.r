@@ -15,7 +15,7 @@
 #' 		\item Three numeric values: The first two values are smallest and largest distances (in units used in coordinate reference system of \code{rast}, typically meters) across which to tabulate distance frequencies. The third value is the number of bins.
 #' 		\item Matrix or data frame with at least two columns. Each row corresponds to a different bin. The first column represents the minimum distance in each bin (in units used in coordinate reference system of \code{rast}, typically meters) and the second column the maximum distance. Subsequent columns are ignored. Note that by using this option arbitrary bins can be used--they need not overlap or even be continuous in coverage.
 #' }
-#' @param limitDist Logical, if \code{TRUE}, consider only inter-point distances less than the maximum distance indicated by \code{breaks} (if \code{breaks} is a matrix, data frame, or a 3-element numeric vector). If \code{FALSE} (default), consider all distances. Note that if \code{limitDist} is \code{TRUE}, then there is the possibility that a particular cell/point will have no or very few "neighbors". If there are non,e the value assigned to the neighbor-less point will be \code{NA}, and if there are few neighbors, then statistical power will be diminished and it will be likely that the maximum distance will be assigned to the cell/point.
+#' @param limitDist Logical, if \code{TRUE}, consider only inter-point distances less than the maximum distance indicated by \code{breaks} (if \code{breaks} is a matrix, data frame, or a 3-element numeric vector). If \code{FALSE} (default), consider all inter-point distances even if they fall beyond the maximum distance defined by  \code{breaks}. Note that if \code{limitDist} is \code{TRUE}, then there is the possibility that a particular cell/point will have no or very few "neighbors". If there are none, the value assigned to the neighbor-less point will be \code{NA}, and if there are few neighbors, then statistical power will be diminished and it will be likely that the maximum distance will be assigned to the cell/point.
 #' @param returnMax Logical, if \code{TRUE} (default) and the local characteristic distance of spatial autocorrelation is greater than the maximum distance under consideration, then return the maximum distance (i.e., the upper limit of the last distance bin generated from \code{breaks}). If \code{FALSE} then return \code{NA} in this case.
 #' @param iters Positive integer, number of times to permute the randomization test. Default is \code{NULL}.
 #' @param perc Numeric value in the range [0, 100], indicates the upper quantile of randomized distance frequencies above which observed distance frequencies are considered significant. Default is 95.
@@ -239,7 +239,7 @@ localSpatialCorrForValues <- function(
 	}
 
 	# maximum distance to account for
-	maxDistToInc <- if (!any(c('matrix', 'data.frame') %in% class(breaks)) && length(breaks) == 1) {
+	maxDistToInclude <- if (!any(c('matrix', 'data.frame') %in% class(breaks)) && length(breaks) == 1) {
 		Inf
 	} else if (!any(c('matrix', 'data.frame') %in% class(breaks)) && length(breaks) == 3) {
 		breaks[2]
@@ -279,21 +279,22 @@ localSpatialCorrForValues <- function(
 			
 			# inter-point distances
 			dists <- geosphere::distm(thisFocal, refs)
+			dists <- c(dists)
 
 			# remove distance to self
 			if (refsAndFocalSame) dists[countFocal] <- NA
 			
 			# limit distances being considered
 			if (limitDist) {
-				dists <- c(dists[dists <= maxDistToInc])
+				dists <- c(dists[dists <= maxDistToInclude])
 				if (length(dists) > 0) dists <- na.omit(dists)
 			}
 
 			# if any inter-point distances are in the set being considered
 			if (length(dists) > 0) {
 				
-				distDistrib <- statisfactory::histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE, ...)
-				# distDistrib <- histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE)
+				# distDistrib <- statisfactory::histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE, ...)
+				distDistrib <- histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE)
 				indices <- attr(distDistrib, 'indices')
 
 				# observed differences in values
@@ -345,11 +346,11 @@ localSpatialCorrForValues <- function(
 				randAbsDiffMid <- apply(randAbsDiffMid, 2, mean, na.rm=TRUE)
 				randAbsDiffUpper <- apply(randAbsDiffUpper, 2, mean, na.rm=TRUE)
 		
-				### remember the least/middle/most distance focal which spatial autocorrelation for this variable disappears
+				### remember the least/middle/most distance where the observed difference in values is no different than the randomized differences
 				sacMinDistIndex <- which(randAbsDiffLower <= obsAbsDiffUpper)[1]
 				
 				# if there is a characteristic distance of SAC
-				if (length(sacMinDistIndex) > 0) {
+				if (!is.na(sacMinDistIndex)) {
 					focal@data[countFocal, paste0('sacDistMin_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'lower'])
 					focal@data[countFocal, paste0('sacDistMid_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'middle'])
 					focal@data[countFocal, paste0('sacDistMax_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'upper'])
@@ -360,20 +361,20 @@ localSpatialCorrForValues <- function(
 					focal@data[countFocal, paste0('sacDistMid_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
 					focal@data[countFocal, paste0('sacDistMax_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
 				}
-				
-			# plot(distDistrib[ , 'middle'], obsAbsDiffUpper, ylim=c(0, max(obsAbsDiffUpper,randAbsDiffLower, randAbsDiffUpper, na.rm=TRUE)), lty='dashed')
-			
-			# polygon(c(distDistrib[ , 'middle'], rev(distDistrib[ , 'middle'])), c(randAbsDiffLower, rev(randAbsDiffUpper)), col='gray')
-			# lines(distDistrib[ , 'middle'], randAbsDiffMid, col='black', lwd=2)
-			
-			# polygon(c(distDistrib[ , 'middle'], rev(distDistrib[ , 'middle'])), c(obsAbsDiffLower, rev(obsAbsDiffUpper)), col=scales::alpha('darkgreen', 0.5))
-			# lines(distDistrib[ , 'middle'], obsAbsDiffMid, col='darkgreen', lwd=2)
 
-			# legend('topleft', bty='n', legend=c('random', 'random mean', 'observed', 'observed mean'), fill=c('gray', NA, 'darkgreen', NA, 'darkgreen'), col=c(NA, 'gray', NA, 'darkgreen'), lwd=c(NA, 2, NA, 2))
-			
-			# abline(v=distDistrib[sacMinDistIndex, 'middle'], col='red')
-			
-			
+				# ### plot
+				# plot(distDistrib[ , 'middle'], obsAbsDiffUpper, ylim=c(0, max(obsAbsDiffUpper,randAbsDiffLower, randAbsDiffUpper, na.rm=TRUE)), lty='dashed')
+				
+				# polygon(c(distDistrib[ , 'middle'], rev(distDistrib[ , 'middle'])), c(randAbsDiffLower, rev(randAbsDiffUpper)), col='gray')
+				# lines(distDistrib[ , 'middle'], randAbsDiffMid, col='black', lwd=2)
+				
+				# polygon(c(distDistrib[ , 'middle'], rev(distDistrib[ , 'middle'])), c(obsAbsDiffLower, rev(obsAbsDiffUpper)), col=scales::alpha('darkgreen', 0.5))
+				# lines(distDistrib[ , 'middle'], obsAbsDiffMid, col='darkgreen', lwd=2)
+
+				# legend('topleft', bty='n', legend=c('random', 'random mean', 'observed', 'observed mean'), fill=c('gray', NA, 'darkgreen', NA, 'darkgreen'), col=c(NA, 'gray', NA, 'darkgreen'), lwd=c(NA, 2, NA, 2))
+				
+				# abline(v=distDistrib[sacMinDistIndex, 'middle'], col='red')
+				
 			} # if any inter-point distances in the set being considered
 				
 			if (verbose) setTxtProgressBar(progress, countFocal)
