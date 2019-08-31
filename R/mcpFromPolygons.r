@@ -3,33 +3,33 @@
 #' This function returns a minimum convex polygon constructed from a set of spatial polygons (and possibly points). See Details for more information.
 #' @param polys SpatialPolygons or SpatialPolygonsDataFrame object, representing (for example) counties in which a species is known to reside. These must be in an equal-area projection!
 #' @param pts Either \code{NULL} or a \code{SpatialPoints} or \code{SpatialPointsDataFrame} object in an equal-area projection. These must be in an equal-area projection! See Details.
-#' @returns SpatialPolygons object representing a minimum convex polygon.
-#' @details: This function constructs a minimum convex polygon from a set of spatial polygons in which a species is known to reside. The general idea is to identify a point in each polygon where a species is presumed to reside. In most cases this is unknown, so this function takes the most conservative approach by assuming the point lies on the border of the polygon that is closest to the centroid of the point \code{pts}, if they are provided, or if not the centroid of the set of polygons if only they are provided.
+#' @return SpatialPolygons object representing a minimum convex polygon.
+#' @details This function constructs a minimum convex polygon from a set of spatial polygons in which a species is known to reside. The general idea is to identify a point in each polygon where a species is presumed to reside. In most cases this is unknown, so this function takes the most conservative approach by assuming the point lies on the border of the polygon that is closest to the centroid of the point \code{pts}, if they are provided, or if not the centroid of the set of polygons if only they are provided.
 #' @examples
 #' # red-bellied lemur in Madagascar
 #' # represented by points data and (pretend) Frarita-level occurrences
 #' mad <- raster::getData(name='GADM', country='MDG', level=2)
 #' madEaProj <- sp::CRS('+init=epsg:32738')
 #' mad <- sp::spTransform(mad, madEaProj)
-#' 
+#'
 #' data(lemurs)
 #' redBelly <- lemurs[lemurs$species == 'Eulemur rubriventer', ]
 #' ll <- c('longitude', 'latitude')
 #' wgs84 <- enmSdm::getCRS('wgs84', TRUE)
 #' redBelly <- sp::SpatialPoints(redBelly[ , ll], proj4string=wgs84)
 #' redBelly <- sp::spTransform(redBelly, madEaProj)
-#' 
+#'
 #' faritras <- c('Vakinankaratra', 'Amoron\'i mania', 'Haute matsiatra', 'Ihorombe', 'Vatovavy Fitovinany', 'Alaotra-Mangoro', 'Analanjirofo', 'Atsinanana', 'Analamanga', 'Itasy')
 #' polys <- mad[mad$NAME_2 %in% faritras, ]
-#' 
+#'
 #' mcpPolys <- mcpFromPolygons(polys)
 #' mcpPolysPoints <- mcpFromPolygons(polys, redBelly)
-#' 
+#'
 #' # range size in km2
 #' areaFromPointsOrPoly(redBelly)
 #' areaFromPointsOrPoly(mcpPolys)
 #' areaFromPointsOrPoly(mcpPolysPoints)
-#' 
+#'
 #' plot(mad)
 #' plot(polys, col='gray80', add=TRUE)
 #' plot(mcpPolysPoints, add=TRUE, col=scales::alpha('green', 0.4))
@@ -40,19 +40,19 @@
 mcpFromPolygons <- function(polys, pts=NULL) {
 
 	### useful info
-		
+
 		# type of polygons
 		polyIsDf <- ('SpatialPolygonsDataFrame' %in% class(polys))
-		
+
 		# number of polygons
 		numPolys <- if (polyIsDf) {
 			nrow(polys)
 		} else {
 			length(polys)
 		}
-		
+
 	### focal centroid
-		
+
 		# polygon centroids
 		polyCents <- rgeos::gCentroid(polys, byid=TRUE)
 
@@ -64,28 +64,28 @@ mcpFromPolygons <- function(polys, pts=NULL) {
 		}
 
 	### find closest points to center
-		
+
 		# stores coordinates of intersections (and later maybe also reference coordinates)
 		coords <- matrix(nrow=0, ncol=2)
 		colnames(coords) <- c('longitude', 'latitude')
-		
+
 		# by polygon
 		for (countPoly in 1:numPolys) {
-			
+
 			# get this polygon
 			thisPoly <- if (polyIsDf) {
 				polys[countPoly, ]
 			} else {
 				polys[countPoly]
 			}
-			
+
 			# find closest point on this polygon to the focal centroid
-		
+
 			closestPoints <- rgeos::gNearestPoints(center, thisPoly)
 			polyIntersectPoint <- closestPoints[2]
 			polyIntersectPointCoords <- sp::coordinates(polyIntersectPoint)
 			coords <- rbind(coords, polyIntersectPointCoords)
-		
+
 		} # next polygon
 
 		# add record coordinates
@@ -95,15 +95,15 @@ mcpFromPolygons <- function(polys, pts=NULL) {
 		}
 
 		rownames(coords) <- 1:nrow(coords)
-		
+
 		# spatialize
 		proj4 <- raster::projection(polys)
 		proj4 <- sp::CRS(proj4)
 		coords <- sp::SpatialPoints(coords, proj4string=proj4)
 
 	### MCP
-		
+
 		minConvexPoly <- adehabitatHR::mcp(coords, 100, unin='m', unout='km2')
 		minConvexPoly
-		
+
 }

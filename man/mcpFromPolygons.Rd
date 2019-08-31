@@ -11,9 +11,12 @@ mcpFromPolygons(polys, pts = NULL)
 
 \item{pts}{Either \code{NULL} or a \code{SpatialPoints} or \code{SpatialPointsDataFrame} object in an equal-area projection. These must be in an equal-area projection! See Details.}
 }
+\value{
+SpatialPolygons object representing a minimum convex polygon.
+}
 \description{
 This function returns a minimum convex polygon constructed from a set of spatial polygons (and possibly points). See Details for more information.
 }
 \details{
-: This function constructs a minimum convex polygon from a set of spatial polygons in which a species is known to reside. The general idea is to identify a point in each polygon where a species is presumed to reside. In most cases this is unknown, so this function takes the most conservative approach by assuming the point lies on the border of the polygon that is closest to the centroid of the point \code{pts}, if they are provided, or if not the centroid of the set of polygons if only they are provided.
+This function constructs a minimum convex polygon from a set of spatial polygons in which a species is known to reside. The general idea is to identify a point in each polygon where a species is presumed to reside. In most cases this is unknown, so this function takes the most conservative approach by assuming the point lies on the border of the polygon that is closest to the centroid of the point \code{pts}, if they are provided, or if not the centroid of the set of polygons if only they are provided.
 }
