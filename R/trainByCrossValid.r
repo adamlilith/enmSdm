@@ -214,6 +214,8 @@ trainByCrossValid <- function(
 			kModels <- thisOut$models
 			kTuning <- thisOut$tuning
 
+			rm(thisOut)
+
 			kTuning <- omnibus::insertCol(data.frame(k = rep(k, nrow(kTuning))), kTuning, at=1)
 
 		### indices and weights for this fold
@@ -447,6 +449,7 @@ trainByCrossValid <- function(
 		
 		if ('tuning' %in% out) tuning[[k]] <- kTuning
 		if ('models' %in% out) models[[k]] <- kModels
+		gc()
 		
 	} # next fold
 	
