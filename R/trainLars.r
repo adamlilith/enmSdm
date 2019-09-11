@@ -86,6 +86,7 @@
 #' par(mfrow=c(1, 1))
 #' pred3x1x2 <- predictLars(fit3, XX, type='response', preds=c('x1', 'x2'))
 #' plot(pred3, pred3x1x2, xlim=c(0, 1), ylim=c(0, 1))
+#' }
 #' @export
 
 trainLars <- function(

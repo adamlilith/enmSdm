@@ -1,10 +1,10 @@
 #' Minimum convex polygon from a set of polygons and points
 #'
-#' This function returns a minimum convex polygon constructed from a set of spatial polygons (and possibly points). See Details for more information.
+#' This function returns a minimum convex polygon constructed from a set of spatial polygons (and possibly points). See \emph{Details} for more information.
 #' @param polys SpatialPolygons or SpatialPolygonsDataFrame object, representing (for example) counties in which a species is known to reside. These must be in an equal-area projection!
-#' @param pts Either \code{NULL} or a \code{SpatialPoints} or \code{SpatialPointsDataFrame} object in an equal-area projection. These must be in an equal-area projection! See Details.
+#' @param pts Either \code{NULL} or a \code{SpatialPoints} or \code{SpatialPointsDataFrame} object in an equal-area projection. These must be in an equal-area projection! See \emph{Details}.
 #' @return SpatialPolygons object representing a minimum convex polygon.
-#' @details This function constructs a minimum convex polygon from a set of spatial polygons in which a species is known to reside. The general idea is to identify a point in each polygon where a species is presumed to reside. In most cases this is unknown, so this function takes the most conservative approach by assuming the point lies on the border of the polygon that is closest to the centroid of the point \code{pts}, if they are provided, or if not the centroid of the set of polygons if only they are provided.
+#' @details This function constructs a minimum convex polygon (MCP) from a set of spatial polygons. The MCP is constructed from the point on each polygon that lies on the border of the polygon that is closest to the centroid of the point \code{pts}, if they are provided, or if not the centroid of the set of polygons if only the polygons are provided.
 #' @examples
 #' # red-bellied lemur in Madagascar
 #' # represented by points data and (pretend) Frarita-level occurrences
@@ -19,7 +19,7 @@
 #' redBelly <- sp::SpatialPoints(redBelly[ , ll], proj4string=wgs84)
 #' redBelly <- sp::spTransform(redBelly, madEaProj)
 #'
-#' faritras <- c('Vakinankaratra', 'Amoron\'i mania', 'Haute matsiatra', 'Ihorombe', 'Vatovavy Fitovinany', 'Alaotra-Mangoro', 'Analanjirofo', 'Atsinanana', 'Analamanga', 'Itasy')
+#' faritras <- c('Vakinankaratra', 'Haute matsiatra', 'Ihorombe', 'Vatovavy Fitovinany', 'Alaotra-Mangoro', 'Analanjirofo', 'Atsinanana', 'Analamanga', 'Itasy')
 #' polys <- mad[mad$NAME_2 %in% faritras, ]
 #'
 #' mcpPolys <- mcpFromPolygons(polys)

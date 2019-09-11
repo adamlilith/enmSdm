@@ -19,7 +19,7 @@
 #' data(lemurs, package='enmSdm')
 #' longLat <- c('decimalLongitude', 'decimalLatitude')
 #'
-#' mad- <- raster::getData('GADM', country='MDG', level=0)
+#' mad <- raster::getData('GADM', country='MDG', level=0)
 #' elev <- raster::getData('alt', country='MDG', mask=TRUE, res=2.5)
 #'
 #' # plot data as-is
@@ -174,7 +174,6 @@
 #' 	xlab='Schoener\'s D', xlim=c(0, 1))
 #' abline(v=obsOverlap[['d']], col='blue', lwd=3)
 #' legend('topright', legend='Observed', lwd=3, col='blue')
-#'
 #' }
 #' @export
 
