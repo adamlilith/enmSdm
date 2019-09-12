@@ -1,0 +1,209 @@
+---
+title: "Calibrating species distribution models"
+output: rmarkdown::html_vignette
+date: 2019-09-11
+vignette: >
+  %\VignetteIndexEntry{Calibrating species distribution models}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+```{r start, include=FALSE}
+knitr::opts_chunk$set(
+	echo = TRUE,
+	fig.align = 'center'
+)
+```
+A core feature of the `enmSdm` package is a set of "`train`" function which calibrate species distribution models. These functions include:
+
+* `trainGlm`: Generalized linear models (GLMs)
+* `trainGam`: Generalized additive models (GAMs)
+* `trainBrt`: Boosted regresion trees (BRTs), also known as gradient boosting machines
+* `trainRf`: Random forests (RFs)
+* `trainCrf`: Conditional random forest (CRF)
+* `trainMaxEnt` and `trainMaxNet`: Maximum entropy (MaxEnt)
+* `trainNs`: Natural splines (NS)
+* `trainLars`: Least angle regression (LARS)
+* `trainByCrossValid`: Train any one of the models above using cross-validation
+
+But why would you want to use any of these functions if you could instead call them with perhaps more familiar functions like `glm()` or `gam()`? Unlike these base functions, the `train` functions actually go through the work of "tuning" the model so it best fits the data without being overfit. This process depends on the model and is described in this document.
+
+How can you get started? First, copy the code that follows into `R`. This code will load a set of specimen records of lemurs in Madagascar, then a series of climate rasters. It then matches the records to climate data and generates a set of "background" sites to be used as a "contrast" to the presence records in the models. Then, simply skip to the section on your preferred modeling algorithm to understand what it does and how to use it.
+
+Please note that this vignette is *not* intended to show you the best way to do distribution or niche modeling. For example, we will not worry about potential bias in the data or correlation between predictors.
+
+```{r setup}
+library(dismo)
+library(enmSdm)
+
+# names of longitude/latitude fields
+ll <- c('longitude', 'latitude')
+
+# specimen records of lemurs from GBIF
+data(lemurs)
+brownLemur <- lemurs[lemurs$species == 'Eulemur fulvus', ]
+```
+```{r setupDownloadExample, eval=FALSE}
+# download boundary of Madagascar
+madBorder <- getData('GADM', country='MDG', level=0)
+
+# download climate data for Madagascar
+worldClim <- getData('worldclim', var='bio', res=5)
+
+```
+```{r setupDownloadReal, echo=FALSE}
+# download boundary of Madagascar
+madBorder <- getData('GADM', country='MDG', level=0, path='C:/ecology/!Scratch')
+
+# download climate data for Madagascar
+worldClim <- getData('worldclim', var='bio', res=5, path='C:/ecology/!Scratch')
+```
+```{r setupCollate}
+# crop climate data to Madagascar
+madClim <- crop(worldClim, madBorder)
+```
+```{r plotClimate, fig.width=6.5, fig.height=6.5}
+# what have we got?
+plot(madClim)
+```
+```{r plotMad, fig.width=2, fig.height=4}
+par(oma=rep(0, 4), mar=rep(0, 4))
+plot(madBorder)
+points(brownLemur[ , ll])
+
+# match presence records with climate
+presEnv <- extract(madClim, brownLemur[ , ll])
+brownLemur <- cbind(brownLemur, presEnv)
+brownLemur$presBg <- 1
+
+# generate random background sites and extract climate
+bgCoords <- randomPoints(madClim, 10000)
+bgEnv <- extract(madClim, bgCoords)
+colnames(bgCoords) <- ll
+bg <- cbind(bgCoords, bgEnv)
+bg <- as.data.frame(bg)
+bg$presBg <- 0
+
+# combine data on presence records and background sites
+fields <- c('presBg', 'longitude', 'latitude', paste0('bio', 1:19))
+presBg <- rbind(brownLemur[ , fields], bg[ , fields])
+
+# remove any rows with NA
+presBg <- presBg[complete.cases(presBg), ]
+
+head(presBg)
+tail(presBg)
+
+# define predictors
+# to speed things up we will just use the first
+# 5 BIOCLIM variables, which is a really bad idea
+preds <- paste0('bio', 1:5)
+```
+
+### Generalized linear models (GLMs)
+GLMs are similar to normal linear regression models except that the response does not need to be continuous. In the case of distribution and niche modeling the most common type of response is binary (1 for presence, 0 for non-presence). The `trainGlm` function assumes the response is binary, although this can be changed by the user.
+
+The `trainGlm` function is designed to solve two problems. First, we may not know what predictors or set of terms best relate to the response. Second, we may have a small sample size relative to the number of predictors and terms we are interested in testing. Thus, `trainGlm` undergoes a two-phase operation in which: **model construction** is used to select the best set of predictors and associated model terms; followed by **model selection** in which the the best overall model is identified. Note that we're using "terms" to mean any component of the predictor side of the model, such as `x` or `x^2` or `x1 * x2`. Both steps respect *marginality* which means if a higher-order term like a squared term or an interaction term are included in a model, then the simpler linear terms of which those terms are composed are also included.
+
+The **model construction** phase begins by creating a series of simple models. By default, each simple model is composed of either a single linear term (plus intercept), the linear term plus its quadratic term and intercept, or two linear terms plus their interaction plus the intercept. For example, if we told the function to use the terms `x1` and `x2`, then it would construct models of the form:
+* `y ~ x1`
+* `y ~ x2`
+* `y ~ x1 + I(x1^2)`
+* `y ~ x2 + I(x2^2)`
+* `y ~ x1 + x2 + x1:x2`
+In this case there aren't too many models at all, but if we had even a few more we might have a lot of potential terms.
+
+Then, the function calculates AICc for each simple model, then ranks the simple models from most to least parsimonious (smallest to largest AICc). The function then constructs a "full model" by adding terms from the best set of simple models while ensuring that there are at least 10 occurrence records per term (not including the intercept; you can change the number of presence records per term using the argument `presPerInitialTerm`).
+
+For example, say our simple model were ranked in this order, from lowest to highest AICc:
+1 `y ~ x1 + I(x1^2)`
+2 `y ~ x2`
+3 `y ~ x1`
+4 `y ~ x2 + I(x2^2)`
+5 `y ~ x1 + x2 + x1:x2`
+and let's assume that we had 47 presence records, meaning we would want have at most 4 terms (not including the intercept) in our initial model.  In this case we include the first two terms (`x1` and its square). That takes up the first 20 presence records. Then we include `x2` from the second simple model, which takes up all together 30 presence records. Thus we have 17 more presence reecorsd to "use". The third model has just `x1`, but we already have that term. The fourth model has `x2` and `I(x2^2)`. We already include `x2`, so we'll just add `I(x2^2)`. Now we only have 7 more presence records, which isn't enough to add another term. Thus our full model is `y ~ x1 + I(x1^2) + x2 + I(x2^2)`. 
+
+The model construction process evaluates each predictor and its terms in a piecemeal fashion, but predictors can act more or less influentially depending on what other predictors appear in the model. Thus, in the **model selection** phase each possible submodel that can be constructed from the full model (including an intercept-only model) is evaluated using AICc. By default, the best of these models is returned, although you can also return all possible submodels, and/or a table displaying AICc for each submodel.
+
+Here is how you would implement `trainGlm` in R. Note that to obviate problems associated with predictors on widlly different scales, we will scale each predictor so it has a mean of 0 and a unit variance.
+```{r glmSimple}
+scaledPresBg <- presBg
+scaledPresBg[ , preds] <- scale(scaledPresBg[ , preds])
+out <- trainGlm(scaledPresBg, resp='presBg', preds=preds, out=c('model', 'tuning'))
+summary(out$model)
+out$tuning
+```
+Now suppose we wanted to exclude certain terms from consideration, such as `bio4:bio15`.
+```{r glmVerboten}
+out <- trainGlm(scaledPresBg, resp='presBg', preds=preds, verboten='bio4:bio5', out=c('model', 'tuning'))
+summary(out$model)
+out$tuning
+```
+Finally, note that sometimes you might get warnings that look like:
+```
+Warning message:
+glm.fit: fitted probabilities numerically 0 or 1 occurred 
+```
+This typically means that the presences and non-presence terms can be perfectly seperated by at least one variable. This doesn't sound like a bad thing--after all, we're wanting to find which predictors most seperate the presences from non-presences. However, for GLM to provide a stable model, there must be some "intermingling" of presences and non-presences (odd, isn't it?). There are several ways you can address this (including not using GLM), but one method is to employ Firth's correction (Firth 1993 and subsquent correction in 1995). To do this we will use the `brglm2` package (available on CRAN), which is one of several that applies Firth's correction. In this example it isn't appropriate because we haven't received this error, but we'll use it anyway to show how it's done.
+```{r glmFirth, echo=FALSE}
+library(brglm2)
+out <- trainGlm(scaledPresBg, resp='presBg', preds=preds, method='brglmFit', out=c('model', 'tuning'))
+```
+Ironically, applying Firth's correction created a lot of warnings about inseperability (not shown here--see for yourself in `R`)!
+
+```{r}
+summary(out$model)
+out$tuning
+```
+
+To make predictions you can use the `predict` function:
+```{r}
+predictions <- predict(out$model, newdata=scaledPresBg, type='response')
+```
+or the `predictEnmSdm` function in the `enmSdm` package:
+```{r}
+predictions <- predictEnmSdm(out$model, scaledPresBg)
+```
+
+### Generalized Additive Models (GAMs)
+Generalied additive models are similar to generalized linear models (GLMs) except that they apply "smoothers" (non-linear functions) to the predictors during the model fitting procedure. This means the models can potentially fit high-complex shapes. GLMs can do this, too, but the user must know (or guess) beforehand what the form of the curves will be. GAMs more-or-less automate the process of identfying the complexity of the curves.
+
+For singe predictors the `trainGam` function uses cubic splines as smoothers with shrinkage, which means that model coefficients can be shrunk toward 0 for non-influential terms. For interactions bewteen predictors `trainGam` uses Tensor products, which are appropriate for cases when predictors are on different scales (e.g., degrees C temperature and mm of precipitation), although this can be changed by the user. See `help('smooth.terms', package='mgcv')` for more information.
+
+The `trainGam` function solves two potential challenges. First, we may a samples size that is relatively small compared to the number of predictors and associated terms we'd like to test. Second, we probably don't know a priori what the best model is across all potential predictors and terms.
+
+In the first step, the **model construction** phase, the `trainGam` function constructs a series of all possible simple models using just one or two terms (including an intercept-only model). It then ranks the models from most to least parsimonious using AICc. For example, say you provided the model two predictors, `x1` and `x2`. The function would assess the following models (I will use the `s(z)` function to indicate the smoothed version of `z` and `te(z1, z2)` to indicate an "interaction" (Tensor product) smooth):
+* `y ~ s(x1)`
+* `y ~ s(x2)`
+* `y ~ te(x1, x2)`
+These are then ranked using AICc. Assume that their order is then:
+1 `y ~ te(x1, x2)`
+2 `y ~ s(x2)`
+3 `y ~ s(x1)`
+
+In the second step, the *model selection* phases, the `trainGam` function identifies the most parsimonious model from across a set of predictors/terms while not growing the number of candidate models too large. For example, assume we have 28 presences. The function constructs a "full" model by adding terms in the order listed above such that there will be at least 10 presences per term (which can be changed using the `presPerTermInitial` argument).  So the full model will include `te(x1, x2)` and `s(x2)` but no others because we don't have enough terms. So the full model wil be `y ~ te(x1, x2) + s(x2)`. The function then tests all possible submodels (including the intercept-only model). In this case there are only 4 models (two with one term apiece, the full model, and the intercept-only model). It then ranks these, removes models with fewer than 20 presences per term (which can be changed using the `presPerTermFinal` argument), and selects the model with the lowest AICc.
+
+By default the function returns just this "best" model, but it can also return all models tested in the selection step and/or a table with AICc values for each model tested in the selection step.
+
+Here is how you would implement `trainGam` in `R`:
+```{r gamSimple}
+out <- trainGam(presBg, resp='presBg', preds=preds, out=c('model', 'tuning'))
+summary(out$model)
+out$tuning
+```
+So the best model uses terms that have interactions bewteen BIO2 and BIO4 and between BIO4 and BIO5.
+
+To make predictions you can use the `predict` function:
+```{r}
+predictions <- predict(out$model, newdata=presBg, type='response')
+```
+or the `predictEnmSdm` function in the `enmSdm` package:
+```{r}
+predictions <- predictEnmSdm(out$model, presBg)
+```
+
+
+
+### Literature cited
+Firth, D. 1993. Bias reduction of maximum likelihood estimates. Biometrika 80:27-38. (Note correction in Biometrika 1995.)
+
+Firth, D. 1995. Bias reduction of maximum likelihood estimates. Biometrika 82:667. (Correction to 1993 article.)

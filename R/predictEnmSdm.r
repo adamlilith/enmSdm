@@ -8,7 +8,7 @@
 #' @return Numeric.
 #' @seealso \code{\link[stats]{predict}} from the stats package, \code{\link[dismo]{predict}} from the dismo package, \code{\link[raster]{predict}} fromm the raster package
 #' @examples
-#' 
+#'
 #' @export
 
 predictEnmSdm <- function(
@@ -19,7 +19,7 @@ predictEnmSdm <- function(
 ) {
 
 	modelClass <- class(model)
-	dataClass <- class(data)
+	dataClass <- class(newdata)
 	dataType <- if (any(c('matrix', 'data.frame') %in% dataClass)) {
 		'table'
 	} else if (any(c('RasterLayer', 'RasterStack', 'RasterBrick') %in% dataClass)) {
@@ -28,55 +28,55 @@ predictEnmSdm <- function(
 
 	# GAM
 	if ('gam' %in% modelClass) {
-	
+
 		out <- mgcv::predict.gam(model, newdata, type='response', ...)
-		
+
 	# GLM
 	} else if ('glm' %in% modelClass) {
-	
+
 		out <- if (dataType == 'table') {
 			stats::predict.glm(model, newdata, type='response', ...)
 		} else if (dataType == 'raster') {
-			raster::predict(newdata, mdoel, type='response', ...)
+			raster::predict(newdata, model, type='response', ...)
 		}
-		
+
 	# LM
 	} else if ('lm' %in% modelClass) {
-	
+
 		out <- stats::predict.lm(model, newdata, ...)
-		
+
 	# BRT
 	} else if ('gbm' %in% modelClass) {
-	
+
 		out <- gbm::predict.gbm(model, newdata, n.trees=model$gbm.call$n.trees, ...)
-	
+
 	# Maxent
 	} else if ('MaxEnt' %in% modelClass) {
-	
+
 		out <- if (maxentFun == 'dismo') {
 			dismo::predict(model, newdata, ...)
 		} else if (maxentFun == 'enmSdm') {
 			predictMaxEnt(model, newdata, ...)
 		}
-	
+
 	# MaxNet
 	} else if ('maxnet' %in% modelClass) {
-	
+
 		out <- predict(model, newdata, ...)
-		
+
 	# random forest in party package
 	} else if ('RandomForest' %in% modelClass) {
-	
+
 		out <- predict(model, newdata, type='prob', ...)
 		out <- unlist(out)
-		
+
 	# anything else!
 	} else {
-	
+
 		out <- predict(model, newdata, type='response', ...)
-		
+
 	}
-	
+
 	out
 
 }
