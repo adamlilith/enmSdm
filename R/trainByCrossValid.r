@@ -284,8 +284,8 @@ trainByCrossValid <- function(
 				# log loss
 				if ('logLoss' %in% metrics) {
 
-					metricTrain <- sum(trainPresWeights * log(predToTrainPres)) + sum(trainContrastWeights * log(1 - predToTrainContrast))
-					metricTest <- sum(testPresWeights * log(predToTestPres)) + sum(testContrastWeights * log(1 - predToTestContrast))
+					metricTrain <- sum(trainPresWeights * log(predToTrainPres), na.rm=na.rm) + sum(trainContrastWeights * log(1 - predToTrainContrast), na.rm=na.rm)
+					metricTest <- sum(testPresWeights * log(predToTestPres), na.rm=na.rm) + sum(testContrastWeights * log(1 - predToTestContrast), na.rm=na.rm)
 					
 					if (countModel == 1) kTuning$logLossDelta <- kTuning$logLossTest <- kTuning$logLossTrain <- NA
 					kTuning$logLossTrain[countModel] <- metricTrain
