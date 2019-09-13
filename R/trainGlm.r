@@ -386,7 +386,7 @@ trainGlm <- function(
 			print(summary(model))
 			flush.console()
 		}
-		
+
 	} else {
 
 		# store *all* models
@@ -412,19 +412,19 @@ trainGlm <- function(
 			verbotenCombos=verbotenCombos,
 			returnFx=as.character
 		)
-		
+
 		tuning <- data.frame()
-		
+
 		# evaluate each model
 		for (i in seq_along(forms)) {
-		
+
 			form <- as.formula(forms[[i]])
-			
+
 			models[[i]] <- glm(form, family=family, data=data, weights=w, method=method, ...)
 			ll <- logLik(models[[i]])
 			aicc <- MuMIn::AICc(models[[i]])
 			models[[i]]$aicc <- aicc
-			
+
 			tuning <- rbind(
 				tuning,
 				data.frame(
@@ -433,13 +433,13 @@ trainGlm <- function(
 					aicc = aicc
 				)
 			)
-			
-			
+
+
 		}
-		
+
 		models <- rlist::list.sort(models, aicc)
 		tuning <- tuning[order(tuning$aicc), ]
-		
+
 		if (verbose) {
 			omnibus::say('')
 			print(tuning)
@@ -450,7 +450,7 @@ trainGlm <- function(
 		if ('model' %in% out) {
 
 			model <- models[[1]]
-			
+
 			if (verbose) {
 				omnibus::say('Final model:', pre=1);
 				print(summary(model))
