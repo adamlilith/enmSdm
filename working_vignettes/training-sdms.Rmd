@@ -1,6 +1,10 @@
 ---
 title: "Calibrating species distribution models"
-output: rmarkdown::html_vignette
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+	toc_float: true
 date: 2019-09-11
 vignette: >
   %\VignetteIndexEntry{Calibrating species distribution models}
@@ -13,15 +17,16 @@ knitr::opts_chunk$set(
 	fig.align = 'center'
 )
 ```
+# Introduction
 A core feature of the `enmSdm` package is a set of "`train`" function which calibrate species distribution models. These functions include:
 
 * `trainGlm`: Generalized linear models (GLMs)
 * `trainGam`: Generalized additive models (GAMs)
-* `trainBrt`: Boosted regresion trees (BRTs), also known as gradient boosting machines
+* `trainNs`: Natural splines (NS)
+* `trainBrt`: Boosted regression trees (BRTs), also known as gradient boosting machines
 * `trainRf`: Random forests (RFs)
 * `trainCrf`: Conditional random forest (CRF)
 * `trainMaxEnt` and `trainMaxNet`: Maximum entropy (MaxEnt)
-* `trainNs`: Natural splines (NS)
 * `trainLars`: Least angle regression (LARS)
 * `trainByCrossValid`: Train any one of the models above using cross-validation
 
@@ -99,7 +104,7 @@ tail(presBg)
 preds <- paste0('bio', 1:5)
 ```
 
-### Generalized linear models (GLMs)
+# Generalized linear models (GLMs)
 GLMs are similar to normal linear regression models except that the response does not need to be continuous. In the case of distribution and niche modeling the most common type of response is binary (1 for presence, 0 for non-presence). The `trainGlm` function assumes the response is binary, although this can be changed by the user.
 
 The `trainGlm` function is designed to solve two problems. First, we may not know what predictors or set of terms best relate to the response. Second, we may have a small sample size relative to the number of predictors and terms we are interested in testing. Thus, `trainGlm` undergoes a two-phase operation in which: **model construction** is used to select the best set of predictors and associated model terms; followed by **model selection** in which the the best overall model is identified. Note that we're using "terms" to mean any component of the predictor side of the model, such as `x` or `x^2` or `x1 * x2`. Both steps respect *marginality* which means if a higher-order term like a squared term or an interaction term are included in a model, then the simpler linear terms of which those terms are composed are also included.
@@ -134,21 +139,35 @@ out$tuning
 ```
 Now suppose we wanted to exclude certain terms from consideration, such as `bio4:bio15`.
 ```{r glmVerboten}
-out <- trainGlm(scaledPresBg, resp='presBg', preds=preds, verboten='bio4:bio5', out=c('model', 'tuning'))
+out <- trainGlm(
+	scaledPresBg,
+	resp='presBg',
+	preds=preds,
+	verboten='bio4:bio5',
+	out=c('model', 'tuning')
+)
 summary(out$model)
 out$tuning
 ```
+Notice that we no longer have models with `bio4:bio5` (or `bio5:bio4`--the order doesn't matter). If you didn't want `bio4` and `bio5` to appear in the same model ever (even if they didn't interact), you could use the argument `verboteCombos=list(c('bio4', 'bio5'))`.
+
 Finally, note that sometimes you might get warnings that look like:
 ```
 Warning message:
 glm.fit: fitted probabilities numerically 0 or 1 occurred 
 ```
-This typically means that the presences and non-presence terms can be perfectly seperated by at least one variable. This doesn't sound like a bad thing--after all, we're wanting to find which predictors most seperate the presences from non-presences. However, for GLM to provide a stable model, there must be some "intermingling" of presences and non-presences (odd, isn't it?). There are several ways you can address this (including not using GLM), but one method is to employ Firth's correction (Firth 1993 and subsquent correction in 1995). To do this we will use the `brglm2` package (available on CRAN), which is one of several that applies Firth's correction. In this example it isn't appropriate because we haven't received this error, but we'll use it anyway to show how it's done.
+This typically means that the presences and non-presence terms can be perfectly separated by at least one variable. This doesn't sound like a bad thing--after all, we're wanting to find which predictors most separate the presences from non-presences. However, for GLM to provide a stable model, there must be some "intermingling" of presences and non-presences (odd, isn't it?). There are several ways you can address this (including not using GLM), but one method is to employ Firth's correction (Firth 1993 and subsequent correction in 1995). To do this we will use the `brglm2` package (available on CRAN), which is one of several that applies Firth's correction. In this example it isn't appropriate because we haven't received this error, but we'll use it anyway to show how it's done. Note that Firth's correction can increase runtime a lot!
 ```{r glmFirth, echo=FALSE}
 library(brglm2)
-out <- trainGlm(scaledPresBg, resp='presBg', preds=preds, method='brglmFit', out=c('model', 'tuning'))
+out <- trainGlm(
+	scaledPresBg,
+	resp='presBg',
+	preds=preds,
+	method='brglmFit',
+	out=c('model', 'tuning')
+)
 ```
-Ironically, applying Firth's correction created a lot of warnings about inseperability (not shown here--see for yourself in `R`)!
+Ironically, applying Firth's correction created a lot of warnings about inseparability (not shown here--see for yourself in `R`)!
 
 ```{r}
 summary(out$model)
@@ -161,13 +180,13 @@ predictions <- predict(out$model, newdata=scaledPresBg, type='response')
 ```
 or the `predictEnmSdm` function in the `enmSdm` package:
 ```{r}
-predictions <- predictEnmSdm(out$model, scaledPresBg)
+predictions <- predictEnmSdm(out$model, newdata=scaledPresBg)
 ```
 
-### Generalized Additive Models (GAMs)
-Generalied additive models are similar to generalized linear models (GLMs) except that they apply "smoothers" (non-linear functions) to the predictors during the model fitting procedure. This means the models can potentially fit high-complex shapes. GLMs can do this, too, but the user must know (or guess) beforehand what the form of the curves will be. GAMs more-or-less automate the process of identfying the complexity of the curves.
+# Generalized Additive Models (GAMs)
+Generalized additive models are similar to generalized linear models (GLMs) except that they apply "smoothers" (non-linear functions) to the predictors during the model fitting procedure. This means the models can potentially fit high-complex shapes. GLMs can do this, too, but the user must know (or guess) beforehand what the form of the curves will be. GAMs more-or-less automate the process of identfying the complexity of the curves.
 
-For singe predictors the `trainGam` function uses cubic splines as smoothers with shrinkage, which means that model coefficients can be shrunk toward 0 for non-influential terms. For interactions bewteen predictors `trainGam` uses Tensor products, which are appropriate for cases when predictors are on different scales (e.g., degrees C temperature and mm of precipitation), although this can be changed by the user. See `help('smooth.terms', package='mgcv')` for more information.
+For singe predictors the `trainGam` function uses cubic splines as smoothers with shrinkage, which means that model coefficients can be shrunk toward 0 for non-influential terms. For interactions between predictors `trainGam` uses Tensor products, which are appropriate for cases when predictors are on different scales (e.g., degrees C temperature and mm of precipitation), although this can be changed by the user. See `help('smooth.terms', package='mgcv')` for more information.
 
 The `trainGam` function solves two potential challenges. First, we may a samples size that is relatively small compared to the number of predictors and associated terms we'd like to test. Second, we probably don't know a priori what the best model is across all potential predictors and terms.
 
@@ -186,11 +205,16 @@ By default the function returns just this "best" model, but it can also return a
 
 Here is how you would implement `trainGam` in `R`:
 ```{r gamSimple}
-out <- trainGam(presBg, resp='presBg', preds=preds, out=c('model', 'tuning'))
+out <- trainGam(
+	presBg,
+	resp='presBg',
+	preds=preds,
+	out=c('model', 'tuning')
+)
 summary(out$model)
 out$tuning
 ```
-So the best model uses terms that have interactions bewteen BIO2 and BIO4 and between BIO4 and BIO5.
+So the best model uses terms that have interactions between BIO2 and BIO4 and between BIO4 and BIO5.
 
 To make predictions you can use the `predict` function:
 ```{r}
@@ -198,12 +222,69 @@ predictions <- predict(out$model, newdata=presBg, type='response')
 ```
 or the `predictEnmSdm` function in the `enmSdm` package:
 ```{r}
-predictions <- predictEnmSdm(out$model, presBg)
+predictions <- predictEnmSdm(out$model, newdata=presBg)
 ```
 
+# Boosted regression trees (BRTs) or gradient boosting machines (GBMs)
+BRTs use a series of classification and regression trees to divide a predictor space. The first tree uses the response specified by the modeler, and subsequent trees use the residuals from the previous tree (Elith et al. 2008). By "pasting" thousands of trees together a smooth curve can be approximated.
 
+BRTs have several parameters than can be varied to improve fit to the data or improve generality in predicting withheld data. These include the __learning rate__ (how much each tree contributes to the overall model and thus how many trees are included in the optimal model), __tree complexity__ (number of "branches" in each tree, or how many levels it has, which determines the depth of interactions between variables (none, two-way, three-way, etc.), __bag fraction__ (proportion of data randomly withheld from each tree--helps reduce overfitting), and __maximum number of trees__ to test.  The `trainBrt` function performs a grid search across all possible combinations of these parameters.  It then returns the model with the smallest deviance. Personally, I only ever test the learning rate and tree complexity, keeping the bag fraction fraction at about 0.6 or 0.7 (following Elith et al. 2008) and total number of trees 6000-10000 or so (smaller reduces run time but may not yield the optimal model).
 
-### Literature cited
+The `trainBrt` function uses the `gbm.step` function from the `dismo` package to select a model with the optimal number of trees, up to the maximum allowed by the `maxTrees` argument (in `trainBrt`). Occasionally the model will not converge.  In this case the `trainBrt` function attempts to find a model thet does converge by manipulating learning rate, tree complexity, maximum number of trees, and the step size (number of trees by which the maximum number of trees is decremented to find the optimal model).  In a few cases none of these attempts will work, in which case I have found that you can sometimes get a model to converge if you just try again--after all, BRTs have a random component, so a new start may get it out of a stuck place.
+
+Here's how to train a BRT using `trainBrt`. To speed things up I'll use just one learning rate, two tree depths, and a small number of maximum trees.
+```{r brtSimple}
+set.seed(123)
+out <- trainBrt(
+	presBg,
+	resp='presBg',
+	preds=preds,
+	learningRate=c(0.001),
+	treeComplexity = c(1, 3),
+	maxTrees=4000,
+	out=c('model', 'tuning'),
+	verbose=TRUE
+)
+summary(out$model)
+plot(out$model)
+out$tuning
+```
+
+To make predictions you can use the `predict` function:
+```{r}
+predictions <- predict(out$model, newdata=presBg, n.trees=model$gbm.call$n.trees, type='response')
+```
+or the `predictEnmSdm` function in the `enmSdm` package:
+```{r}
+predictions <- predictEnmSdm(out$model, newdata=presBg)
+```
+
+# Random forests (RFs)
+Random forests are constructed from a sets of classification and regression trees. Each tree divides the predictor space into quadrants, and each quadrant is assigned an outcome (e.g., "present" or "absent"). To generate a prediction the model averages across the predictions from all trees.  To reduce overfitting, each tree is fit with a random subset of the data and a random subset of predictors.
+
+The `trainRf` function calls the `tuneRF` function in the `randomForest` package. This latter function finds the optimal number of predictors to be chosen (at random) to construct each tree.
+
+Here's how to use the `trainRf` function:
+```{r trainRf}
+out <- trainBrt(
+	presBg,
+	resp='presBg',
+	preds=preds
+)
+```
+To make predictions you can use the `predict` function. Note that there are some weirdnesses if the original response in the model was binary (1/0) because it has to be converted to a factor:
+```{r}
+predictions <- predict(out, newdata=presBg, type='prob')
+predictions <- unlist(predictions)
+```
+You can also use the `predictEnmSdm` function in the `enmSdm` package:
+```{r}
+predictions <- predictEnmSdm(out, newdata=presBg)
+```
+
+# Literature cited
+Elith, J., J.R. Leathwick, and T. Hastie.  2008.  A working guide to boosted regression trees.  Journal of Animal Ecology 77:802-813.
+
 Firth, D. 1993. Bias reduction of maximum likelihood estimates. Biometrika 80:27-38. (Note correction in Biometrika 1995.)
 
 Firth, D. 1995. Bias reduction of maximum likelihood estimates. Biometrika 82:667. (Correction to 1993 article.)
