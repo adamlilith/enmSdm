@@ -13,7 +13,7 @@
 #' @param ... Arguments to pass to the "trainXYZ" function, as well as the \code{\link{predictEnmSdm}}, \code{\link{contBoyce}}, \code{\link{tssWeighted}}, and \code{\link{thresholdWeighted}} functions. See help for the appropriate function.
 #' @param metrics Character vector, names of evaluation metrics to calculate. The default is to calculate all of:
 #' \itemize{
-#' 	\item \code{'logLoss'}: Log loss.
+#' 	\item \code{'logLoss'}: Log loss. Higher values connote better fit.
 #' 	\item \code{'cbi'}: Continuous Boyce Index (CBI). Calculated with \code{\link[enmSdm]{contBoyce}}.
 #' 	\item \code{'auc'}: Area under the receiver-operator characteristic curve (AUC). Calculated with \code{\link[enmSdm]{aucWeighted}}.
 #' 	\item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
@@ -284,8 +284,8 @@ trainByCrossValid <- function(
 				# log loss
 				if ('logLoss' %in% metrics) {
 
-					metricTrain <- sum(trainPresWeights * log(predToTrainPres), na.rm=na.rm) + sum(trainContrastWeights * log(1 - predToTrainContrast), na.rm=na.rm)
-					metricTest <- sum(testPresWeights * log(predToTestPres), na.rm=na.rm) + sum(testContrastWeights * log(1 - predToTestContrast), na.rm=na.rm)
+					metricTrain <- mean(c(trainPresWeights * log(predToTrainPres), trainContrastWeights * log(1 - predToTrainContrast)), na.rm=na.rm)
+					metricTest <- mean(c(testPresWeights * log(predToTestPres), testContrastWeights * log(1 - predToTestContrast)), na.rm=na.rm)
 					
 					if (countModel == 1) kTuning$logLossDelta <- kTuning$logLossTest <- kTuning$logLossTrain <- NA
 					kTuning$logLossTrain[countModel] <- metricTrain
