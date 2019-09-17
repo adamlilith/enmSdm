@@ -31,7 +31,7 @@ trainByCrossValid(data, resp = names(data)[1],
 
 \item{metrics}{Character vector, names of evaluation metrics to calculate. The default is to calculate all of:
 \itemize{
-    \item \code{'logLoss'}: Log loss.
+    \item \code{'logLoss'}: Log loss. Higher values connote better fit.
     \item \code{'cbi'}: Continuous Boyce Index (CBI). Calculated with \code{\link[enmSdm]{contBoyce}}.
     \item \code{'auc'}: Area under the receiver-operator characteristic curve (AUC). Calculated with \code{\link[enmSdm]{aucWeighted}}.
     \item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
