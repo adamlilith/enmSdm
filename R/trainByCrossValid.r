@@ -78,7 +78,7 @@
 #' top <- which.max(out$tuning[[1]]$cbiTest)
 #' summary(out$models[[1]][[top]])
 #'
-#' # in fold k = 1, which models perform well but aren not overfit?
+#' # in fold k = 1, which models perform well but are not overfit?
 #' plot(out$tuning[[1]]$cbiTrain, out$tuning[[1]]$cbiTest, pch='.',
 #' 		main='Model Numbers for k = 1')
 #' abline(0, 1, col='red')
