@@ -26,7 +26,7 @@
 #' contrast <- runif(1000)
 #' contBoyce(pres, contrast)
 #' contBoyce2x(pres, contrast)
-#' presWeight <- c(rep(1, 10), rep(0.5, 40))
+#' presWeight <- c(rep(1, 10), rep(0.5, 90))
 #' contBoyce(pres, contrast, presWeight=presWeight)
 #' contBoyce2x(pres, contrast, presWeight=presWeight)
 #' \donttest{
@@ -107,22 +107,22 @@ contBoyce <- function(
 	if (length(presWeight) != length(pres)) stop('You must have the same number of presence predictions and presence weights ("pres" and "presWeight").')
 	if (length(contrastWeight) != length(contrast)) stop('You must have the same number of absence/background predictions and absence/background weights ("contrast" and "contrastWeight").')
 	
-	# remove NAs
-	if (na.rm) {
+	# # remove NAs
+	# if (na.rm) {
 
-		cleanedPres <- omnibus::naOmitMulti(pres, presWeight)
-		pres <- cleanedPres[[1]]
-		presWeight <- cleanedPres[[2]]
+		# cleanedPres <- omnibus::naOmitMulti(pres, presWeight)
+		# pres <- cleanedPres[[1]]
+		# presWeight <- cleanedPres[[2]]
 
-		cleanedContrast <- omnibus::naOmitMulti(contrast, contrastWeight)
-		contrast <- cleanedContrast[[1]]
-		contrastWeight <- cleanedContrast[[2]]
+		# cleanedContrast <- omnibus::naOmitMulti(contrast, contrastWeight)
+		# contrast <- cleanedContrast[[1]]
+		# contrastWeight <- cleanedContrast[[2]]
 
-	}
+	# }
 	
 	# right hand side of each class (assumes max value is >0)
-	lowest <- if (autoWindow) { min(c(pres, contrast), na.rm=TRUE) } else { 0 }
-	highest <- if (autoWindow) { max(c(pres, contrast), na.rm=TRUE) + omnibus::eps() } else { 1 + omnibus::eps() }
+	lowest <- if (autoWindow) { min(c(pres, contrast), na.rm=na.rm) } else { 0 }
+	highest <- if (autoWindow) { max(c(pres, contrast), na.rm=na.rm) + omnibus::eps() } else { 1 + omnibus::eps() }
 
 	windowWidth <- binWidth * (highest - lowest)
 
@@ -142,12 +142,12 @@ contBoyce <- function(
 		# number of presence predictions in this class
 		presInBin <- pres >= lows[countClass] & pres < highs[countClass]
 		presInBin <- presInBin * presWeight
-		freqPres[countClass] <- sum(presInBin)
+		freqPres[countClass] <- sum(presInBin, na.rm=na.rm)
 
 		# number of background predictions in this class
 		bgInBin <- contrast >= lows[countClass] & contrast < highs[countClass]
 		bgInBin <- bgInBin * contrastWeight
-		freqContrast[countClass] <- sum(bgInBin)
+		freqContrast[countClass] <- sum(bgInBin, na.rm=na.rm)
 
 	} # next predicted value class
 
@@ -162,7 +162,7 @@ contBoyce <- function(
 
 	# remove classes with 0 presence frequency
 	if (dropZeros && 0 %in% freqPres) {
-		zeros <- which(freqPres %in% 0)
+		zeros <- which(freqPres == 0)
 		meanPred[zeros] <- NA
 		freqPres[zeros] <- NA
 		freqContrast[zeros] <- NA
@@ -170,7 +170,7 @@ contBoyce <- function(
 
 	# remove classes with 0 background frequency
 	if (any(0 %in% freqContrast)) {
-		zeros <- which(freqContrast %in% 0)
+		zeros <- which(freqContrast == 0)
 		meanPred[zeros] <- NA
 		freqPres[zeros] <- NA
 		freqContrast[zeros] <- NA
@@ -197,11 +197,6 @@ contBoyce <- function(
 
 	# calculate continuous Boyce index (cbi)
 	cbi <- stats::cor(x=meanPred, y=PE, method=method)
-
-	#####################
-	## post-processing ##
-	#####################
-
 	cbi
 
 }

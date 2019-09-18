@@ -3,10 +3,10 @@
 #' This function assigns geographically-divided k-folds ("g-folds") using partitioning around mediods (PAM) algorithm. The user can specify the number of folds to create, and optionally, the minimum size of any fold plus the minimum number of sites NOT in any fold (good for ensuring each fold has enough sites for testing and training).
 #' @param x A data frame, matrix, \code{SpatialPoints}, or \code{SpatialPointsDataFrame} object. If a data frame or matrix then the coordinate reference system is assumed to be unprojected (WGS84).
 #' @param k Positive integer. Number of k-folds to create.
-#' @param minIn Positive integer or \code{NULL}. Minimum number of sites required to be in a fold. If left NULL (default), it is possible to have just one site in a fold.
+#' @param minIn Positive integer or \code{NULL}. Minimum number of sites required to be in a fold. If left \code{NULL} (default), it is possible to have just one site in a fold.
 #' @param minOut Positive integer or \code{NULL}. Minimum number of sites required to be outside of a fold. (i.e., if there are 5 folds, then for fold #1 this is the number of sites in folds 2 through 5). Leave as NULL to ignore.
 #' @param longLat Two-element character list \emph{or} two-element integer list. If \code{x} is a data frame then this should be a character list specifiying the names of the fields in \code{x} \emph{or} a two-element list of integers that correspond to longitude and latitude (in that order). For example, \code{c('long', 'lat')} or \code{c(1, 2)}. If \code{x} is a matrix then this is a two-element list indicating the column numbers in \code{x} that represent longitude and latitude. For example, \code{c(1, 2)}. If \code{x} is a \code{SpatialPoints} object then this is ignored.
-#' @param distFunct Either a function or NULL. If NULL then \code{distCosine()} in the \code{geoshere} package is used to calculate distances.  More accurate distances can be obtained by using other functions (see [geosphere::distCosine()] and related "\code{dist}" functions). Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.
+#' @param distFunct Either a function or \code{NULL}. If \code{NULL} then \code{distCosine()} in the \code{geoshere} package is used to calculate distances.  More accurate distances can be obtained by using other functions (see [geosphere::distCosine()] and related "\code{dist}" functions). Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.
 #' @param swaps Positive integer. Sometimes the routine generates folds that aren't minimally compact; i.e., points from some folds are spatially inside other folds. To correct this a random swap procedure is performed at the end in which pairs of points from different folds are swapped assignment. If this decreases the mean distance to the (new) centroid of each fold then the swap is kept. Otherwise it is not. This procedure is performed \code{swap} number of times.  Default (set by \code{swap=NULL}) is \code{max(100, n^2)} times where \code{n} is total number of points.
 #' @param ... Arguments to pass to \code{distFunct}.
 #' @return An integer vector, one element for for of x, with values 1 through k indicating which fold a site is located in.
@@ -66,9 +66,9 @@ geoFold <- function(
 	## functions and packages ##
 	############################
 
-	if (is.null(distFunct)) distFunct <- geosphere::distCosine
+	if (is.null(distFunct)) distFunct <- geosphere::distGeo
 
-	# count number of sites outside each folds
+	# count number of sites outside each fold
 	numOut <- function(folds) {
 
 		out <- rep(NA, k)
@@ -77,7 +77,7 @@ geoFold <- function(
 
 	}
 
-	# count number of sites outside each folds
+	# count number of sites outside each fold
 	numIn <- function(folds) {
 
 		inFold <- rep(NA, k)
@@ -85,10 +85,6 @@ geoFold <- function(
 		inFold
 
 	}
-
-	####################
-	## PRE-PROCESSING ##
-	####################
 
 	# get coordinates
 	xy <- xToCoords(x, longLat)
@@ -109,7 +105,7 @@ geoFold <- function(
 	###################################
 
 	# generate folds
-	dists <- pointDist(xy, distFunct=distFunct, ...)
+	dists <- geosphere::distm(xy, fun=distFunct)
 	diag(dists) <- NA
 	dists <- stats::as.dist(dists)
 	folds <- as.integer(cluster::pam(x=dists, k=k, diss=TRUE, do.swap=T, cluster.only=T))
@@ -132,7 +128,7 @@ geoFold <- function(
 
 	if (!is.null(minIn)) {
 
-		# counter for folds left to be handeled
+		# counter for folds left to be handled
 		kToDo <- 1:k
 
 		while (any(numIn(folds) < minIn) | length(unique(folds)) < k) {
@@ -141,15 +137,15 @@ geoFold <- function(
 
 			origfolds <- folds
 
-			# generate new folds for any sites that are not part of folds that have already been processed... tempFolds contains new fold names PLUS NAs for folds that have been processed
+			# generate new folds for any sites that are not part of folds that have already been processed...
+			# tempFolds contains new fold names PLUS NAs for folds that have been processed
 			tempFolds <- folds
-			# interPointDists <- pointDist(xy, distFunct=distFunct, ...)
-			interPointDists <- pointDist(xy, distFunct=distFunct)
+			interPointDists <- geosphere::distm(xy, fun=distFunct)
 			diag(interPointDists) <- NA
 			interPointDists <- interPointDists[which(folds %in% kToDo), which(folds %in% kToDo)]
 			interPointDists <- as.dist(interPointDists)
 			tempFolds[!(tempFolds %in% kToDo)] <- NA
-			tempFolds[!is.na(tempFolds)] <- as.integer(cluster::pam(x=interPointDists, k=length(kToDo), diss=TRUE, do.swap=T, cluster.only=T))
+			tempFolds[!is.na(tempFolds)] <- as.integer(cluster::pam(x=interPointDists, k=length(kToDo), diss=TRUE, do.swap=TRUE, cluster.only=TRUE))
 
 			# increase fold counters by those that have been done
 			for (i in (1:k)[-kToDo]) tempFolds[which(!is.na(tempFolds) & tempFolds >= i)] <- tempFolds[which(!is.na(tempFolds) & tempFolds >= i)] + 1

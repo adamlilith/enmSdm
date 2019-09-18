@@ -13,7 +13,8 @@
 #' @param ... Arguments to pass to the "trainXYZ" function, as well as the \code{\link{predictEnmSdm}}, \code{\link{contBoyce}}, \code{\link{tssWeighted}}, and \code{\link{thresholdWeighted}} functions. See help for the appropriate function.
 #' @param metrics Character vector, names of evaluation metrics to calculate. The default is to calculate all of:
 #' \itemize{
-#' 	\item \code{'logLoss'}: Log loss.
+#' 	\item \code{'logLoss'}: Log loss. Higher (less negative) values connote better fit.
+#' 	\item \code{'logLossEqualWeight'}: Log loss with the total weight of presences and contrast sites equalized before calculation (i.e., weight of training presences equalized to weight of training contrast sites and weight of test presences equalized to weight of test contrast sites). Higher (less negative) values connote better fit. This version is better for cases where the number of presences and contrast sites is unequal because it gives both equal total weight.
 #' 	\item \code{'cbi'}: Continuous Boyce Index (CBI). Calculated with \code{\link[enmSdm]{contBoyce}}.
 #' 	\item \code{'auc'}: Area under the receiver-operator characteristic curve (AUC). Calculated with \code{\link[enmSdm]{aucWeighted}}.
 #' 	\item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
@@ -77,7 +78,7 @@
 #' top <- which.max(out$tuning[[1]]$cbiTest)
 #' summary(out$models[[1]][[top]])
 #'
-#' # in fold k = 1, which models perform well but aren not overfit?
+#' # in fold k = 1, which models perform well but are not overfit?
 #' plot(out$tuning[[1]]$cbiTrain, out$tuning[[1]]$cbiTest, pch='.',
 #' 		main='Model Numbers for k = 1')
 #' abline(0, 1, col='red')
@@ -99,7 +100,7 @@ trainByCrossValid <- function(
 	folds = dismo::kfold(data),
 	trainFx = enmSdm::trainGlm,
 	...,
-	metrics = c('logLoss', 'cbi', 'auc', 'fpb', 'tss', 'msss', 'mdss', 'orss', 'sedi', 'minTrainPres', 'trainSe95', 'trainSe90'),
+	metrics = c('logLoss', 'logLossEqualWeight', 'cbi', 'auc', 'fpb', 'tss', 'msss', 'mdss', 'orss', 'sedi', 'minTrainPres', 'trainSe95', 'trainSe90'),
 	sensitivity = 0.9,
 	weightEvalTrain = TRUE,
 	weightEvalTest = TRUE,
@@ -248,14 +249,14 @@ trainByCrossValid <- function(
 			}	
 
 			insert <- data.frame(
-				numTrainPres = length(whichTrainPres),
-				numTrainContrast = length(whichTrainContrast),
-				numTestPres = length(whichTestPres),
-				numTestContrast = length(whichTestContrast),
-				trainPresWeights = sum(trainPresWeights),
-				trainContrastWeights = sum(trainContrastWeights),
-				testPresWeights = sum(testPresWeights),
-				testContrastWeights = sum(testContrastWeights)
+				numTrainPres = if (na.rm) { length(na.omit(whichTrainPres)) } else { length(whichTrainPres) },
+				numTrainContrast = if (na.rm) { length(na.omit(whichTrainContrast)) } else { length(whichTrainContrast) },
+				numTestPres = if (na.rm) { length(na.omit(whichTestPres)) } else { length(whichTestPres) },
+				numTestContrast = if (na.rm) { length(na.omit(whichTestContrast)) } else { length(whichTestContrast) },
+				trainPresWeights = sum(trainPresWeights, na.rm=na.rm),
+				trainContrastWeights = sum(trainContrastWeights, na.rm=na.rm),
+				testPresWeights = sum(testPresWeights, na.rm=na.rm),
+				testContrastWeights = sum(testContrastWeights, na.rm=na.rm)
 			)
 			
 			insert <- insert[rep(1, nrow(kTuning)), ]
@@ -284,13 +285,56 @@ trainByCrossValid <- function(
 				# log loss
 				if ('logLoss' %in% metrics) {
 
-					metricTrain <- sum(trainPresWeights * log(predToTrainPres), na.rm=na.rm) + sum(trainContrastWeights * log(1 - predToTrainContrast), na.rm=na.rm)
-					metricTest <- sum(testPresWeights * log(predToTestPres), na.rm=na.rm) + sum(testContrastWeights * log(1 - predToTestContrast), na.rm=na.rm)
+					metricTrain <- mean(c(trainPresWeights * log(predToTrainPres), trainContrastWeights * log(1 - predToTrainContrast)), na.rm=na.rm)
+					metricTest <- mean(c(testPresWeights * log(predToTestPres), testContrastWeights * log(1 - predToTestContrast)), na.rm=na.rm)
 					
 					if (countModel == 1) kTuning$logLossDelta <- kTuning$logLossTest <- kTuning$logLossTrain <- NA
 					kTuning$logLossTrain[countModel] <- metricTrain
 					kTuning$logLossTest[countModel] <- metricTest
 					kTuning$logLossDelta[countModel] <- metricTrain - metricTest
+					
+				}
+				
+				# log loss, equal total weight
+				if ('logLossEqualWeight' %in% metrics) {
+
+					# rescale weights
+					totalTrainPresWeight <- sum(trainPresWeights, na.rm=na.rm)
+					totalTestPresWeight <- sum(testPresWeights, na.rm=na.rm)
+
+					totalTrainContrastWeight <- sum(trainContrastWeights, na.rm=na.rm)
+					totalTestContrastWeight <- sum(testContrastWeights, na.rm=na.rm)
+
+					thisTrainPresWeights <- trainPresWeights
+					thisTrainContrastWeights <- trainContrastWeights
+
+					thisTestPresWeights <- testPresWeights
+					thisTestContrastWeights <- testContrastWeights
+
+					if (totalTrainPresWeight > totalTrainContrastWeight) {
+						thisTrainContrastWeights <- thisTrainContrastWeights * (totalTrainPresWeight / totalTrainContrastWeight)
+					} else {
+						thisTrainPresWeights <- thisTrainPresWeights * (totalTrainContrastWeight / totalTrainPresWeight)
+					}
+
+					if (totalTestPresWeight > totalTestContrastWeight) {
+						thisTestContrastWeights <- thisTestContrastWeights * (totalTestPresWeight / totalTestContrastWeight)
+					} else {
+						thisTestPresWeights <- thisTestPresWeights * (totalTestContrastWeight / totalTestPresWeight)
+					}
+
+					maxWeight <- max(c(thisTrainPresWeights, thisTrainContrastWeights))
+					thisTrainPresWeights <- thisTrainPresWeights / maxWeight
+					thisTrainContrastWeights <- thisTrainContrastWeights / maxWeight
+
+					# log loss
+					metricTrain <- mean(c(thisTrainPresWeights * log(predToTrainPres), trainContrastWeights * log(1 - predToTrainContrast)), na.rm=na.rm)
+					metricTest <- mean(c(thisTestPresWeights * log(predToTestPres), thisTestContrastWeights * log(1 - predToTestContrast)), na.rm=na.rm)
+					
+					if (countModel == 1) kTuning$logLossDeltaEqualWeight <- kTuning$logLossTestEqualWeight <- kTuning$logLossTrainEqualWeight <- NA
+					kTuning$logLossTrainEqualWeight[countModel] <- metricTrain
+					kTuning$logLossTestEqualWeight[countModel] <- metricTest
+					kTuning$logLossDeltaEqualWeight[countModel] <- metricTrain - metricTest
 					
 				}
 				

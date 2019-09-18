@@ -54,7 +54,7 @@ pres <- sqrt(runif(100))
 contrast <- runif(1000)
 contBoyce(pres, contrast)
 contBoyce2x(pres, contrast)
-presWeight <- c(rep(1, 10), rep(0.5, 40))
+presWeight <- c(rep(1, 10), rep(0.5, 90))
 contBoyce(pres, contrast, presWeight=presWeight)
 contBoyce2x(pres, contrast, presWeight=presWeight)
 \donttest{

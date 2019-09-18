@@ -48,7 +48,7 @@ predictEnmSdm <- function(
 	# BRT
 	} else if ('gbm' %in% modelClass) {
 
-		out <- gbm::predict.gbm(model, newdata, n.trees=model$gbm.call$n.trees, ...)
+		out <- gbm::predict.gbm(model, newdata, n.trees=model$gbm.call$n.trees, type='response', ...)
 
 	# Maxent
 	} else if ('MaxEnt' %in% modelClass) {

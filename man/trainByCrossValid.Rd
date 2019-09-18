@@ -6,11 +6,11 @@
 \usage{
 trainByCrossValid(data, resp = names(data)[1],
   preds = names(data)[2:ncol(data)], folds = dismo::kfold(data),
-  trainFx = enmSdm::trainGlm, ..., metrics = c("logLoss", "cbi", "auc",
-  "fpb", "tss", "msss", "mdss", "orss", "sedi", "minTrainPres",
-  "trainSe95", "trainSe90"), sensitivity = 0.9, weightEvalTrain = TRUE,
-  weightEvalTest = TRUE, na.rm = FALSE, out = c("models", "tuning"),
-  verbose = 1)
+  trainFx = enmSdm::trainGlm, ..., metrics = c("logLoss",
+  "logLossEqualWeight", "cbi", "auc", "fpb", "tss", "msss", "mdss", "orss",
+  "sedi", "minTrainPres", "trainSe95", "trainSe90"), sensitivity = 0.9,
+  weightEvalTrain = TRUE, weightEvalTest = TRUE, na.rm = FALSE,
+  out = c("models", "tuning"), verbose = 1)
 }
 \arguments{
 \item{data}{Data frame or matrix. Environmental predictors (and no other fields) for presences and background sites.}
@@ -31,7 +31,8 @@ trainByCrossValid(data, resp = names(data)[1],
 
 \item{metrics}{Character vector, names of evaluation metrics to calculate. The default is to calculate all of:
 \itemize{
-    \item \code{'logLoss'}: Log loss.
+    \item \code{'logLoss'}: Log loss. Higher (less negative) values connote better fit.
+    \item \code{'logLossEqualWeight'}: Log loss with the total weight of presences and contrast sites equalized before calculation (i.e., weight of training presences equalized to weight of training contrast sites and weight of test presences equalized to weight of test contrast sites). Higher (less negative) values connote better fit. This version is better for cases where the number of presences and contrast sites is unequal because it gives both equal total weight.
     \item \code{'cbi'}: Continuous Boyce Index (CBI). Calculated with \code{\link[enmSdm]{contBoyce}}.
     \item \code{'auc'}: Area under the receiver-operator characteristic curve (AUC). Calculated with \code{\link[enmSdm]{aucWeighted}}.
     \item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
@@ -103,7 +104,7 @@ sapply(out$models[[1]], AIC)
 top <- which.max(out$tuning[[1]]$cbiTest)
 summary(out$models[[1]][[top]])
 
-# in fold k = 1, which models perform well but aren not overfit?
+# in fold k = 1, which models perform well but are not overfit?
 plot(out$tuning[[1]]$cbiTrain, out$tuning[[1]]$cbiTest, pch='.',
 		main='Model Numbers for k = 1')
 abline(0, 1, col='red')

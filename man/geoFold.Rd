@@ -12,13 +12,13 @@ geoFold(x, k, minIn = NULL, minOut = NULL, longLat = NULL,
 
 \item{k}{Positive integer. Number of k-folds to create.}
 
-\item{minIn}{Positive integer or \code{NULL}. Minimum number of sites required to be in a fold. If left NULL (default), it is possible to have just one site in a fold.}
+\item{minIn}{Positive integer or \code{NULL}. Minimum number of sites required to be in a fold. If left \code{NULL} (default), it is possible to have just one site in a fold.}
 
 \item{minOut}{Positive integer or \code{NULL}. Minimum number of sites required to be outside of a fold. (i.e., if there are 5 folds, then for fold #1 this is the number of sites in folds 2 through 5). Leave as NULL to ignore.}
 
 \item{longLat}{Two-element character list \emph{or} two-element integer list. If \code{x} is a data frame then this should be a character list specifiying the names of the fields in \code{x} \emph{or} a two-element list of integers that correspond to longitude and latitude (in that order). For example, \code{c('long', 'lat')} or \code{c(1, 2)}. If \code{x} is a matrix then this is a two-element list indicating the column numbers in \code{x} that represent longitude and latitude. For example, \code{c(1, 2)}. If \code{x} is a \code{SpatialPoints} object then this is ignored.}
 
-\item{distFunct}{Either a function or NULL. If NULL then \code{distCosine()} in the \code{geoshere} package is used to calculate distances.  More accurate distances can be obtained by using other functions (see [geosphere::distCosine()] and related "\code{dist}" functions). Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.}
+\item{distFunct}{Either a function or \code{NULL}. If \code{NULL} then \code{distCosine()} in the \code{geoshere} package is used to calculate distances.  More accurate distances can be obtained by using other functions (see [geosphere::distCosine()] and related "\code{dist}" functions). Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.}
 
 \item{swaps}{Positive integer. Sometimes the routine generates folds that aren't minimally compact; i.e., points from some folds are spatially inside other folds. To correct this a random swap procedure is performed at the end in which pairs of points from different folds are swapped assignment. If this decreases the mean distance to the (new) centroid of each fold then the swap is kept. Otherwise it is not. This procedure is performed \code{swap} number of times.  Default (set by \code{swap=NULL}) is \code{max(100, n^2)} times where \code{n} is total number of points.}
 

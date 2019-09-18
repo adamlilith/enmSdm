@@ -4,7 +4,7 @@
 \alias{geoThin}
 \title{Thin geographic points (mostly) deterministically}
 \usage{
-geoThin(x, minDist, longLat = NULL, distFunct = NULL, na.rm = TRUE,
+geoThin(x, minDist, longLat = NULL, distFunct = NULL,
   verbose = FALSE, ...)
 }
 \arguments{
@@ -15,8 +15,6 @@ geoThin(x, minDist, longLat = NULL, distFunct = NULL, na.rm = TRUE,
 \item{longLat}{Two-element character list \emph{or} two-element integer list. If \code{x} is a data frame then this should be a character list specifiying the names of the fields in \code{x} \emph{or} a two-element list of integers that correspond to longitude and latitude (in that order). For example, \code{c('long', 'lat')} or \code{c(1, 2)}. If \code{x} is a matrix then this is a two-element list indicating the column numbers in \code{x} that represent longitude and latitude (for example, \code{c(1, 2)}). If \code{x} is a \code{SpatialPoints} or a \code{SpatialPointsDataFrame}  object then this argument is ignored.}
 
 \item{distFunct}{Either a function or \code{NULL}. If \code{NULL} then \code{\link[geosphere]{distGeo}} is used to calculate distances.  More accurate distances can be obtained by using other functions (see \code{\link[geosphere]{distHaversine}} and references therein). Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.}
-
-\item{na.rm}{Logical. If \code{TRUE} then remove coordinates with \code{NA}s first.}
 
 \item{verbose}{Logical. If \code{TRUE} then display progress.}
 
@@ -44,20 +42,37 @@ Thus the results are deterministic up to the last tie-breaking step.
 # example using data frame
 x <- data.frame(long=c(-90.1, -90.1, -90.15, -90.17, -90.2, -89),
    lat=c(38, 38, 38, 38, 38, 38), point=letters[1:6])
-geoThin(x, minDist=500, longLat=c(1, 2))
-geoThin(x, minDist=5000, longLat=c(1, 2))
+x
+geoThin(x, minDist=500, longLat=1:2, verbose=TRUE)
+geoThin(x, minDist=5000, longLat=c(1, 2), verbose=TRUE)
+
 # example of potential randomness
-set.seed(123)
+set.seed(111)
 geoThin(x, minDist=1000, longLat=c(1, 2))
 geoThin(x, minDist=1000, longLat=c(1, 2))
 geoThin(x, minDist=1000, longLat=c(1, 2))
 
 # example using SpatialPointsDataFrame
-data(lemur)
+data(lemurs)
+fulvus <- lemurs[lemurs$species == 'Eulemur fulvus', c('longitude', 'latitude')]
+fulvus <- sp::SpatialPointsDataFrame(
+		fulvus,
+		data=fulvus,
+		proj4string=getCRS('wgs84', TRUE)
+)
+
 data(mad0)
-plot(mad0, main='Madagascar')
-points(lemur, col='red')
-thinned <- geoThin(lemur, 50000)
+sp::plot(mad0, main='Madagascar')
+points(fulvus, col='red')
+thinned <- geoThin(fulvus, 50000)
+points(thinned, pch=16)
+legend('topright', legend=c('retained', 'discarded'),
+col=c('black', 'red'), pch=c(16, 1))
+
+# test to see function works when no points need removed
+thinned <- geoThin(fulvus, 200, verbose=TRUE)
+sp::plot(mad0, main='Madagascar')
+points(fulvus, col='red')
 points(thinned, pch=16)
 legend('topright', legend=c('retained', 'discarded'),
 col=c('black', 'red'), pch=c(16, 1))
