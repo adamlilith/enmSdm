@@ -24,7 +24,7 @@
 #' 	\item \code{'orss'}: Maximum odds ratio skill score (Wunderlich et al. 2019).
 #' 	\item \code{'sedi'}: Maximum of symmetrical extremal dependence index (Wunderlich et al. 2019).
 #' 	\item \code{'minTrainPres'}: Sensitivity and specificity at the greatest threshold at which all training presences are classified as "present".
-#' 	\item \code{'trainSe95'} and/or \code{'trainSe90'}: Sensitivity at the threshold that ensures either 95% or 90% of all training presences are classified as "present" (training sensitivity = 0.95 or 0.9).
+#' 	\item \code{'trainSe95'} and/or \code{'trainSe90'}: Sensitivity at the threshold that ensures either 95 or 90 percent of all training presences are classified as "present" (training sensitivity = 0.95 or 0.9).
 #' }
 #' @param weightEvalTrain Logical, if \code{TRUE} (default) and an argument named \code{w} is specified in \code{...}, then evaluation statistics that support weighting will use the weights specified by \code{w} \emph{for the "train" version of evaluation statistics}. If \code{FALSE}, there will be no weighting of test sites. Note that this applies \emph{only} to the calculation of evaluation statistics.  If \code{w} is supplied weights they will be used for model calibration.
 #' @param weightEvalTest Logical, if \code{TRUE} (default) and an argument named \code{w} is specified in \code{...}, then evaluation statistics that support weighting will use the weights specified by \code{w} \emph{for the "test" version of evaluation statistics}. If \code{FALSE}, there will be no weighting of test sites. Note that this applies \emph{only} to the calculation of evaluation statistics.  If \code{w} is supplied then weights will be used for model calibration.
@@ -62,6 +62,7 @@
 #' folds <- dismo::kfold(data, 3)
 #' out <- trainByCrossValid(data, folds=folds, verbose=1)
 #' 
+#' str(out, 1)
 #' summaryByCrossValid(out)
 #' 
 #' str(out, 1)
@@ -455,7 +456,7 @@ trainByCrossValid <- function(
 							threshCode <- 'sensitivity'
 							sensitivity <- 0.9
 						} else {
-							threshCode = thisThreshType
+							threshCode <- thisThreshType
 							sensitivity <- 0
 						}
 						
@@ -479,8 +480,8 @@ trainByCrossValid <- function(
 						
 						kTuning[countModel, paste0(thisThreshType, 'Thold')] <- thold
 						kTuning[countModel, paste0(thisThreshType, 'SeTrain')] <- trainEval[['sensitivity']]
-						kTuning[countModel, paste0(thisThreshType, 'SeTest')] <- trainEval[['sensitivity']] - testEval[['sensitivity']]
-						kTuning[countModel, paste0(thisThreshType, 'SeDelta')] <- testEval[['sensitivity']]
+						kTuning[countModel, paste0(thisThreshType, 'SeTest')] <- testEval[['sensitivity']]
+						kTuning[countModel, paste0(thisThreshType, 'SeDelta')] <- trainEval[['sensitivity']] - testEval[['sensitivity']]
 						kTuning[countModel, paste0(thisThreshType, 'SpTrain')] <- trainEval[['specificity']]
 						kTuning[countModel, paste0(thisThreshType, 'SpTest')] <- testEval[['specificity']]
 						kTuning[countModel, paste0(thisThreshType, 'SpDelta')] <- trainEval[['specificity']] - testEval[['specificity']]
