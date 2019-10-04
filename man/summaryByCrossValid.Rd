@@ -4,17 +4,13 @@
 \alias{summaryByCrossValid}
 \title{Summarize distribution/niche model cross-validation object}
 \usage{
-summaryByCrossValid(x, trainFxOut = "trainGlm", metric = "cbiTest",
+summaryByCrossValid(x, trainFxName = "trainGlm", metric = "cbiTest",
   descending = TRUE)
 }
 \arguments{
 \item{x}{An object of class \code{crossValid} (which is also a list). Note that the object \emph{must} include a sublist named \code{tuning}. For some models it must also include the sublist names \code{models}.}
 
-\item{trainFxOut}{Character. This is not needed if \code{x} contains a sublist named \code{models}. Otherwise, this is the type of the model algorithm used in the argument \code{trainFx} of \code{trainByCrossValid}. This must be any of:
-\itemize{
-        \item 'trainGlm': Generalized linear model trained using \code{\link[enmSdm]{trainGlm}}.
-        \item 'trainMaxEnt': Maxent model trained using \code{\link[enmSdm]{trainMaxEnt}}.
-}}
+\item{trainFxName}{Character, name of function used to train the SDM (examples: \code{'trainGlm'}, \code{'trainMaxEnt'}, \code{'trainBrt'})}
 
 \item{metric}{Metric by which to select the best model in each k-fold. This can be any of the columns that appear in the data frames in \code{x$tuning} (or any columns added manually), but typically is one of the following \emph{plus} either \code{Train}, \code{Test}, or \code{Delta} (e.g., \code{'logLossTrain'}, \code{'logLossTest'}, or \code{'logLossDelta'}):
 \itemize{
@@ -34,7 +30,12 @@ summaryByCrossValid(x, trainFxOut = "trainGlm", metric = "cbiTest",
 \item{descending}{Logical, if \code{TRUE} (default), for each k-fold sort models by the value listed in \code{metric} in descending order (highest connotes "best", lowest "worst"). If \code{FALSE} use the lowest value of \code{metric}.}
 }
 \value{
-Data frame with statistics on the best set of models across k-folds. Depending on the model algorithm, this could be the frequency of use of each variable in the best models (GLMs); the mean regularization parameter and frequency of feature classes used in the best models (Maxent); learning rate, tree complexity, and bag fraction (BRTs).
+Data frame with statistics on the best set of models across k-folds. Depending on the model algorithm, this could be:
+\itemize{
+	\item GLMs: Frequency of use of each term in the best models
+	\item Maxent: Mean regularization parameter and frequency of feature classes used in the best models (Maxent)
+	\item BRTs: Learning rate, tree complexity, and bag fraction (BRTs).
+}
 }
 \description{
 This function summarizes models calibrated using the \code{\link[enmSdm]{trainByCrossValid}} function. It returns aspects of the best models across k-folds (the particular aspects depends on the kind of models used).
