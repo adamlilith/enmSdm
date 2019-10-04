@@ -486,7 +486,7 @@ trainByCrossValid <- function(
 						kTuning[countModel, paste0(thisThreshType, 'SpTest')] <- testEval[['specificity']]
 						kTuning[countModel, paste0(thisThreshType, 'SpDelta')] <- trainEval[['specificity']] - testEval[['specificity']]
 						
-					} # next threshold-dependent evaluation metric
+					} # next threshold-dependent evaluation metric!
 					
 				} # threshold-specific metrics
 				
