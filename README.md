@@ -19,7 +19,7 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `geoThin` and `geoThinApprox`: Geographically thin points
 
 ## Model training ###
-* `trainByCrossValid`: Wrapper for implementing any `trainXYZ` function across cross-validation folds
+* `trainByCrossValid`: Wrapper for implementing any `trainXYZ` function across cross-validation folds (see also `summaryByCrossValid`).
 * `trainBrt`: Boosted regression trees (BRTs)
 * `trainCrf`: Conditional regression trees (CRFs)
 * `trainGam`: Generalized additive models (GAMs)

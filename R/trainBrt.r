@@ -1,13 +1,14 @@
-#' Calibrate a boosted regresion tree (generalied boosting machine) model
+#' Calibrate a boosted regression tree (generalized boosting machine) model
 #'
-#' This function is a wrapper for \code{gbm.step()}. It returns the model with best combination of learning rate, tree depth, and bag fraction based on cross-validated deviance. Models with >=1000 trees are preferred over those with lower deviance.
+#' This function is a wrapper for \code{gbm.step()}. It returns the model with best combination of learning rate, tree depth, and bag fraction based on cross-validated deviance. It can also return a table with deviance of different combinations of tuning parameters that were tested, and all of the models tested.
 #' @param data data frame with first column being response
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
-#' @param family Character. Name of error family.  See [dismo::gbm.step()].
-#' @param learningRate Numeric. Learning rate at which model learns from successive trees (recommended range 0.0001 to 0.1).
-#' @param treeComplexity Positive integer. Tree complexity: depth of branches in a single tree (2 to 16).
-#' @param bagFraction Numeric in the range (0, 1). Bag fraction: proportion of data used for training in cross-validation (recommended range recommended 0.5 to 0.7).
+#' @param family Character. Name of error family.  See \code{\link[dismo]{gbm.step}}.
+#' @param learningRate Numeric. Learning rate at which model learns from successive trees (Elith et al. 2008 recommend 0.0001 to 0.1).
+#' @param treeComplexity Positive integer. Tree complexity: depth of branches in a single tree (1 to 16).
+#' @param bagFraction Numeric in the range [0, 1]. Bag fraction: proportion of data used for training in cross-validation (Elith et al. 2008 recommend 0.5 to 0.7).
+#' @param minTrees Positive integer. Minimum number of trees to be scored as a "usable" model (Elith et al. 2008 recommend at least 1000). Default is 1000.
 #' @param maxTrees Positive integer. Maximum number of trees in model set (same as parameter \code{max.trees} in [dismo::gbm.step()]).
 #' @param tries Integer > 0. Number of times to try to train a model with a particular set of tuning parameters. The function will stop training the first time a model converges (usually on the first attempt). Non-convergence seems to be related to the number of trees tried in each step.  So if non-convergence occurs then the function automatically increases the number of trees in the step size until \code{tries} is reached.
 #' @param tryBy Character list. A list that contains one or more of \code{'learningRate'}, \code{'treeComplexity'}, \code{numTrees}, and/or \code{'stepSize'}. If a given combination of \code{learningRate}, \code{treeComplexity}, \code{numTrees}, \code{stepSize}, and \code{bagFraction} do not allow model convergence then then the function tries again but with alterations to any of the arguments named in \code{tryBy}:
@@ -17,8 +18,8 @@
 #' * \code{stepSize}: Increase step size (argument \code{n.trees} in \code{gbm.step()}) by 50%.
 #' If \code{tryBy} is NULL then the function attempts to train the model with the same parameters up to \code{tries} times.
 #' @param w Either logical in which case TRUE causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign a weight of 1 to each datum.
-#' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{gbm}. If \code{tuning} then just return a data frame with tuning parameters and deviance of each model sorted by deviance. If both then return a 2-item list with the best model and the tuning table.
-#' @param verbose Logical. If TRUE display progress.
+#' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{gbm}. If \code{models} then all models that were trained are returned in a list in the order they appear in the tuning table (this may take a lot of memory!). If \code{tuning} then just return a data frame with tuning parameters and deviance of each model sorted by deviance. If both then return a 2-item list with the best model and the tuning table.
+#' @param verbose Logical. If \code{TRUE} display progress.
 #' @param ... Arguments to pass to `gbm.step`.
 #' @return If \code{out = 'model'} this function returns an object of class \code{gbm}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters and cross-validation deviance for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{gbm} object and the data frame.
 #' @seealso [dismo::gbm.step()]
@@ -44,7 +45,7 @@
 #'     treeComplexity=c(1, 3),
 #'     learningRate=c(0.01, 0.001),
 #'     bagFraction=0.6,
-#'     maxTrees=1000,
+#'     maxTrees=3000,
 #'     out=c('tuning', 'model'),
 #'     verbose=TRUE
 #' )
@@ -59,8 +60,9 @@ trainBrt <- function(
 	preds = names(data)[2:ncol(data)],
 	family = 'bernoulli',
 	learningRate = c(0.0001, 0.001, 0.01),
-	treeComplexity = c(9, 3, 1),
+	treeComplexity = c(5, 3, 1),
 	bagFraction = 0.6,
+	minTrees = 1000,
 	maxTrees = 4000,
 	tries = 5,
 	tryBy = c('learningRate', 'treeComplexity', 'maxTrees', 'stepSize'),
@@ -69,10 +71,6 @@ trainBrt <- function(
 	verbose = FALSE,
 	...
 ) {
-
-	#############
-	### setup ###
-	#############
 
 	# # add dummy variable if using univariate model to avoid errors
 	# if (ncol(data)==2) {
@@ -103,7 +101,11 @@ trainBrt <- function(
 	# initialize lowest cross-validation deviance
 	lowestDeviance <- Inf
 
+	# initialize best model
 	bestModel <- NA
+	
+	# initialize models
+	if ('models' %in% out) models <- list()
 	
 	############
 	### MAIN ###
@@ -185,6 +187,8 @@ trainBrt <- function(
 								bestMaxTrees <- tempMaxTrees
 								bestStepSize <- tempStepSize
 							}
+							
+							if ('models' %in% out) models[[length(models) + 1]] <- model
 
 						} else {
 							dev <- NA
@@ -222,11 +226,21 @@ trainBrt <- function(
 
 	} # next learning rate
 
-	# accept models with >=1000 trees
-	tuning <- tuning[order(tuning$dev), ]
-	tuning$usable <- (tuning$nTrees >= 1000 & !is.na(tuning$deviance))
-	if (any(tuning$usable) & any(!tuning$usable)) tuning <- rbind(tuning[tuning$usable, ], tuning[!tuning$usable, ])
+	# sort models by deviance
+	tuningOrder <- order(tuning$dev)
+	tuning <- tuning[tuningOrder, ]
+	if ('models' %in% out) models <- models[tuningOrder]
 
+	# accept models with >=1000 trees
+	tuning$enoughTrees <- (tuning$nTrees >= minTrees & !is.na(tuning$deviance))
+	if (any(tuning$enoughTrees) & any(!tuning$enoughTrees)) {
+	
+		newOrder <- order(!tuning$enoughTrees)
+		if ('models' %in% out) models <- models[newOrder]
+		tuning <- tuning[newOrder, ]
+	
+	}
+		
 	modelRank <- 1:nrow(tuning)
 	modelRank[!tuning$converged] <- NA
 	tuning <- cbind(modelRank, tuning)
@@ -237,47 +251,19 @@ trainBrt <- function(
 		omnibus::say('')
 	}
 
-	# ### get best model with >1000 trees
-	# if (tuning$usable[1] & nrow(tuning) > 1) {
-
-		# # if did not remember best model
-		# if (tuning$treeComplexity[1] != bestTc | tuning$learningRate[1] != bestLr | tuning$bagFraction[1] != bestBF | tuning$maxTrees[1] != bestMaxTrees | tuning$stepSize[1] != bestStepSize) {
-
-			# if (verbose) omnibus::say('Training best model...')
-
-			# # train model... using tryCatch because model may not converge
-			# model <- dismo::gbm.step(
-				# data=data,
-				# gbm.x=preds,
-				# gbm.y=resp,
-				# family=family,
-				# tree.complexity=tuning$treeComplexity[1],
-				# learning.rate=tuning$learningRate[1],
-				# bag.fraction=tuning$bagFraction[1],
-				# max.trees=tuning$maxTrees[1],
-				# n.trees=tuning$stepSize[1],
-				# plot.main=FALSE,
-				# plot.folds=FALSE,
-				# silent=TRUE,
-				# verbose=TRUE,
-				# site.weights=w,
-				# ...
-			# )
-
-		# }
-
-	# }
-
 	# return
-	if ('model' %in% out & 'tuning' %in% out) {
-		out <- list()
-		out$tuning <- tuning
-		out$model <- bestModel
-		out
+	if (length(out) > 1) {
+		output <- list()
+		if ('models' %in% out) output$models <- models
+		if ('model' %in% out) output$model <- model
+		if ('tuning' %in% out) output$tuning <- tuning
+		output
+	} else if ('models' %in% out) {
+		models
+	} else if ('model' %in% out) {
+		bestModel
 	} else if ('tuning' %in% out) {
 		tuning
-	} else {
-		bestModel
 	}
 
 }

@@ -56,7 +56,6 @@ trainRf <- function(
 			w
 		}
 	}
-		
 	
 	# binomial response
 	if (family == 'binomial') data[ , resp] <- factor(data[ , resp], levels=0:1)
