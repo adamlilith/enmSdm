@@ -6,10 +6,10 @@ You can install this package in R using these commands:
 
 `install.packages('devtools') # if you haven't done this already`  
 `library(devtools)`  
-`install_github('adamlilith/omnibus')`  
-`install_github('adamlilith/statisfactory')`  
-`install_github('adamlilith/legendary')`  
-`install_github('adamlilith/enmSdm')`  
+`devtools::install_github('adamlilith/omnibus')`  
+`devtools::install_github('adamlilith/statisfactory')`  
+`devtools::install_github('adamlilith/legendary')`  
+`devtools::install_github('adamlilith/enmSdm')`  
 
 NB: If for some reason these commands don't work, you can install the package(s) by downloading the latest zip/tar file from the `zipTarFiles` directory and installing the package(s) manually. If you do this, you will also have to install the `omnibus`,  `statisfactory`, and `legendary` packages, which are on GitHub also under my account (`adamlilith`).
 
