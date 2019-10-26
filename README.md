@@ -1,6 +1,6 @@
 # enmSdm
 <img align="right" src="enmSdm.png" height="190"/>
-This package is a complement to the popular `dismo` package for R by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating species distribution models, and comparing ecological niches.
+This package is a complement to the popular `dismo` package for R by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating species distribution models and ecological niche models, and comparing ecological niches.
 
 You can install this package in R using these commands:
 
@@ -18,8 +18,8 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `geoFold`: Generate geographically distinct k-folds
 * `geoThin` and `geoThinApprox`: Geographically thin points
 
-## Model training ###
-* `trainByCrossValid`: Wrapper for implementing any `trainXYZ` function across cross-validation folds (see also `summaryByCrossValid`).
+## Model training ##
+* `trainByCrossValid`: Wrapper for implementing some `trainXYZ` function across cross-validation folds (see also `summaryByCrossValid`).
 * `trainBrt`: Boosted regression trees (BRTs)
 * `trainCrf`: Conditional regression trees (CRFs)
 * `trainGam`: Generalized additive models (GAMs)
@@ -27,7 +27,7 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `trainGlmDredge`: Generalized linear models (GLMs)
 * `trainLars`: Least-angle regression models (LARS)
 * `trainMaxEnt` and `trainMaxNet`: Maxent models
-* `trainNs`: Splines
+* `trainNs`: Natural splines (NSs)
 * `trainRf`: Random forests (RFs)  
 
 ## Model evaluation ##
@@ -44,7 +44,7 @@ NB: If for some reason these commands don't work, you can install the package(s)
 ## Niche overlap ##
 * `compareNiches`: Niche overlap metrics
 * `compareResponse`: Compare niche model responses to a single variable
-* `mop`: Calculate mobility-oriented parity, a measure of multivariate distance
+* `mop`: Calculate mobility-oriented parity, a measure of multivariate distance as per Saupe et al. 2012.
 * `nicheOverlap`: Calculate niche overlap as per Broennimann et al. Global Ecology and Biogeography 21:481-497
 * `randPointsRespectingSelf`: Randomize geographic points while approximately respecting observed spatial autocorrelation structure between points
 * `randPointsRespectingSelfOther2`: Randomize two sets of geographic points while approximately respecting observed spatial autocorrelation structure between and within sets
@@ -67,7 +67,7 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `sampleRast` and `sampleRastStrat`: Sample raster with/out replacement and possibly in a stratified manner
 
 ## Range area based on minimum convex polygons
-* `mcpFromPolygons`: Minimum convex polygon from a set of polygons and points
+* `mcpFromPolygons`: Minimum convex polygon from a set of polygons *and* points
 * `areaFromPointsOrPoly`: Area of a spatial polygon or set of points
 
 ## Geographic utility functions ##
