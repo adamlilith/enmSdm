@@ -179,6 +179,9 @@ summaryByCrossValid <- function(
 		
 		}
 		
+		out <- out[order(out$frequency, decreasing = TRUE), ]
+		out$proportionOfModels <- out$frequency / length(x$tuning)
+
 		rownames(out) <- 1:nrow(out)
 
 	### MAXENT
@@ -220,7 +223,10 @@ summaryByCrossValid <- function(
 				)
 			)
 		)
-		
+
+		out$proportionOfModels <- NA
+		featureRows <- out$term %in% c('linear', 'quadratic', 'hinge', 'product', 'threshold')
+		out$proportionOfModels[featureRows] <- out$value[featureRows] / length(x$tuning)
 		rownames(out) <- 1:nrow(out)
 	
 	} # maxent
