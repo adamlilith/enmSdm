@@ -13,7 +13,7 @@
 #'	\item If \code{x} is an array and \code{times} is \code{NULL}, then \code{times} will be assigned values starting at 1 and ending at \code{dim(x)[3]}. Alternatively, you can supply a numeric vector with the same number of values as layers in the third dimension of \code{x}.
 #'	\item If \code{x} is a list (a "pops" object) and contains a field named \code{x$pophist$time} and \code{times} is \code{NULL}, then \code{.$pophist$time} will be used to assign times to each period. Alternatively, you can supply a numeric vector with the same number of values as columns in \code{x$Nvecs}.
 #' }
-#' @param atTimes Numeric, values of \code{times} across which to calculate biotic velocity. You can use this to calculate biotic velocities across selected time periods (e.g., just the first and last time periods). Note that \code{across} \emph{must} be the same as or a subset of \code{times}. The default is \code{NULL}, in which case biotic velocity is calculated across all time slices (i.e., between period 1 and 2, 2 and 3, 3 and 4, etc.).
+#' @param atTimes Numeric, values of \code{times} across which to calculate biotic velocity. You can use this to calculate biotic velocities across selected time periods (e.g., just the first and last time periods). Note that \code{atTimes} \emph{must} be the same as or a subset of \code{times}. The default is \code{NULL}, in which case biotic velocity is calculated across all time slices (i.e., between period 1 and 2, 2 and 3, 3 and 4, etc.).
 #' @param longitude Numeric matrix or \code{NULL} (default).
 #' \itemize{
 #'	\item If \code{x} is \code{RasterStack} then this is ignored (longitude is ascertained directly from the rasters, which \emph{must} be in equal-area projection for velocities to be valid!).
@@ -194,6 +194,8 @@ bioticVelocity <- function(
 				times <- 1:totalTimes
 			}
 			
+		} else {
+			totalTimes <- length(times)
 		}
 	
 		if (!all(order(times) == 1:totalTimes) & warn) {
@@ -235,9 +237,9 @@ bioticVelocity <- function(
 		}
 		
 		# convert from raster stack
-		if ('RasterStack' %in% xClass) {
+		if (xClass %in% c('RasterStack', 'RasterBrick')) {
 
-			ll <<- enmSdm::longLatRasters(x)
+			ll <- enmSdm::longLatRasters(x)
 			longitude <- raster::as.matrix(ll[['longitude']])
 			latitude <- raster::as.matrix(ll[['latitude']])
 			x <- raster::subset(x, atIndices)
@@ -270,11 +272,11 @@ bioticVelocity <- function(
 			
 			# subset to time periods of interest
 			x <- xNew[ , , atIndices]
-
+			
 		}
 
 		if (any(x < 0, na.rm=TRUE) & warn) warning('Negative values appear in "x". Output may be unreliable or undesirable.')
-
+			
 	### calculate weighted longitude and latitudes for starting time period
 	#######################################################################
 
@@ -487,7 +489,7 @@ bioticVelocity <- function(
 			if ('nsCentroid' %in% metrics) {
 			
 				metric <- .euclid(x2centroidLat, x1centroidLat)
-				metricRate <- metric / timeSpan
+				metricRate <- -1 * metric / timeSpan
 				
 				thisOut <- cbind(
 					thisOut,

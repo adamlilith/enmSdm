@@ -86,9 +86,54 @@ summaryByCrossValid <- function(
 
 	tuning <- x$tuning
 
-	### GLM
+	### BRT
 	#######
-	if (trainFxName == 'trainGlm') {
+	if (trainFxName == 'trainBrt') {
+	
+		# get list of terms in best models
+		params <- data.frame()
+		for (k in seq_along(tuning)) {
+		
+			thisTuning <- tuning[[k]]
+			thisTuningOrder <- order(thisTuning[ , metric], decreasing=descending)
+			thisTuning <- thisTuning[thisTuningOrder, ]
+			
+			if (thisTuning$converged[1] & thisTuning$enoughTrees[1]) {
+				
+				params <- rbind(
+					params,
+					data.frame(
+						learningRate = thisTuning$learningRate[1],
+						treeComplexity = thisTuning$treeComplexity[1],
+						bagFraction = thisTuning$bagFraction[1],
+						nTrees = thisTuning$nTrees[1]
+					)
+				)
+						
+			}
+			
+		}
+
+		# summarize best models
+		if (nrow(params) > 0) {
+		
+			out <- rbind(
+				apply(params, 2, quantile, 0.25, na.rm=TRUE),
+				apply(params, 2, mean, na.rm=TRUE),
+				apply(params, 2, quantile, 0.75, na.rm=TRUE)
+			)
+			
+			out <- as.data.frame(out)
+			out$treeComplexity <- round(out$treeComplexity)
+			out$nTrees <- round(out$nTrees)
+			rownames(out) <- c('quant0pt25', 'mean', 'quant0pt75')
+			
+		} else {
+			out <- data.frame()
+		}
+		
+
+	} else if (trainFxName == 'trainGlm') {
 	
 		# get list of terms in best models
 		term <- character()
@@ -133,6 +178,11 @@ summaryByCrossValid <- function(
 			}
 		
 		}
+		
+		out <- out[order(out$frequency, decreasing = TRUE), ]
+		out$proportionOfModels <- out$frequency / length(x$tuning)
+
+		rownames(out) <- 1:nrow(out)
 
 	### MAXENT
 	##########
@@ -173,10 +223,14 @@ summaryByCrossValid <- function(
 				)
 			)
 		)
-		
+
+		out$proportionOfModels <- NA
+		featureRows <- out$term %in% c('linear', 'quadratic', 'hinge', 'product', 'threshold')
+		out$proportionOfModels[featureRows] <- out$value[featureRows] / length(x$tuning)
+		rownames(out) <- 1:nrow(out)
+	
 	} # maxent
 	
-	rownames(out) <- 1:nrow(out)
 	out
 	
 }

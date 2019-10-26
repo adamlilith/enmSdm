@@ -25,7 +25,7 @@ trainByCrossValid(data, resp = names(data)[1],
 \item If a matrix or data frame, there must be one row per row in \code{data}. Each column corresponds to a different model to be trained. For a given column there should be only two unique values (plus possibly \code{NA}s). When sorted, the lesser value will be used to identify the calibration data and the upper value the evaluation data. For example, a particular column could contain 1s, 2, and \code{NA}s. Data rows corresponding to 1s will be used as training data and rows corresponding to 2s as test data (after rows with \code{NA} are dropped). This option is useful for creating spatially-structured cross-validation folds where training and test sites are separated (spatially) by censored (ignored) data.
 }}
 
-\item{trainFx}{Function, name of the "trainXYZ" function to use (e.g., \code{\link[enmSdm]{trainGlm}} or \code{\link[enmSdm]{trainGam}}).}
+\item{trainFx}{Function, name of the "trainXYZ" function to use. Currently the functions/algorithms supported are \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainBrt}}, and \code{\link[enmSdm]{trainMaxEnt}}.}
 
 \item{...}{Arguments to pass to the "trainXYZ" function, as well as the \code{\link{predictEnmSdm}}, \code{\link{contBoyce}}, \code{\link{tssWeighted}}, and \code{\link{thresholdWeighted}} functions. See help for the appropriate function.}
 
@@ -59,8 +59,8 @@ trainByCrossValid(data, resp = names(data)[1],
 A list object with several named elements:
 \itemize{
 		\item \code{meta}: Meta-data on the model call.
-		\item \code{folds}: the \code{folds} object.
-		\item \code{models} (if \code{'models'} is in argument \code{out}): A list of model objects, one per k-fold
+		\item \code{folds}: The \code{folds} object.
+		\item \code{models} (if \code{'models'} is in argument \code{out}): A list of model objects, one per  data fold
 	\item \code{tuning} (if \code{'tuning'} is in argument \code{out}): One data frame per k-fold, each containing evaluation statistics for all candidate models in the fold.
 }
 }
@@ -118,13 +118,26 @@ text(x, y, labels='overfit', col='red', xpd=NA)
 x <- usr[1] + 0.1 * (usr[4] - usr[3])
 y <- usr[3] + 0.9 * (usr[4] - usr[3])
 text(x, y, labels='suspicious', col='red', xpd=NA)
+
+# other algorithms
+# boosted regression trees (with "fast" set of parameters... not recommended
+# for normal use)
+brt <- trainByCrossValid(data, folds=folds, verbose=2, trainFx=trainBrt,
+	maxTrees=2000, treeComplexity=2, learningRate=c(0.01, 0.001))
+
+# MaxEnt with "fast" set of settings (not recommended for normal use)
+mx <- trainByCrossValid(data, folds=folds, verbose=2, trainFx=trainMaxEnt,
+	regMult=c(1, 2), classes='lp')
+
 }
 }
 \references{
 Fielding, A.H. and J.F. Bell. 1997. A review of methods for the assessment of prediction errors in conservation presence/absence models. \emph{Environmental Conservation} 24:38-49.
 
+La Rest, K., Pinaud, D., Monestiez, P., Chadoeuf, J., and Bretagnolle, V.  2014.  Spatial leave-one-out cross-validation for variable selection in the presence of spatial autocorrelation. Global Ecology and Biogeography 23:811-820.
+
 Wunderlich, R.F., Lin, P-Y., Anthony, J., and Petway, J.R. 2019. Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribution models. Nature Conservation 35:97-116.
 }
 \seealso{
-\code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainCrf}}, \code{\link[enmSdm]{trainGam}}, \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainMaxEnt}}, \code{\link[enmSdm]{trainLars}}, \code{\link[enmSdm]{trainMaxNet}}, \code{\link[enmSdm]{trainRf}}
+\code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainCrf}}, \code{\link[enmSdm]{trainGam}}, \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainMaxEnt}}, \code{\link[enmSdm]{trainLars}}, \code{\link[enmSdm]{trainMaxNet}}, \code{\link[enmSdm]{trainRf}}, \code{\link[enmSdm]{trainNs}}
 }

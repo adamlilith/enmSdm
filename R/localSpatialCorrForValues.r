@@ -294,7 +294,7 @@ localSpatialCorrForValues <- function(
 			if (length(dists) > 0) {
 				
 				# distDistrib <- statisfactory::histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE, ...)
-				distDistrib <- histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE)
+				distDistrib <- statisfactory::histOverlap(dists, breaks=breaks, graph=FALSE, indices=TRUE)
 				indices <- attr(distDistrib, 'indices')
 
 				# observed differences in values

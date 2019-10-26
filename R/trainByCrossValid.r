@@ -9,7 +9,7 @@
 #' 	\item If a vector, there must be one value per row in \code{data}. If there are \emph{K} unique values in the vector, then \emph{K} unique models will be trained. Each model will use all of the data except for rows that match a particular value in the \code{folds} vector. For example, if \code{folds = c(1, 1, 1, 2, 2, 2, 3, 3, 3)}, then three models will be trained, one with all rows that match the 2s and 3s, one with all rows matching 1s and 2s, and one will all rows matching 1s and 3s. The models will be evaluated against the withheld data and against the training data. Use \code{NA} to exclude rows from all testing/training. The default is to construct 5 folds of roughly equal size.
 #' \item If a matrix or data frame, there must be one row per row in \code{data}. Each column corresponds to a different model to be trained. For a given column there should be only two unique values (plus possibly \code{NA}s). When sorted, the lesser value will be used to identify the calibration data and the upper value the evaluation data. For example, a particular column could contain 1s, 2, and \code{NA}s. Data rows corresponding to 1s will be used as training data and rows corresponding to 2s as test data (after rows with \code{NA} are dropped). This option is useful for creating spatially-structured cross-validation folds where training and test sites are separated (spatially) by censored (ignored) data.
 #' }
-#' @param trainFx Function, name of the "trainXYZ" function to use (e.g., \code{\link[enmSdm]{trainGlm}} or \code{\link[enmSdm]{trainGam}}).
+#' @param trainFx Function, name of the "trainXYZ" function to use. Currently the functions/algorithms supported are \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainBrt}}, and \code{\link[enmSdm]{trainMaxEnt}}.
 #' @param ... Arguments to pass to the "trainXYZ" function, as well as the \code{\link{predictEnmSdm}}, \code{\link{contBoyce}}, \code{\link{tssWeighted}}, and \code{\link{thresholdWeighted}} functions. See help for the appropriate function.
 #' @param metrics Character vector, names of evaluation metrics to calculate. The default is to calculate all of:
 #' \itemize{
@@ -34,13 +34,14 @@
 #' @return A list object with several named elements:
 #' \itemize{
 #' 		\item \code{meta}: Meta-data on the model call.
-#' 		\item \code{folds}: the \code{folds} object.
-#' 		\item \code{models} (if \code{'models'} is in argument \code{out}): A list of model objects, one per k-fold
+#' 		\item \code{folds}: The \code{folds} object.
+#' 		\item \code{models} (if \code{'models'} is in argument \code{out}): A list of model objects, one per  data fold
 #'		\item \code{tuning} (if \code{'tuning'} is in argument \code{out}): One data frame per k-fold, each containing evaluation statistics for all candidate models in the fold.
 #' }
 #' @references Fielding, A.H. and J.F. Bell. 1997. A review of methods for the assessment of prediction errors in conservation presence/absence models. \emph{Environmental Conservation} 24:38-49.
+#' @references La Rest, K., Pinaud, D., Monestiez, P., Chadoeuf, J., and Bretagnolle, V.  2014.  Spatial leave-one-out cross-validation for variable selection in the presence of spatial autocorrelation. Global Ecology and Biogeography 23:811-820.
 #' @references Wunderlich, R.F., Lin, P-Y., Anthony, J., and Petway, J.R. 2019. Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribution models. Nature Conservation 35:97-116.
-#' @seealso \code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainCrf}}, \code{\link[enmSdm]{trainGam}}, \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainMaxEnt}}, \code{\link[enmSdm]{trainLars}}, \code{\link[enmSdm]{trainMaxNet}}, \code{\link[enmSdm]{trainRf}}
+#' @seealso \code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainCrf}}, \code{\link[enmSdm]{trainGam}}, \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainMaxEnt}}, \code{\link[enmSdm]{trainLars}}, \code{\link[enmSdm]{trainMaxNet}}, \code{\link[enmSdm]{trainRf}}, \code{\link[enmSdm]{trainNs}}
 #' @examples
 #' \dontrun{
 #' set.seed(123)
@@ -92,6 +93,17 @@
 #' x <- usr[1] + 0.1 * (usr[4] - usr[3])
 #' y <- usr[3] + 0.9 * (usr[4] - usr[3])
 #' text(x, y, labels='suspicious', col='red', xpd=NA)
+#'
+#' # other algorithms
+#' # boosted regression trees (with "fast" set of parameters... not recommended
+#' # for normal use)
+#' brt <- trainByCrossValid(data, folds=folds, verbose=2, trainFx=trainBrt,
+#' 	maxTrees=2000, treeComplexity=2, learningRate=c(0.01, 0.001))
+#' 
+#' # MaxEnt with "fast" set of settings (not recommended for normal use)
+#' mx <- trainByCrossValid(data, folds=folds, verbose=2, trainFx=trainMaxEnt,
+#' 	regMult=c(1, 2), classes='lp')
+#'
 #' }
 #' @export
 trainByCrossValid <- function(
