@@ -42,15 +42,7 @@ geoThinApprox <- function(
 	...
 ) {
 
-#################
-### functions ###
-#################
-
-if (is.null(distFunct)) distFunct <- geosphere::distGeo
-
-######################
-### pre-processing ###
-######################
+	if (is.null(distFunct)) distFunct <- geosphere::distGeo
 
 	# get coordinates
 	xy <- xToCoords(x, longLat)
