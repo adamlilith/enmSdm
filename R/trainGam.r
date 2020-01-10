@@ -122,7 +122,8 @@ trainGam <- function(
 						scale=-1,
 						select=TRUE,
 						gamma=gamma,
-						weights=w
+						weights=w,
+						...
 					)
 				)
 
@@ -171,7 +172,8 @@ trainGam <- function(
 								scale=-1,
 								select=TRUE,
 								gamma=gamma,
-								weights=w
+								weights=w,
+								...
 							)
 						)
 
