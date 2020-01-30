@@ -56,7 +56,7 @@ coordPrecision <- function(
 	if ('crs' %in% omnibus::ellipseNames(list)) crs <- ellipses$crs
 
 	# convert SpatialPointsDataFrame to SpatialPoints
-	if (class(x) == 'SpatialPointsDataFrame') x <- sp::SpatialPoints(coordinates(x), getCRS(raster::projection(x)))
+	if (class(x) == 'SpatialPointsDataFrame') x <- sp::SpatialPoints(coordinates(x), sp::CRS(raster::projection(x)))
 
 	# convert matrix/data frame to SpatialPoints
 	x <- if (class(x) %in% c('matrix', 'data.frame')) {
@@ -83,14 +83,15 @@ coordPrecision <- function(
 	for (i in seq_along(x)) {
 
 		## get coordinates and add deltas
-		xx <- sp::coordinates(x[i])
-		digits <- omnibus::countDecDigits(c(xx))
+		xy <- sp::coordinates(x[i])
+		digits <- omnibus::countDecDigits(c(xy))
+		digits <- max(digits)
 
-		deltaLong <- 5 * 10^-(1 + digits[1])
-		deltaLat <- 5 * 10^-(1 + digits[2])
+		deltaLong <- 5 * 10^-(1 + digits)
+		deltaLat <- 5 * 10^-(1 + digits)
 
-		plusPlus <- xx + cbind(deltaLong, deltaLat)
-		minusMinus <- xx - cbind(deltaLong, deltaLat)
+		plusPlus <- xy + cbind(deltaLong, deltaLat)
+		minusMinus <- xy - cbind(deltaLong, deltaLat)
 
 		### correct datelines/polar cases
 
