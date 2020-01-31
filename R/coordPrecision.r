@@ -59,9 +59,9 @@ coordPrecision <- function(
 	if (class(x) == 'SpatialPointsDataFrame') x <- sp::SpatialPoints(coordinates(x), sp::CRS(raster::projection(x)))
 
 	# convert matrix/data frame to SpatialPoints
-	x <- if (class(x) %in% c('matrix', 'data.frame')) {
+	if (class(x) %in% c('matrix', 'data.frame')) {
 
-		if (exists('crs', inherits=FALSE)) {
+		x <- if (exists('crs', inherits=FALSE)) {
 			sp::SpatialPoints(x[ , 1:2, drop=FALSE], sp::CRS(crs))
 		} else {
 			sp::SpatialPoints(x[ , 1:2, drop=FALSE], getCRS('wgs84', TRUE))
