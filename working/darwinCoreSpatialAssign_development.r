@@ -12,8 +12,8 @@ library(data.table)
 	gc()
 	options(stringsAsFactors=FALSE)
 	
-	# drive <- 'C:'
-	drive <- 'D:'
+	drive <- 'C:'
+	# drive <- 'D:'
 	
 	setwd(paste0(drive, '/Ecology/Drive/Research/Vaguely Georeferenced Specimen Records'))
 
@@ -197,17 +197,16 @@ west1 <- subset(usa1, NAME_1 %in% c('California', 'Nevada', 'Oregon'))
 west2 <- subset(usa2, NAME_1 %in% c('California', 'Nevada', 'Oregon'))
 
 # arguments
-geogCounty <- west2
-geogState <- west1
+geogCounty <- usa2
+geogState <- usa1
 eaProj <- getCRS('albersNA')
 minCoordUncerForPrecise_m <- 5000
-maxPrecisionUncerForceCounty_m = 1000
-maxPrecisionUncerForceState_m = 5000
+precisionUncerForceCounty_m = 1000
+precisionUncerForceState_m = 5000
 countyGeogField = 'NAME_2'
 stateGeogField = 'NAME_1'
 verbose = TRUE
 
 # NOW STEP THRU FUNCTION
-source('D:/ecology/Drive/R/enmSdm/R/coordPrecision.r')
 
 
