@@ -4,8 +4,15 @@
 \alias{spatialCorrForPoints}
 \title{Calculate spatial autocorrelation for geographic points}
 \usage{
-spatialCorrForPoints(pts, rast, breaks = 20, iters = 100,
-  fixed = NULL, verbose = FALSE, ...)
+spatialCorrForPoints(
+  pts,
+  rast,
+  breaks = 20,
+  iters = 100,
+  fixed = NULL,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{pts}{Either a SpatialPoints or SpatialPointsDataFrame object, or a matrix or data frame with two columns where the first column has values for longitude and the second latitude.}

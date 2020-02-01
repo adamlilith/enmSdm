@@ -4,13 +4,22 @@
 \alias{trainByCrossValid}
 \title{Calibrate a distribution/niche model using cross-validation}
 \usage{
-trainByCrossValid(data, resp = names(data)[1],
-  preds = names(data)[2:ncol(data)], folds = dismo::kfold(data),
-  trainFx = enmSdm::trainGlm, ..., metrics = c("logLoss",
-  "logLossEqualWeight", "cbi", "auc", "fpb", "tss", "msss", "mdss", "orss",
-  "sedi", "minTrainPres", "trainSe95", "trainSe90"), sensitivity = 0.9,
-  weightEvalTrain = TRUE, weightEvalTest = TRUE, na.rm = FALSE,
-  out = c("models", "tuning"), verbose = 1)
+trainByCrossValid(
+  data,
+  resp = names(data)[1],
+  preds = names(data)[2:ncol(data)],
+  folds = dismo::kfold(data),
+  trainFx = enmSdm::trainGlm,
+  ...,
+  metrics = c("logLoss", "logLossEqualWeight", "cbi", "auc", "fpb", "tss", "msss",
+    "mdss", "orss", "sedi", "minTrainPres", "trainSe95", "trainSe90"),
+  sensitivity = 0.9,
+  weightEvalTrain = TRUE,
+  weightEvalTest = TRUE,
+  na.rm = FALSE,
+  out = c("models", "tuning"),
+  verbose = 1
+)
 }
 \arguments{
 \item{data}{Data frame or matrix. Environmental predictors (and no other fields) for presences and background sites.}

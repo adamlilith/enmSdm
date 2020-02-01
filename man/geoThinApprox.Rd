@@ -4,8 +4,14 @@
 \alias{geoThinApprox}
 \title{Thin geographic points stochastically}
 \usage{
-geoThinApprox(x, minDist, longLat = NULL, distFunct = NULL,
-  verbose = FALSE, ...)
+geoThinApprox(
+  x,
+  minDist,
+  longLat = NULL,
+  distFunct = NULL,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{Data frame, matrix, or SpatialPoints* object. See \code{Details} for further information on the coordinate reference system.}

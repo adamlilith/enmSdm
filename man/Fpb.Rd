@@ -4,9 +4,16 @@
 \alias{fpb}
 \title{Fpb measure of model accuracy with weighting}
 \usage{
-fpb(pres, bg, thresholds = seq(0, 1, by = 0.01), presWeight = rep(1,
-  length(pres)), bgWeight = rep(1, length(bg)), na.rm = FALSE,
-  tr = NULL, ...)
+fpb(
+  pres,
+  bg,
+  thresholds = seq(0, 1, by = 0.01),
+  presWeight = rep(1, length(pres)),
+  bgWeight = rep(1, length(bg)),
+  na.rm = FALSE,
+  tr = NULL,
+  ...
+)
 }
 \arguments{
 \item{pres}{Numeric vector. Predictions at presence sites.}

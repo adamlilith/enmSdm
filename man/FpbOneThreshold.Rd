@@ -4,8 +4,14 @@
 \alias{fpbOneThreshold}
 \title{Calculate the Fpb measure of model accuracy for a single threshold}
 \usage{
-fpbOneThreshold(threshold, pres, bg, presWeight = rep(1, length(pres)),
-  bgWeight = rep(1, length(bg)), tr = NULL)
+fpbOneThreshold(
+  threshold,
+  pres,
+  bg,
+  presWeight = rep(1, length(pres)),
+  bgWeight = rep(1, length(bg)),
+  tr = NULL
+)
 }
 \arguments{
 \item{threshold}{Numeric value or numeric vector within the range [0, 1]. Threshold value(s) at which to calculate Fpb.}

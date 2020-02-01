@@ -4,9 +4,18 @@
 \alias{localSpatialCorrForValues}
 \title{Local characteristic distance of spatial autocorrelation for variables}
 \usage{
-localSpatialCorrForValues(x, focal = NULL, vars = NULL, breaks = 20,
-  limitDist = FALSE, returnMax = TRUE, iters = 100, perc = 95,
-  verbose = TRUE, ...)
+localSpatialCorrForValues(
+  x,
+  focal = NULL,
+  vars = NULL,
+  breaks = 20,
+  limitDist = FALSE,
+  returnMax = TRUE,
+  iters = 100,
+  perc = 95,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{Either a raster, raster stack/brick, matrix with column names, data frame, or SpatialPointsDataFrame. If you use a matrix or data frame then the first two columns will be assumed to represent longitude and latitude, in that order, and their coordinate reference system will be assumed to be WGS84 (unprojected).}
@@ -74,10 +83,10 @@ sacRast <- sacRast / 1000 # convert to km
 
 # plot
 par(mfrow=c(2, 2))
-raster::plot(madClim[['bio1']], main='BIO 01\\n(10 * deg C)')
-raster::plot(madClim[['bio12']], main='BIO 12\\n(mm)')
-raster::plot(sacRast[['bio1']], main='BIO 01\\nDistance (km)')
-raster::plot(sacRast[['bio12']], main='BIO 12\\nDistance (km)')
+raster::plot(madClim[['bio1']], main='BIO 01\n(10 * deg C)')
+raster::plot(madClim[['bio12']], main='BIO 12\n(mm)')
+raster::plot(sacRast[['bio1']], main='BIO 01\nDistance (km)')
+raster::plot(sacRast[['bio12']], main='BIO 12\nDistance (km)')
 
 ### spatial autocorrelation for spatial points
 # faster than others, but still takes a while
@@ -95,7 +104,7 @@ sacBio1 <- 4 * sacPoints$sacDistMid_bio1 / maxSacBio1
 sacBio12 <- 4 * sacPoints$sacDistMid_bio12 / maxSacBio12
 
 par(mfrow=c(1, 2))
-leg <- '\\n(small: short dist, large: long dist)'
+leg <- '\n(small: short dist, large: long dist)'
 sp::plot(mad0, main=paste0('BIO 01', leg))
 points(sacPoints, pch=1, cex=sacBio1, col='red')
 sp::plot(mad0, main=paste0('BIO 12', leg))
@@ -119,7 +128,7 @@ grayBio1 <- 100 - round(100 * sacLemur$sacDistMid_bio1 / maxSacBio1)
 grayBio12 <- 100 - round(100 * sacLemur$sacDistMid_bio12 / maxSacBio12)
 
 par(mfrow=c(1, 2))
-leg <- '\\n(dark: short dist, light: long dist)'
+leg <- '\n(dark: short dist, light: long dist)'
 raster::plot(madClim[['bio1']], cex=1.2, main=paste0('BIO 01', leg))
 points(lemur, pch=21, bg=paste0('gray', grayBio1))
 raster::plot(madClim[['bio12']], cex=1.2, main=paste0('BIO 12', leg))

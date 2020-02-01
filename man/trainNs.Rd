@@ -4,10 +4,22 @@
 \alias{trainNs}
 \title{Calibrate a natural splines model}
 \usage{
-trainNs(data, resp = names(data)[1], preds = names(data)[2:ncol(data)],
-  family = "binomial", df = NULL, construct = TRUE, select = TRUE,
-  presPerTermInitial = 10, presPerTermFinal = 20, initialTerms = 8,
-  w = TRUE, out = "model", verbose = FALSE, ...)
+trainNs(
+  data,
+  resp = names(data)[1],
+  preds = names(data)[2:ncol(data)],
+  family = "binomial",
+  df = NULL,
+  construct = TRUE,
+  select = TRUE,
+  presPerTermInitial = 10,
+  presPerTermFinal = 20,
+  initialTerms = 8,
+  w = TRUE,
+  out = "model",
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{data}{Data frame.  Must contain fields with same names as in \code{preds} object.}

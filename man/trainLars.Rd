@@ -4,10 +4,20 @@
 \alias{trainLars}
 \title{Calibrate a least angle regression (LARS) model}
 \usage{
-trainLars(data, resp = 1, preds = 2:ncol(data), alphas = c(0.01,
-  seq(0.1, 1, by = 0.1)), scale = TRUE, quadratic = TRUE,
-  cubic = TRUE, interaction = TRUE, interQuad = TRUE,
-  na.rm = FALSE, verbose = FALSE, ...)
+trainLars(
+  data,
+  resp = 1,
+  preds = 2:ncol(data),
+  alphas = c(0.01, seq(0.1, 1, by = 0.1)),
+  scale = TRUE,
+  quadratic = TRUE,
+  cubic = TRUE,
+  interaction = TRUE,
+  interQuad = TRUE,
+  na.rm = FALSE,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{data}{Data frame.}
@@ -103,11 +113,11 @@ hist(pred3, main='all terms', xlim=xlim, breaks=breaks)
 
 hist(pred1x1, main='x1: linear only', xlim=xlim, breaks=breaks)
 hist(pred2x1, main='x1: linear + quadratic', xlim=xlim, breaks=breaks)
-hist(pred3x1, main='x1: all terms \\n(linear, quad, cubic)', xlim=xlim, breaks=breaks)
+hist(pred3x1, main='x1: all terms \n(linear, quad, cubic)', xlim=xlim, breaks=breaks)
 
 hist(pred1x4, main='x4: linear only', xlim=xlim, breaks=breaks)
 hist(pred2x4, main='x4: linear + quadratic', xlim=xlim, breaks=breaks)
-hist(pred3x4, main='x4: all terms \\n(linear, quad, cubic)', xlim=xlim, breaks=breaks)
+hist(pred3x4, main='x4: all terms \n(linear, quad, cubic)', xlim=xlim, breaks=breaks)
 
 # predictions using just x1 and x2
 par(mfrow=c(1, 1))

@@ -4,9 +4,14 @@
 \alias{trainCrf}
 \title{Calibrate a conditional random forest model}
 \usage{
-trainCrf(data, resp = names(data)[1],
-  preds = names(data)[2:ncol(data)], family = "binomial",
-  w = ifelse(family == "binomial", TRUE, FALSE), ...)
+trainCrf(
+  data,
+  resp = names(data)[1],
+  preds = names(data)[2:ncol(data)],
+  family = "binomial",
+  w = ifelse(family == "binomial", TRUE, FALSE),
+  ...
+)
 }
 \arguments{
 \item{data}{Data frame.}

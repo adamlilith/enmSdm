@@ -3,7 +3,6 @@
 \docType{package}
 \name{enmSdm}
 \alias{enmSdm}
-\alias{enmSdm-package}
 \title{enmSdm: Species distribution modeling and ecological niche modeling}
 \description{
 This package contains tools for modeling the distributions and niches of species or species-like entities. Its main features are a set of functions for training ENMs, evaluating niche overlap, and correcting for sampling bias.

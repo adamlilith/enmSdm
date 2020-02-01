@@ -4,8 +4,14 @@
 \alias{interpolateRasters}
 \title{Interpolate a stack of rasters}
 \usage{
-interpolateRasters(rasts, interpFrom, interpTo, type = "linear",
-  na.rm = TRUE, ...)
+interpolateRasters(
+  rasts,
+  interpFrom,
+  interpTo,
+  type = "linear",
+  na.rm = TRUE,
+  ...
+)
 }
 \arguments{
 \item{rasts}{Raster stack.}

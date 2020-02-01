@@ -4,10 +4,18 @@
 \alias{sediWeighted}
 \title{Symmetric extremal dependence index (SEDI)}
 \usage{
-sediWeighted(pres, contrast, presWeight = rep(1, length(pres)),
-  contrastWeight = rep(1, length(contrast)), thresholds = seq(0, 1, by
-  = 0.01), delta = 0.001, na.rm = FALSE, bg = NULL,
-  bgWeight = NULL, ...)
+sediWeighted(
+  pres,
+  contrast,
+  presWeight = rep(1, length(pres)),
+  contrastWeight = rep(1, length(contrast)),
+  thresholds = seq(0, 1, by = 0.01),
+  delta = 0.001,
+  na.rm = FALSE,
+  bg = NULL,
+  bgWeight = NULL,
+  ...
+)
 }
 \arguments{
 \item{pres}{Numeric vector. Predicted values at presence sites.}

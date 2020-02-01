@@ -4,9 +4,16 @@
 \alias{orssWeighted}
 \title{Odds ratio skill score (ORSS)}
 \usage{
-orssWeighted(pres, contrast, presWeight = rep(1, length(pres)),
-  contrastWeight = rep(1, length(contrast)), thresholds = seq(0, 1, by
-  = 0.01), na.rm = FALSE, bg = NULL, ...)
+orssWeighted(
+  pres,
+  contrast,
+  presWeight = rep(1, length(pres)),
+  contrastWeight = rep(1, length(contrast)),
+  thresholds = seq(0, 1, by = 0.01),
+  na.rm = FALSE,
+  bg = NULL,
+  ...
+)
 }
 \arguments{
 \item{pres}{Numeric vector. Predicted values at presence sites.}

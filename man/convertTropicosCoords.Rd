@@ -20,8 +20,8 @@ A data five-column frame. The first two columns are the original TROPICOS coordi
 The TROPICOS (http://www.tropicos.org/) plant specimen database of the Missouri Botanical Garden returns records in degrees-minutes-seconds format with symbols for degrees, minutes, second, and hemisphere.  This function converts this format to signed decimal degrees format.  By default, values surrounded by square brackets (\code{[]}) are returned as \code{NA} because they are geolocated to the center of a political unit (usually county or equivalent).
 }
 \examples{
-long <- c("078Â°14'05\\"\\"W", "091Â°49'39\\"\\"W", NA, "[091Â°53'38\\"\\"W]")
-lat <- c("39Â°40'41\\"\\"N", "36Â°34'14\\"\\"S", NA, "[36Â°46'14\\"\\"N]")
+long <- c("078Â°14'05\"\"W", "091Â°49'39\"\"W", NA, "[091Â°53'38\"\"W]")
+lat <- c("39Â°40'41\"\"N", "36Â°34'14\"\"S", NA, "[36Â°46'14\"\"N]")
 convertTropicosCoords(long=long, lat=lat)
 }
 \seealso{

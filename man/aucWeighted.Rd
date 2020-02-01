@@ -4,9 +4,16 @@
 \alias{aucWeighted}
 \title{Weighted AUC}
 \usage{
-aucWeighted(pres, contrast, presWeight = rep(1, length(pres)),
-  contrastWeight = rep(1, length(contrast)), na.rm = FALSE,
-  bg = NULL, bgWeight = NULL, ...)
+aucWeighted(
+  pres,
+  contrast,
+  presWeight = rep(1, length(pres)),
+  contrastWeight = rep(1, length(contrast)),
+  na.rm = FALSE,
+  bg = NULL,
+  bgWeight = NULL,
+  ...
+)
 }
 \arguments{
 \item{pres}{Predictions at presence sites.}

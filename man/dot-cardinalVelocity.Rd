@@ -4,8 +4,15 @@
 \alias{.cardinalVelocity}
 \title{Movement of occupied cells in a given direction of a fixed point}
 \usage{
-.cardinalVelocity(direction, x2, x2weightedLongs, x2weightedLats, refLong,
-  refLat, longOrLat)
+.cardinalVelocity(
+  direction,
+  x2,
+  x2weightedLongs,
+  x2weightedLats,
+  refLong,
+  refLat,
+  longOrLat
+)
 }
 \arguments{
 \item{direction}{Any of: \code{'n'} (north), \code{'s'} (south), \code{'e'} (east), or \code{'w'} (west).}
