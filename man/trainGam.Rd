@@ -4,11 +4,23 @@
 \alias{trainGam}
 \title{Calibrate a generalized additive model (GAM)}
 \usage{
-trainGam(data, resp = names(data)[1],
-  preds = names(data)[2:ncol(data)], family = "binomial", gamma = 1,
-  construct = TRUE, select = TRUE, presPerTermInitial = 10,
-  presPerTermFinal = 20, initialTerms = 8, interaction = "te",
-  w = TRUE, out = "model", verbose = FALSE, ...)
+trainGam(
+  data,
+  resp = names(data)[1],
+  preds = names(data)[2:ncol(data)],
+  family = "binomial",
+  gamma = 1,
+  construct = TRUE,
+  select = TRUE,
+  presPerTermInitial = 10,
+  presPerTermFinal = 20,
+  initialTerms = 8,
+  interaction = "te",
+  w = TRUE,
+  out = "model",
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{data}{Data frame.  Must contain fields with same names as in \code{preds} object.}

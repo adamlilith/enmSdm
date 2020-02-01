@@ -4,8 +4,12 @@
 \alias{summaryByCrossValid}
 \title{Summarize distribution/niche model cross-validation object}
 \usage{
-summaryByCrossValid(x, trainFxName = "trainGlm", metric = "cbiTest",
-  descending = TRUE)
+summaryByCrossValid(
+  x,
+  trainFxName = "trainGlm",
+  metric = "cbiTest",
+  descending = TRUE
+)
 }
 \arguments{
 \item{x}{An object of class \code{crossValid} (which is also a list). Note that the object \emph{must} include a sublist named \code{tuning}. For some models it must also include the sublist names \code{models}.}

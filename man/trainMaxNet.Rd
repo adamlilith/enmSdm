@@ -4,10 +4,18 @@
 \alias{trainMaxNet}
 \title{Calibrate a Maxent (ver 3.4.0+ or "maxnet") model using AICc}
 \usage{
-trainMaxNet(data, resp = names(data)[1],
-  preds = names(data)[2:ncol(data)], regMult = c(seq(0.5, 5, by = 0.5),
-  7.5, 10), classes = "default", testClasses = TRUE, out = "model",
-  anyway = TRUE, verbose = FALSE, ...)
+trainMaxNet(
+  data,
+  resp = names(data)[1],
+  preds = names(data)[2:ncol(data)],
+  regMult = c(seq(0.5, 5, by = 0.5), 7.5, 10),
+  classes = "default",
+  testClasses = TRUE,
+  out = "model",
+  anyway = TRUE,
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{data}{Data frame or matrix. Environmental predictors (and no other fields) for presences and background sites.}

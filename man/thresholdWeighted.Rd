@@ -4,11 +4,20 @@
 \alias{thresholdWeighted}
 \title{Weighted thresholds for predictions}
 \usage{
-thresholdWeighted(pres, contrast, presWeight = rep(1, length(pres)),
-  contrastWeight = rep(1, length(contrast)), at = c("msss", "mdss",
-  "minPres", "orss", "sedi", "prevalence", "sensitivity"),
-  sensitivity = 0.9, thresholds = seq(0, 1, by = 0.01),
-  delta = 0.001, na.rm = FALSE, bg = NULL, bgWeight = NULL, ...)
+thresholdWeighted(
+  pres,
+  contrast,
+  presWeight = rep(1, length(pres)),
+  contrastWeight = rep(1, length(contrast)),
+  at = c("msss", "mdss", "minPres", "orss", "sedi", "prevalence", "sensitivity"),
+  sensitivity = 0.9,
+  thresholds = seq(0, 1, by = 0.01),
+  delta = 0.001,
+  na.rm = FALSE,
+  bg = NULL,
+  bgWeight = NULL,
+  ...
+)
 }
 \arguments{
 \item{pres}{Numeric vector. Predicted values at test presences}

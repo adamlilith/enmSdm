@@ -4,8 +4,16 @@
 \alias{geoFold}
 \title{Assign geographically-distinct k-folds}
 \usage{
-geoFold(x, k, minIn = NULL, minOut = NULL, longLat = NULL,
-  distFunct = NULL, swaps = NULL, ...)
+geoFold(
+  x,
+  k,
+  minIn = NULL,
+  minOut = NULL,
+  longLat = NULL,
+  distFunct = NULL,
+  swaps = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{A data frame, matrix, \code{SpatialPoints}, or \code{SpatialPointsDataFrame} object. If a data frame or matrix then the coordinate reference system is assumed to be unprojected (WGS84).}
@@ -63,11 +71,11 @@ pointPlot(sites, folds, main='G-folds with >=10 sites in each')
 
 # g-folds with minimum number of outside fold
 folds <- geoFold(sites, k=3, minIn=10, minOut=10)
-pointPlot(sites, folds, main='G-folds with >=10\\nsites in/outside each')
+pointPlot(sites, folds, main='G-folds with >=10\nsites in/outside each')
 
 # g-folds with minimum number inside and of outside fold
 folds <- geoFold(sites, k=3, minIn=14, minOut=20)
-pointPlot(sites, folds, main='G-folds >=14 in\\nand >=20 outside')
+pointPlot(sites, folds, main='G-folds >=14 in\nand >=20 outside')
 }
 \seealso{
 \code{\link[geosphere]{distCosine}}, \code{\link[cluster]{pam}}

@@ -4,9 +4,18 @@
 \alias{thresholdStats}
 \title{Thresholded evaluation statistics}
 \usage{
-thresholdStats(thresholds, pres, contrast, presWeight = rep(1,
-  length(pres)), contrastWeight = rep(1, length(contrast)),
-  delta = 0.001, na.rm = FALSE, bg = NULL, bgWeight = NULL, ...)
+thresholdStats(
+  thresholds,
+  pres,
+  contrast,
+  presWeight = rep(1, length(pres)),
+  contrastWeight = rep(1, length(contrast)),
+  delta = 0.001,
+  na.rm = FALSE,
+  bg = NULL,
+  bgWeight = NULL,
+  ...
+)
 }
 \arguments{
 \item{thresholds}{Numeric or numeric vector. Threshold(s) at which to calculate sensitivity and specificity.}

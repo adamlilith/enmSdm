@@ -4,8 +4,14 @@
 \alias{compareNiches}
 \title{Metrics of niche overlap}
 \usage{
-compareNiches(x1, x2, method = c("meanDiff", "meanAbsDiff", "d", "i",
-  "esp", "rho", "rankCor"), w = rep(1, length(x1)), na.rm = FALSE, ...)
+compareNiches(
+  x1,
+  x2,
+  method = c("meanDiff", "meanAbsDiff", "d", "i", "esp", "rho", "rankCor"),
+  w = rep(1, length(x1)),
+  na.rm = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x1}{Numeric. Vector or matrix of predictions from a model.}

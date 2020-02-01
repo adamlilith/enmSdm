@@ -4,8 +4,14 @@
 \alias{predictLars}
 \title{Predict using Least Angle Regression (LARS) model}
 \usage{
-predictLars(object, newdata, type = c("link", "response"),
-  preds = NULL, failOnMissing = FALSE, ...)
+predictLars(
+  object,
+  newdata,
+  type = c("link", "response"),
+  preds = NULL,
+  failOnMissing = FALSE,
+  ...
+)
 }
 \arguments{
 \item{object}{Object of classes \code{larsModel} and \code{cv.grpregOverlapMulti}.}
@@ -87,11 +93,11 @@ hist(pred3, main='all terms', xlim=xlim, breaks=breaks)
 
 hist(pred1x1, main='x1: linear only', xlim=xlim, breaks=breaks)
 hist(pred2x1, main='x1: linear + quadratic', xlim=xlim, breaks=breaks)
-hist(pred3x1, main='x1: all terms \\n(linear, quad, cubic)', xlim=xlim, breaks=breaks)
+hist(pred3x1, main='x1: all terms \n(linear, quad, cubic)', xlim=xlim, breaks=breaks)
 
 hist(pred1x4, main='x4: linear only', xlim=xlim, breaks=breaks)
 hist(pred2x4, main='x4: linear + quadratic', xlim=xlim, breaks=breaks)
-hist(pred3x4, main='x4: all terms \\n(linear, quad, cubic)', xlim=xlim, breaks=breaks)
+hist(pred3x4, main='x4: all terms \n(linear, quad, cubic)', xlim=xlim, breaks=breaks)
 
 # predictions using just x1 and x2
 par(mfrow=c(1, 1))

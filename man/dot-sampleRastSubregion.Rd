@@ -4,8 +4,7 @@
 \alias{.sampleRastSubregion}
 \title{Select random points from a portion of a raster}
 \usage{
-.sampleRastSubregion(rast, n, width, restrict = TRUE,
-  circleCent = NULL, ...)
+.sampleRastSubregion(rast, n, width, restrict = TRUE, circleCent = NULL, ...)
 }
 \arguments{
 \item{rast}{Raster, RasterStack, or RasterBrick demarcating the area in which randomized sites are to be placed. If a RasterStack or a RasterBrick is used then the first layer will be used (i.e., so cells with \code{NA} will not have points located within them).}

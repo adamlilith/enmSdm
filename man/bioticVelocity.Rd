@@ -4,11 +4,18 @@
 \alias{bioticVelocity}
 \title{Shifts in densities across rasters}
 \usage{
-bioticVelocity(x, times = NULL, atTimes = NULL, longitude = NULL,
-  latitude = NULL, metrics = c("centroid", "nsCentroid", "ewCentroid",
-  "nCentroid", "sCentroid", "eCentroid", "wCentroid", "nsQuants",
-  "ewQuants", "mean", "quants", "prevalence"), quants = c(0.05, 0.1, 0.5,
-  0.9, 0.95), warn = TRUE, ...)
+bioticVelocity(
+  x,
+  times = NULL,
+  atTimes = NULL,
+  longitude = NULL,
+  latitude = NULL,
+  metrics = c("centroid", "nsCentroid", "ewCentroid", "nCentroid", "sCentroid",
+    "eCentroid", "wCentroid", "nsQuants", "ewQuants", "mean", "quants", "prevalence"),
+  quants = c(0.05, 0.1, 0.5, 0.9, 0.95),
+  warn = TRUE,
+  ...
+)
 }
 \arguments{
 \item{x}{Either a \code{RasterStack}, a 3-dimensional array, or list representing colonization histories (a "pops" object). Regardless of the class of \code{x}, it is assumed values representing the entity for which to calculate velocities are either \code{NA} or >= 0 (i.e., no negative population size).

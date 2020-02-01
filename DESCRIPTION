@@ -1,8 +1,8 @@
 Package: enmSdm
 Type: Package
 Title: Tools for modeling niches and distributions of species
-Version: 0.4.0.0
-Date: 2020-01-24
+Version: 0.4.0.1
+Date: 2020-01-31
 Author: Adam B. Smith <adam.smith@mobot.org>
 Maintainer: Adam B. Smith <adam.smith@mobot.org>
 Description: Better modeling of niches and distributions.
@@ -45,5 +45,5 @@ LazyData: false
 LazyLoad: yes
 URL: http://www.earthSkySea.org
 Encoding: UTF-8
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2
 VignetteBuilder: knitr

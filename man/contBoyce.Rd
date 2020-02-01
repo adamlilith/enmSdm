@@ -4,11 +4,22 @@
 \alias{contBoyce}
 \title{Continuous Boyce Index (CBI) with weighting}
 \usage{
-contBoyce(pres, contrast, numBins = 101, binWidth = 0.1,
-  presWeight = rep(1, length(pres)), contrastWeight = rep(1,
-  length(contrast)), autoWindow = TRUE, method = "spearman",
-  dropZeros = TRUE, graph = FALSE, na.rm = FALSE, bg = NULL,
-  bgWeight = NULL, ...)
+contBoyce(
+  pres,
+  contrast,
+  numBins = 101,
+  binWidth = 0.1,
+  presWeight = rep(1, length(pres)),
+  contrastWeight = rep(1, length(contrast)),
+  autoWindow = TRUE,
+  method = "spearman",
+  dropZeros = TRUE,
+  graph = FALSE,
+  na.rm = FALSE,
+  bg = NULL,
+  bgWeight = NULL,
+  ...
+)
 }
 \arguments{
 \item{pres}{Numeric vector. Predicted values at presence sites.}
@@ -88,7 +99,7 @@ results$performance[results$performance == 1] <- 'poor'
 results$performance[results$performance == 1.5] <- 'OK'
 results$performance[results$performance == 2] <- 'good'
 
-results$category <- paste0(results$method, '\\n', results$performance)
+results$category <- paste0(results$method, '\n', results$performance)
 
 par(mfrow=c(1, 2))
 boxplot(cbi ~ category,

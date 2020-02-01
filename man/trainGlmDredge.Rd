@@ -4,13 +4,27 @@
 \alias{trainGlmDredge}
 \title{Calibrate a generalized linear model (GLM)}
 \usage{
-trainGlmDredge(data, resp = names(data)[1],
-  preds = names(data)[2:ncol(data)], family = "binomial",
-  tooBig = 1e+07, construct = TRUE, select = TRUE,
-  quadratic = TRUE, cubic = TRUE, interaction = TRUE,
-  interQuad = TRUE, presPerTermInitial = 10, presPerTermFinal = 20,
-  initialTerms = 10, w = TRUE, method = "glm.fit", out = "model",
-  verbose = FALSE, ...)
+trainGlmDredge(
+  data,
+  resp = names(data)[1],
+  preds = names(data)[2:ncol(data)],
+  family = "binomial",
+  tooBig = 1e+07,
+  construct = TRUE,
+  select = TRUE,
+  quadratic = TRUE,
+  cubic = TRUE,
+  interaction = TRUE,
+  interQuad = TRUE,
+  presPerTermInitial = 10,
+  presPerTermFinal = 20,
+  initialTerms = 10,
+  w = TRUE,
+  method = "glm.fit",
+  out = "model",
+  verbose = FALSE,
+  ...
+)
 }
 \arguments{
 \item{data}{Data frame.  Must contain fields with same names as in \code{preds} object.}

@@ -4,8 +4,7 @@
 \alias{geoThin}
 \title{Thin geographic points (mostly) deterministically}
 \usage{
-geoThin(x, minDist, longLat = NULL, distFunct = NULL,
-  verbose = FALSE, ...)
+geoThin(x, minDist, longLat = NULL, distFunct = NULL, verbose = FALSE, ...)
 }
 \arguments{
 \item{x}{Data frame, matrix, SpatialPoints, or SpatialPointsDataFrame object.}
