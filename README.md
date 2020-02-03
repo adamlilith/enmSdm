@@ -73,7 +73,8 @@ NB: If for some reason these commands don't work, you can install the package(s)
 ## Geographic utility functions ##
 * `convertTropicosCoords`: Convert coordinates from the TROPICOS database
 * `coordPrecision`: Calculate maximum possible coordinate precision
-* `dmsToDecimal`: Convert degrees-minutes-seconds to decimal
+* `decimalToDms`: Convert decimal coordinate to degrees-minutes-seconds
+* `dmsToDecimal`: Convert degrees-minutes-seconds coordinate to decimal
 * `getCRS`: Return a proj4string (coordinate reference system string) using a nickname
 * `pointDist`: Geographic distance between set(s) of points
 * `xToCoords`: Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object
