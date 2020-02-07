@@ -384,7 +384,7 @@ darwinCoreSpatialAssign <- function(
 				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
-				subAdminAreas_km2 <- countyArea_km2[match(stateCountyOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
+				subAdminAreas_km2 <- countyArea_km2[match(stateCountyOfDarwin[recs[theseSubIndex]], names(countyArea_km2))]
 				
 				designation <- ifelse(subTheseUncerSpEaArea_km2 > subAdminAreas_km2, 'uncertain/imprecise', 'county/imprecise')
 				
@@ -1523,20 +1523,23 @@ darwinCoreSpatialAssign <- function(
 	### REPORTING
 	if (verbose) {
 	
-		n <- nchar(numRecords)
+		size <- nchar(numRecords)
 		
 		say('Final assignments (number of records):', pre=2)
-		say('certain/precise................ ', prefix(sum(out$recordType == 'certain/precise'), n, pad=' '))
-		say('uncertain/precise.............. ', prefix(sum(out$recordType == 'uncertain/precise'), n, pad=' '))
-		say('certain/imprecise.............. ', prefix(sum(out$recordType == 'certain/imprecise'), n, pad=' '))
-		say('uncertain/imprecise............ ', prefix(sum(out$recordType == 'uncertain/imprecise'), n, pad=' '))
-		say('county/precise................. ', prefix(sum(out$recordType == 'county/precise'), n, pad=' '))
-		say('county/imprecise............... ', prefix(sum(out$recordType == 'county/imprecise'), n, pad=' '))
-		say('state/imprecise................ ', prefix(sum(out$recordType == 'state/imprecise'), n, pad=' '))
-		say('county-only.................... ', prefix(sum(out$recordType == 'county-only'), n, pad=' '))
-		say('state-only..................... ', prefix(sum(out$recordType == 'state-only'), n, pad=' '))
-		say('unusable....................... ', prefix(sum(out$recordType == 'unusable'), n, pad=' '))
-		say('not assignable (should be 0)... ', prefix(sum(is.na(out$recordType), n, pad=' '))
+		
+		out <<- out
+		
+		say('certain/precise................ ', prefix(sum(out$recordType %==na% 'certain/precise'), size, pad=' '))
+		say('uncertain/precise.............. ', prefix(sum(out$recordType %==na% 'uncertain/precise'), size, pad=' '))
+		say('certain/imprecise.............. ', prefix(sum(out$recordType %==na% 'certain/imprecise'), size, pad=' '))
+		say('uncertain/imprecise............ ', prefix(sum(out$recordType %==na% 'uncertain/imprecise'), size, pad=' '))
+		say('county/precise................. ', prefix(sum(out$recordType %==na% 'county/precise'), size, pad=' '))
+		say('county/imprecise............... ', prefix(sum(out$recordType %==na% 'county/imprecise'), size, pad=' '))
+		say('state/imprecise................ ', prefix(sum(out$recordType %==na% 'state/imprecise'), size, pad=' '))
+		say('county-only.................... ', prefix(sum(out$recordType %==na% 'county-only'), size, pad=' '))
+		say('state-only..................... ', prefix(sum(out$recordType %==na% 'state-only'), size, pad=' '))
+		say('unusable....................... ', prefix(sum(out$recordType %==na% 'unusable'), size, pad=' '))
+		say('not assignable (should be 0)... ', prefix(sum(is.na(out$recordType)), size, pad=' '))
 		say('TOTAL.......................... ', numRecords)
 	
 	}
