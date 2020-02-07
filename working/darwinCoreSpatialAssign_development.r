@@ -1,4 +1,5 @@
 # darwinCoreSpatialAssign DEVELOPMENT
+# source('C:/ecology/Drive/R/enmSdm/working/darwinCoreSpatialAssign_development.r')
 # source('D:/ecology/Drive/R/enmSdm/working/darwinCoreSpatialAssign_development.r')
 
 
@@ -67,146 +68,68 @@ library(data.table)
 		records$stateProvince <- trim(records$stateProvince)
 		records$county <- trim(records$county)
 
-	say('### clean state/province names for ALL records ###')
-	#########################################################
-
-		# # ### spelling corrections... these aren't caught below; I don't know why
-		# this <- which(records$stateProvince == 'Chinuahua')
-		# if (length(this) > 0) records$stateProvince[this] <- 'Chihuahua'
-	
-		### assign countries/states/counties to records with coordinates with NAs for country/state/county
-		haveCoords <- which(complete.cases(records[ , llGbif]))
-		admins <- raster::extract(nam2Sp, records[haveCoords, llGbif])
-
-		for (countHaveCoords in seq_along(haveCoords)) {
-		
-			if (is.na(records$country[haveCoords[countHaveCoords]])) records$country[haveCoords[countHaveCoords]] <- admins$NAME_0[countHaveCoords]
-			if (is.na(records$stateProvince[haveCoords[countHaveCoords]])) records$stateProvince[haveCoords[countHaveCoords]] <- admins$NAME_1[countHaveCoords]
-			if (is.na(records$county[haveCoords[countHaveCoords]])) records$county[haveCoords[countHaveCoords]] <- admins$NAME_2[countHaveCoords]
-		
-		}
-		
-		# what state/province names don't match with GADM?
-		gadmStateProv <- nam2Sp@data$NAME_0
-		
-		gadmCombined <- paste(gadmStateProv, nam2Sp@data$NAME_1)
-		gadmCombined <- gadmCombined[!duplicated(gadmCombined)]
-		gadmCombined <- sort(gadmCombined)
-		gadmCombined <- tolower(gadmCombined)
-
-		recordsCombined <- data.frame(
-			country = records$country,
-			stateProvince = records$stateProvince
-		)
-		
-		recordsCombined$combined <- paste(recordsCombined$country, recordsCombined$stateProvince)
-		recordsCombined$combined <- tolower(recordsCombined$combined)
-		
-		recordsCombined <- recordsCombined[!duplicated(recordsCombined$combined), ]
-		recordsCombined <- recordsCombined[order(recordsCombined$combined), ]
-		
-		bads <- data.frame()
-		for (i in 1:nrow(recordsCombined)) {
-			if (!(recordsCombined$combined[i] %in% gadmCombined)) bads <- rbind(bads, recordsCombined[i, ])
-		}
-		
-		# write.csv(bads, './Data/Species Record Cleaning/Mismatched State or Province vis-a-vis GADM.csv', row.names=FALSE)
-		
-		# MAKE CORRECTIONS using crosswalk created manually from previous file
-		corrections <- read.csv('./Data/Species Record Cleaning/Mismatched State or Province vis-a-vis GADM - Corrections MANUALLY CREATED.csv')
-
-		for (i in 1:nrow(corrections)) {
-		
-			recordsIndex <- which((records$country %in% corrections$country[i]) & (records$stateProvince %in% corrections$stateProvince[i]))
-			records$stateProvince[recordsIndex] <- corrections$gadmStateProvince[i]
-			
-		}
-		
-	say('### clean county names for ALL records ###')
-	#################################################
-		
-		# removes extraneous text
-		# x is a character vector
-		removeExtraText <- function(x) {
-		
-			bads <- c('(', ')', ' county', ' County', ' COUNTY', 'County of', 'Par.', 'Parish', 'Cty.', 'Cty', 'Co.', 'Municipio', 'Municipality', '[', ']', 'Co ')
-			
-			for (bad in bads) x <- gsub(x, pattern=bad, replacement='', fixed=TRUE)
-			
-			saints <- c('Ste. ', 'Ste ', 'St. ', 'St ')
-			for (saint in saints) x <- gsub(x, pattern=saint, replacement='Saint ', fixed=TRUE)
-			
-			x <- raster::trim(x)
-			x[x == ''] <- NA
-			x
-		}
-		
-		records$county <- removeExtraText(records$county)
-
-		# what state/province names don't match with GADM?
-		gadmCombined <- paste(nam2Sp@data$NAME_1, nam2Sp@data$NAME_2)
-		gadmCombined <- gadmCombined[!duplicated(gadmCombined)]
-		gadmCombined <- sort(gadmCombined)
-		gadmCombined <- tolower(gadmCombined)
-
-		recordsCombined <- data.frame(
-			stateProvince = records$stateProvince,
-			county = records$county
-		)
-		
-		recordsCombined$combined <- paste(recordsCombined$stateProvince, recordsCombined$county)
-		recordsCombined$combined <- tolower(recordsCombined$combined)
-		
-		recordsCombined <- recordsCombined[!duplicated(recordsCombined$combined), ]
-		recordsCombined <- recordsCombined[order(recordsCombined$combined), ]
-		
-		bads <- data.frame()
-		for (i in 1:nrow(recordsCombined)) {
-			if (!(recordsCombined$combined[i] %in% gadmCombined)) bads <- rbind(bads, recordsCombined[i, ])
-		}
-		
-		# write.csv(bads, './Data/Species Record Cleaning/Mismatched State-County with GADM.csv', row.names=FALSE)
-
-		# MAKE CORRECTIONS using corrections created manually from previous file
-		corrections <- read.csv('./Data/Species Record Cleaning/Mismatched State-County with GADM - Corrections MANUALLY CREATED.csv')
-		
-		records$notes <- NA
-
-		for (crosswalkIndex in 1:nrow(corrections)) {
-
-			# if (!is.na(corrections$notes[crosswalkIndex]) && corrections$notes[crosswalkIndex] != 'Possibly municipality-level record') {
-			
-				recordsIndex <- which((records$stateProvince %in% corrections$stateProvince[crosswalkIndex]) & (records$county %in% corrections$county[crosswalkIndex]))
-				records$stateProvince[recordsIndex] <- corrections$gadmStateProvince[crosswalkIndex]
-				records$county[recordsIndex] <- corrections$gadmCounty[crosswalkIndex]
-				
-				# notes
-				records$notes[recordsIndex] <- paste0(records$notes[recordsIndex], '; ', corrections$notes[crosswalkIndex])
-				
-			# }
-				
-		}
-
 darwin <- records
 # darwin <- darwin[darwin$stateProvince %in% c('California', 'Nevada', 'Oregon', 'Utah'), ]
 
+usa0 <- getData('GADM', country='USA', level=0, path='C:/ecology/!Scratch')
 usa1 <- getData('GADM', country='USA', level=1, path='C:/ecology/!Scratch')
 usa2 <- getData('GADM', country='USA', level=2, path='C:/ecology/!Scratch')
 
-west1 <- subset(usa1, NAME_1 %in% c('California', 'Nevada', 'Oregon'))
-west2 <- subset(usa2, NAME_1 %in% c('California', 'Nevada', 'Oregon'))
+usa1 <- usa1[usa1$NAME_1 != 'Alaska', ]
+usa1 <- usa1[usa1$NAME_1 != 'Hawaii', ]
+
+usa2 <- usa2[usa2$NAME_1 != 'Alaska', ]
+usa2 <- usa2[usa2$NAME_1 != 'Hawaii', ]
+
+mex0 <- getData('GADM', country='MEX', level=0, path='C:/ecology/!Scratch')
+mex1 <- getData('GADM', country='MEX', level=1, path='C:/ecology/!Scratch')
+mex2 <- getData('GADM', country='MEX', level=2, path='C:/ecology/!Scratch')
+
+nam0 <- rbind(usa0, mex0)
+nam1 <- rbind(usa1, mex1)
+nam2 <- rbind(usa2, mex2)
+
+# west1 <- subset(usa1, NAME_1 %in% c('California', 'Nevada', 'Oregon'))
+# west2 <- subset(usa2, NAME_1 %in% c('California', 'Nevada', 'Oregon'))
 
 # arguments
-geogCounty <- usa2
-geogState <- usa1
+geogCounty <- nam2
+geogState <- nam1
+geogCountry <- nam0
 eaProj <- getCRS('albersNA')
-minCoordUncerForPrecise_m <- 5000
-precisionUncerForceCounty_m = 1000
-precisionUncerForceState_m = 5000
+minCoordUncerPlusPrecision_m <- 1000
+minCoordPrecisionForceCounty_m <- 2000
+minCoordPrecisionForceState_m <- 5000
 countyGeogField = 'NAME_2'
 stateGeogField = 'NAME_1'
+countryGeogField = 'NAME_0'
 verbose = TRUE
 
+coordSystemStringsDegMinSec <- c('degrees minutes seconds', 'DMS', 'deg. min. sec.', 'degrÃ©es minutes secondes', 'degrÃ©s minutes secondes', 'grados minutos segundos')
+coordSystemStringsDegMin <- c('degrees minutes', 'deg. sec.', 'degrÃ©es minutes', 'degrÃ©s minutes', 'grados minutos')
+coordSystemStringsDeg <- c('degrees', 'deg.', 'degrÃ©es', 'degrÃ©s', 'grados')
+
 # NOW STEP THRU FUNCTION
+
+source('C:/Ecology/Drive/R/enmSdm/working/darwinCoreSpatialAssign.r')
+
+out <- darwinCoreSpatialAssign(
+	darwin=records,
+	geogCounty=nam2,
+	geogState=nam1,
+	geogCountry=nam0,
+	eaProj=getCRS('albersNA'),
+	minCoordUncerPlusPrecision_m = 1000,
+	minCoordPrecisionForceCounty_m = 5000,
+	minCoordPrecisionForceState_m = 10000,
+	calcDistToCentroids = FALSE,
+	coordSystemStringsDegMinSec = c('degrees minutes seconds', 'DMS', 'deg. min. sec.', 'degrÃ©es minutes secondes', 'grados minutos segundos'),
+	coordSystemStringsDegMin = c('degrees minutes', 'deg. sec.', 'degrÃ©es minutes', 'degrÃ©s minutes', 'grados minutos'),
+	coordSystemStringsDeg = c('degrees', 'degree', 'deg.', 'degrÃ©es', 'degrÃ©e', 'grados', 'grado'),
+	countyGeogField = 'NAME_2',
+	stateGeogField = 'NAME_1',
+	countryGeogField = 'NAME_0',
+	verbose = TRUE
+)
 
 
