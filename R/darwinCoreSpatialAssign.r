@@ -16,7 +16,7 @@
 #' @param geogCounty SpatialPolygonsDataFrame representing the area over which the records in \code{darwin} were assumed to have been collected with the finest level representing "counties" (parishes or similar "secondary-level" administrative units). The data frame component must contain fields named in \code{stateField} and \code{countyGeogField}.
 #' @param geogState SpatialPolygonsDataFrame representing the area over which the records in \code{darwin} were assumed to have been collected with the finest level representing "states" or "provinces" ("primary-level" administrative units). The data frame component must contain fields named in \code{stateField}.
 #' @param geogCountry SpatialPolygons or SpatialPolygonsDataFrame representing the area over which the records in \code{darwin} were assumed to have been collected with the finest level representing countries.
-#' @param minCoordUncerPlusPrecision_m Numeric, smallest value of coordinate uncertainty (in meters) required for a record to be designated a "certain" designation (assuming other checks are OK). Generally, it assumed that records that pass all checks and have a value of coordinate uncertainty + imprecision equal to or less than this value can be represented by a single point (i.e., not a polygon).
+#' @param minCoordUncerOrPrecision_m Numeric, smallest value of coordinate uncertainty or precision (in meters) required for a record to be designated a "certain" designation (assuming other checks are OK). Generally, it assumed that records that pass all checks and have a value of coordinate uncertainty or imprecision (whichever larger) equal to or less than this value can be represented by a single point (i.e., not a polygon).
 #' @param minCoordPrecisionForceCounty_m Numeric. The smallest value of coordinate imprecision (in meters) required to declare the record as a "county" record. If the coordinate precision is larger than this value and no coordinate uncertainty is given, then the record is assumed to be best represented by the county in which it occurs.  If coordinate uncertainty is given, then the record is assigned to either a county or a circle with a radius equal to coordinate uncertainty and coordinate imprecision, whichever has the greater area. If this value is equal to or greater than \code{minCoordPrecisionForceState_m}, then a warning will be given.
 #' @param minCoordPrecisionForceState_m Numeric. The smallest value of coordinate imprecision (in meters) required to declare the record as a "state" record. If the coordinate precision is larger than this value and no coordinate uncertainty is given, then the record is assumed to be best represented by the state/province in which it occurs.  If coordinate uncertainty is given, then the record is assigned to either a state/province or a circle with a radius equal to coordinate uncertainty and coordinate imprecision, whichever has the greater area.
 #' @param calcDistToCentroids Logical, if \code{TRUE} (default), calculate distance from each record with coordinates to the nearest county, state, and country centroid.
@@ -48,7 +48,7 @@ darwinCoreSpatialAssign <- function(
 	geogState,
 	geogCountry,
 	eaProj,
-	minCoordUncerPlusPrecision_m,
+	minCoordUncerOrPrecision_m,
 	minCoordPrecisionForceCounty_m,
 	minCoordPrecisionForceState_m,
 	calcDistToCentroids = TRUE,
@@ -96,9 +96,9 @@ darwinCoreSpatialAssign <- function(
 	### catch errors
 	################
 	
-		if (minCoordUncerPlusPrecision_m <= 0) warning('Argument "minCoordUncerPlusPrecision_m" is <= 0, so no records can be designated as "certain".')
-		if (minCoordPrecisionForceCounty_m <= minCoordUncerPlusPrecision_m) warning('Argument "minCoordPrecisionForceCounty_m" is <= "minCoordUncerPlusPrecision_m". This seems illogical.')
-		if (minCoordPrecisionForceState_m <= minCoordUncerPlusPrecision_m) warning('Argument "minCoordPrecisionForceState_m" is <= "minCoordUncerPlusPrecision_m". This seems illogical.')
+		if (minCoordUncerOrPrecision_m <= 0) warning('Argument "minCoordUncerOrPrecision_m" is <= 0, so no records can be designated as "certain".')
+		if (minCoordPrecisionForceCounty_m <= minCoordUncerOrPrecision_m) warning('Argument "minCoordPrecisionForceCounty_m" is <= "minCoordUncerOrPrecision_m". This seems illogical.')
+		if (minCoordPrecisionForceState_m <= minCoordUncerOrPrecision_m) warning('Argument "minCoordPrecisionForceState_m" is <= "minCoordUncerOrPrecision_m". This seems illogical.')
 		if (minCoordPrecisionForceState_m <= minCoordPrecisionForceCounty_m) warning('Argument "minCoordPrecisionForceState_m" is <= "minCoordPrecisionForceCounty_m". This seems illogical.')
 		
 		if (!(countyGeogField %in% names(geogCounty))) stop('The column specified in "countyGeogField" must appear in the "geogCounty" object.')
@@ -262,7 +262,7 @@ darwinCoreSpatialAssign <- function(
 			## coordinate precision
 			theseCoordPrecision <- .subCoordPrecision(these, unprojProj, ll, coordSystemStringsDegMinSec, coordSystemStringsDegMin, coordSystemStringsDeg)
 			theseCoordPrecision_m <- theseCoordPrecision$coordPrecision_m
-			coordUncerPlusPrecision_m <- theseCoordPrecision_m + these$coordinateUncertaintyInMeters
+			maxCoordUncerOrPrecision_m <- pmax(theseCoordPrecision_m, these$coordinateUncertaintyInMeters)
 			
 			## distinguish matching/not matching
 			doRecsMatch <- stateCountyOfDarwin[recs] %in% stateCountyExtractFromGeog
@@ -272,7 +272,7 @@ darwinCoreSpatialAssign <- function(
 			out$adminMatch[recs] <- doRecsMatch
 
 			# matches: certain/precise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 			
 			if (length(subRecs) > 0) {
@@ -282,12 +282,12 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				out$recordType[subRecs] <- 'certain/precise'
 				out$uncerPrecisionArea_km2[subRecs] <- subTheseUncerSpEaArea_km2
-				out$uncerBasedOn[subRecs] <- 'circle with radius = coordinate uncertainty + precision'
+				out$uncerBasedOn[subRecs] <- 'circle with radius = max(coordinate uncertainty, coordinate precision)'
 				out$coordPrecision_m[subRecs] <- theseCoordPrecision_m[theseSubIndex]
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -295,7 +295,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: uncertain/precise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 						
 			if (length(subRecs) > 0) {
@@ -305,12 +305,12 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				out$recordType[subRecs] <- 'uncertain/precise'
 				out$uncerPrecisionArea_km2[subRecs] <- subTheseUncerSpEaArea_km2
-				out$uncerBasedOn[subRecs] <- 'circle with radius = coordinate uncertainty + precision'
+				out$uncerBasedOn[subRecs] <- 'circle with radius = max(coordinate uncertainty, coordinate precision)'
 				out$coordPrecision_m[subRecs] <- theseCoordPrecision_m[theseSubIndex]
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -318,7 +318,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: certain/imprecise or county/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -328,7 +328,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- countyArea_km2[match(stateCountyOfDarwin[recs[theseSubIndex]], names(countyArea_km2))]
@@ -337,7 +337,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'certain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'county area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'county area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'certain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -345,7 +345,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: certain/imprecise or state/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -355,7 +355,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- stateArea_km2[match(stateOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
@@ -364,14 +364,14 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'certain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'state area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'state area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'certain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				
 			}
 			
 			# matches: uncertain/imprecise or county/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -381,7 +381,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- countyArea_km2[match(stateCountyOfDarwin[recs[theseSubIndex]], names(countyArea_km2))]
@@ -390,7 +390,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'uncertain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'county area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'county area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'uncertain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -398,7 +398,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: uncertain/imprecise or state/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 			
 			if (length(subRecs) > 0) {
@@ -408,7 +408,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- stateArea_km2[match(stateOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
@@ -417,7 +417,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'uncertain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'state area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'state area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'uncertain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				
@@ -774,7 +774,7 @@ darwinCoreSpatialAssign <- function(
 			## coordinate precision
 			theseCoordPrecision <- .subCoordPrecision(these, unprojProj, ll, coordSystemStringsDegMinSec, coordSystemStringsDegMin, coordSystemStringsDeg)
 			theseCoordPrecision_m <- theseCoordPrecision$coordPrecision_m
-			coordUncerPlusPrecision_m <- theseCoordPrecision_m + these$coordinateUncertaintyInMeters
+			maxCoordUncerOrPrecision_m <- pmax(theseCoordPrecision_m, these$coordinateUncertaintyInMeters)
 			
 			## distinguish matching/not matching
 			doRecsMatch <- stateFromDarwinCountyFromGeog %in% stateCountyOfGeogLower
@@ -784,7 +784,7 @@ darwinCoreSpatialAssign <- function(
 			out$adminMatch[recs] <- doRecsMatch
 
 			# matches: certain/precise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -794,12 +794,12 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				out$recordType[subRecs] <- 'certain/precise'
 				out$uncerPrecisionArea_km2[subRecs] <- subTheseUncerSpEaArea_km2
-				out$uncerBasedOn[subRecs] <- 'circle with radius = coordinate uncertainty + precision'
+				out$uncerBasedOn[subRecs] <- 'circle with radius = max(coordinate uncertainty, coordinate precision)'
 				out$coordPrecision_m[subRecs] <- theseCoordPrecision_m[theseSubIndex]
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -807,7 +807,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: uncertain/precise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 						
 			if (length(subRecs) > 0) {
@@ -817,12 +817,12 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				out$recordType[subRecs] <- 'uncertain/precise'
 				out$uncerPrecisionArea_km2[subRecs] <- subTheseUncerSpEaArea_km2
-				out$uncerBasedOn[subRecs] <- 'circle with radius = coordinate uncertainty + precision'
+				out$uncerBasedOn[subRecs] <- 'circle with radius = max(coordinate uncertainty, coordinate precision)'
 				out$coordPrecision_m[subRecs] <- theseCoordPrecision_m[theseSubIndex]
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -830,7 +830,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: certain/imprecise or county/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -840,7 +840,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- countyArea_km2[match(stateCountyOfDarwin[recs[theseSubIndex]], names(countyArea_km2))]
@@ -849,7 +849,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'certain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'county area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'county area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'certain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -857,7 +857,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: certain/imprecise or state/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 			
 			if (length(subRecs) > 0) {
@@ -867,7 +867,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- stateArea_km2[match(stateOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
@@ -876,14 +876,14 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'certain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'state area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'state area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'certain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				
 			}
 			
 			# matches: uncertain/imprecise or county/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -893,7 +893,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- countyArea_km2[match(stateCountyOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
@@ -902,7 +902,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'uncertain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'county area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'county area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'uncertain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -910,7 +910,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: uncertain/imprecise or state/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 			
 			if (length(subRecs) > 0) {
@@ -920,7 +920,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- stateArea_km2[match(stateOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
@@ -929,7 +929,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'uncertain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'state area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'state area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'uncertain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				
@@ -1055,7 +1055,7 @@ darwinCoreSpatialAssign <- function(
 			## coordinate precision
 			theseCoordPrecision <- .subCoordPrecision(these, unprojProj, ll, coordSystemStringsDegMinSec, coordSystemStringsDegMin, coordSystemStringsDeg)
 			theseCoordPrecision_m <- theseCoordPrecision$coordPrecision_m
-			coordUncerPlusPrecision_m <- theseCoordPrecision_m + these$coordinateUncertaintyInMeters
+			maxCoordUncerOrPrecision_m <- pmax(theseCoordPrecision_m, these$coordinateUncertaintyInMeters)
 			
 			## distinguish matching/not matching
 			doRecsMatch <- stateCountyOfDarwin[recs] %in% stateFromGeogCountyFromDarwin
@@ -1065,7 +1065,7 @@ darwinCoreSpatialAssign <- function(
 			out$adminMatch[recs] <- doRecsMatch
 
 			# matches: certain/precise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 			
 			if (length(subRecs) > 0) {
@@ -1075,12 +1075,12 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				out$recordType[subRecs] <- 'certain/precise'
 				out$uncerPrecisionArea_km2[subRecs] <- subTheseUncerSpEaArea_km2
-				out$uncerBasedOn[subRecs] <- 'circle with radius = coordinate uncertainty + precision'
+				out$uncerBasedOn[subRecs] <- 'circle with radius = max(coordinate uncertainty, coordinate precision)'
 				out$coordPrecision_m[subRecs] <- theseCoordPrecision_m[theseSubIndex]
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -1088,7 +1088,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: uncertain/precise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 						
 			if (length(subRecs) > 0) {
@@ -1098,12 +1098,12 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				out$recordType[subRecs] <- 'uncertain/precise'
 				out$uncerPrecisionArea_km2[subRecs] <- subTheseUncerSpEaArea_km2
-				out$uncerBasedOn[subRecs] <- 'circle with radius = coordinate uncertainty + precision'
+				out$uncerBasedOn[subRecs] <- 'circle with radius = max(coordinate uncertainty, coordinate precision)'
 				out$coordPrecision_m[subRecs] <- theseCoordPrecision_m[theseSubIndex]
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -1111,7 +1111,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: certain/imprecise or county/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -1121,7 +1121,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- countyArea_km2[match(stateCountyOfDarwin[recs[theseSubIndex]], names(countyArea_km2))]
@@ -1130,7 +1130,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'certain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'county area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'county area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'certain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -1138,7 +1138,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: certain/imprecise or state/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -1148,7 +1148,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- stateArea_km2[match(stateOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
@@ -1157,14 +1157,14 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'certain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'state area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'state area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'certain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				
 			}
 			
 			# matches: uncertain/imprecise or county/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -1174,7 +1174,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- countyArea_km2[match(stateCountyOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
@@ -1183,7 +1183,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'uncertain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'county area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'county area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'uncertain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -1191,7 +1191,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: uncertain/imprecise or state/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 			
 			if (length(subRecs) > 0) {
@@ -1201,7 +1201,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- stateArea_km2[match(stateOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
@@ -1210,7 +1210,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'uncertain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'state area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'state area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'uncertain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				
@@ -1338,7 +1338,7 @@ darwinCoreSpatialAssign <- function(
 			## coordinate precision
 			theseCoordPrecision <- .subCoordPrecision(these, unprojProj, ll, coordSystemStringsDegMinSec, coordSystemStringsDegMin, coordSystemStringsDeg)
 			theseCoordPrecision_m <- theseCoordPrecision$coordPrecision_m
-			coordUncerPlusPrecision_m <- theseCoordPrecision_m + these$coordinateUncertaintyInMeters
+			maxCoordUncerOrPrecision_m <- pmax(theseCoordPrecision_m, these$coordinateUncertaintyInMeters)
 			
 			## distinguish matching/not matching
 			doRecsMatch <- !(is.na(stateExtractFromGeog) | is.na(countyExtractFromGeog))
@@ -1348,7 +1348,7 @@ darwinCoreSpatialAssign <- function(
 			# out$adminMatch[recs] <- doRecsMatch
 
 			# matches: certain/precise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 			
 			if (length(subRecs) > 0) {
@@ -1358,12 +1358,12 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				out$recordType[subRecs] <- 'certain/precise'
 				out$uncerPrecisionArea_km2[subRecs] <- subTheseUncerSpEaArea_km2
-				out$uncerBasedOn[subRecs] <- 'circle with radius = coordinate uncertainty + precision'
+				out$uncerBasedOn[subRecs] <- 'circle with radius = max(coordinate uncertainty, coordinate precision)'
 				out$coordPrecision_m[subRecs] <- theseCoordPrecision_m[theseSubIndex]
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -1371,7 +1371,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: uncertain/precise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m < minCoordPrecisionForceCounty_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 						
 			if (length(subRecs) > 0) {
@@ -1381,12 +1381,12 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				out$recordType[subRecs] <- 'uncertain/precise'
 				out$uncerPrecisionArea_km2[subRecs] <- subTheseUncerSpEaArea_km2
-				out$uncerBasedOn[subRecs] <- 'circle with radius = coordinate uncertainty + precision'
+				out$uncerBasedOn[subRecs] <- 'circle with radius = max(coordinate uncertainty, coordinate precision)'
 				out$coordPrecision_m[subRecs] <- theseCoordPrecision_m[theseSubIndex]
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -1394,7 +1394,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: certain/imprecise or county/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -1404,7 +1404,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- countyArea_km2[match(stateCountyOfDarwin[recs[theseSubIndex]], names(countyArea_km2))]
@@ -1413,7 +1413,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'certain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'county area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'county area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'certain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -1421,7 +1421,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: certain/imprecise or state/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters <= minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -1431,7 +1431,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- stateArea_km2[match(stateOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
@@ -1440,14 +1440,14 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'certain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'state area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'certain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'state area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'certain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				
 			}
 			
 			# matches: uncertain/imprecise or county/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceCounty_m & theseCoordPrecision_m < minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 
 			if (length(subRecs) > 0) {
@@ -1457,7 +1457,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- countyArea_km2[match(stateCountyOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
@@ -1466,7 +1466,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'uncertain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'county area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'county area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'uncertain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				out$countyFromGeog[subRecs] <- countyExtractFromGeog[theseSubIndex]
@@ -1474,7 +1474,7 @@ darwinCoreSpatialAssign <- function(
 			}
 			
 			# matches: uncertain/imprecise or state/imprecise
-			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerPlusPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
+			subRecs <- recs[these$coordinateUncertaintyInMeters > minCoordUncerOrPrecision_m & theseCoordPrecision_m >= minCoordPrecisionForceState_m]
 			subRecs <- subRecs[subRecs %in% recs[doRecsMatch]]
 			
 			if (length(subRecs) > 0) {
@@ -1484,7 +1484,7 @@ darwinCoreSpatialAssign <- function(
 				subThese <- these[theseSubIndex, ll]
 				subTheseSp <- sp::SpatialPoints(subThese, proj4string=unprojProj)
 				subTheseSpEa <- sp::spTransform(subTheseSp, eaProj)
-				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=coordUncerPlusPrecision_m[theseSubIndex], byid=TRUE)
+				subTheseUncerSpEaBuffer <- rgeos::gBuffer(subTheseSpEa, width=maxCoordUncerOrPrecision_m[theseSubIndex], byid=TRUE)
 				subTheseUncerSpEaArea_km2 <- rgeos::gArea(subTheseUncerSpEaBuffer, byid=TRUE) / 1000^2
 				
 				subAdminAreas_km2 <- stateArea_km2[match(stateOfDarwin[recs[theseSubIndex]], names(stateArea_km2))]
@@ -1493,7 +1493,7 @@ darwinCoreSpatialAssign <- function(
 				
 				out$recordType[subRecs] <- designation
 				out$uncerPrecisionArea_km2[subRecs] <- ifelse(designation == 'uncertain/imprecise', subTheseUncerSpEaArea_km2, subAdminAreas_km2)
-				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = coordinate uncertainty + precision', 'state area')
+				out$uncerBasedOn[subRecs] <- ifelse(designation == 'uncertain/imprecise', 'circle with radius = max(coordinate uncertainty, coordinate precision)', 'state area')
 				out$coordPrecision_m[subRecs] <- ifelse(designation == 'uncertain/imprecise', theseCoordPrecision_m[theseSubIndex], NA)
 				out$stateFromGeog[subRecs] <- stateExtractFromGeog[theseSubIndex]
 				
