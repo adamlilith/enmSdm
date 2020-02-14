@@ -48,9 +48,8 @@ ext <- extent(rast)
 southwest <- c(ext@xmin, ext@ymin)
 northeast <- c(ext@xmax, ext@ymax)
 maxDist <- geosphere::distGeo(southwest, northeast)
-maxDist <- maxDist / 1000
 
-binLength <- 60 # in km
+binLength <- 60000 # in meters
 maxDist <- binLength * ceiling(maxDist / binLength)
 
 breaks <- data.frame(
@@ -70,11 +69,11 @@ obsAndNullDistrib <- spatialCorrForPoints(
 
 # summary and plot
 sacDist <- spatialCorrForPointsSummary(obsAndNullDistrib)
-main <- paste('Characteristic cluster size:', sacDist, 'km')
-spatialCorrForPointsPlot(obsAndNullDistrib, xlab='Distance (km)', main=main)
+main <- paste('Characteristic cluster size:', sacDist, 'meters')
+spatialCorrForPointsPlot(obsAndNullDistrib, xlab='Distance (m)', main=main)
 
 # calculate weights
-weight <- spatialCorrForPointsWeight(x=obsAndNullDistrib, pts=fulvus)
+weight <- 4 * spatialCorrForPointsWeight(x=obsAndNullDistrib, pts=fulvus)
 plot(mad0, main='Point size represents weight')
 points(fulvus, pch=1, cex=weight)
 }
