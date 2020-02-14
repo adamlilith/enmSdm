@@ -17,9 +17,9 @@ dmsToDecimal <- function(dd, mm, ss, hemis = NULL) {
 	if (is.null(hemis)) {
 		sgn <- 1
 		warning('Hemispshere not specified. Assuming northern/western hemisphere.')
-	} else if (toupper(hemis) == 'S' | toupper(hemis) == 'W')) {
+	} else if (toupper(hemis) == 'S' | toupper(hemis) == 'W') {
 		sgn <- -1
-	} else if (toupper(hemis) == 'E' | toupper(hemis) == 'N')) {
+	} else if (toupper(hemis) == 'E' | toupper(hemis) == 'N') {
 		sgn <- 1
 	} else {
 		sgn <- 1

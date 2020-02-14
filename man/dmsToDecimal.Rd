@@ -4,7 +4,7 @@
 \alias{dmsToDecimal}
 \title{Convert geographic coordinates in degrees-minutes-second to decimal format}
 \usage{
-dmsToDecimal(dd, mm, ss, hemis)
+dmsToDecimal(dd, mm, ss, hemis = NULL)
 }
 \arguments{
 \item{dd}{Numeric. Degrees longitude or latitude. Can be a decimal value.}
@@ -13,7 +13,7 @@ dmsToDecimal(dd, mm, ss, hemis)
 
 \item{ss}{Numeric. Second longitude or latitude. Can be a decimal value.}
 
-\item{hemis}{Logical or character. If logical, set equal to \code{TRUE} if the location is east of the Prime Meridian (longitude) or north of the equator (latitude). If a character, this can be "N" (north), "S" (south), "E" (east), or "W" (west).}
+\item{hemis}{Character or \code{NULL} (default). "N" (north), "S" (south), "E" (east), or "W" (west). If left as \code{NULL}, then the value returned will always be positive, even if it is in the western or southern hemisphere.}
 }
 \value{
 Numeric.
@@ -22,8 +22,8 @@ Numeric.
 This function converts geographic coordinates in degrees-minutes-seconds (DD-MM-SS) format to decimal format.
 }
 \examples{
-dmsToDecimal(38, 37, 38, TRUE) # latitude of St. Louis, Missouri, USA
+dmsToDecimal(38, 37, 38) # latitude of St. Louis, Missouri, USA
 dmsToDecimal(38, 37, 38, 'N') # latitude of St. Louis, Missouri, USA
-dmsToDecimal(90, 11, 52.1, FALSE) # longitude of St. Louis, Missouri, USA
+dmsToDecimal(90, 11, 52.1) # longitude of St. Louis, Missouri, USA
 dmsToDecimal(90, 11, 52.1, 'W') # longitude of St. Louis, Missouri, USA
 }
