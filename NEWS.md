@@ -1,3 +1,6 @@
+enmSdm 0.4.0.3
+Added function makeCRS() for making custom coordinate reference systems
+
 enmSdm 0.4.0.2
 Added function decimalToDms() for converting decimal coordinates to degrees-minutes-seconds format
 
