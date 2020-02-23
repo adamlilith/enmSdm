@@ -35,7 +35,7 @@ getCRS(x, asCRS = FALSE)
 \code{utm<coordinate system><hemisphere><zone>}. For example, \code{utmNad83north9} returns thr CRS for UTM zone 9 in the northern hemisphere using the NAD83 coordinate reference system. Likewise, \code{utmNad27south6} returns the CRS for UTM zone 6 in the southern hemisphere using the NAD27 coordinate system. So far the following have been implemented:
     \itemize{
         \item Coordinate Systems: \code{nad27}, \code{nad83}, \code{wgs84}
-        \item Hemispsheres: \code{north}
+        \item Hemispheres: \code{north}
     }
 }}
 
@@ -53,5 +53,5 @@ getCRS('prism')
 getCRS('mollweide', TRUE)
 }
 \seealso{
-\code{\link[sp]{CRS}}, \code{\link[enmSdm]{getCRS}}
+\code{\link[birdsEye]{makeCRS}}
 }

@@ -29,12 +29,12 @@
 #' \code{utm<coordinate system><hemisphere><zone>}. For example, \code{utmNad83north9} returns thr CRS for UTM zone 9 in the northern hemisphere using the NAD83 coordinate reference system. Likewise, \code{utmNad27south6} returns the CRS for UTM zone 6 in the southern hemisphere using the NAD27 coordinate system. So far the following have been implemented:
 #' 	\itemize{
 #' 		\item Coordinate Systems: \code{nad27}, \code{nad83}, \code{wgs84}
-#' 		\item Hemispsheres: \code{north}
+#' 		\item Hemispheres: \code{north}
 #' 	}
 #' }
 #' @param asCRS Logical. If \code{TRUE} then return object is of class \code{CRS}. If \code{FALSE} (default) then returned object is of class \code{character}.
 #' @return Object of class \code{CRS} or \code{character}.
-#' @seealso \code{\link[sp]{CRS}}, \code{\link[enmSdm]{getCRS}}
+#' @seealso \code{\link[birdsEye]{makeCRS}}
 #' @examples
 #' getCRS('wgs84')
 #' getCRS('prism')
