@@ -26,7 +26,6 @@ Imports:
 	randomForest,
 	rgdal,
 	rgeos,
-	rlist,
 	scales,
 	sp,
 	splines,
