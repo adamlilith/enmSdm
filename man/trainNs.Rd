@@ -36,7 +36,7 @@ trainNs(
 
 \item{select}{Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).}
 
-\item{presPerTermInitial}{Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is TRUE.}
+\item{presPerTermInitial}{Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is \code{TRUE}.}
 
 \item{presPerTermFinal}{Positive integer. Minimum number of presence sites per term in initial starting model; used only if \code{select} is TRUE.}
 
@@ -58,24 +58,71 @@ This function constructs a natural-spline model piece-by-piece by first calculat
 }
 \examples{
 \donttest{
-set.seed(123)
-x <- matrix(rnorm(n = 6*100), ncol = 6)
-# true variables will be #1, #2, #5, and #6, plus
-# the squares of #1 and #6, plus
-# interaction between #1 and #6
-# the cube of #5
-imp <- c('x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x1_pow2', 'x6_pow2', 'x1_by_x6', 'x5_pow3')
-betas <- c(5, 2, 0, 0, 1, -1, 8, 1, 2, -4)
-names(betas) <- imp
-y <- 0.5 + x \%*\% betas[1:6] + betas[7] * x[ , 1] +
-betas[8] * x[ , 6] + betas[9] * x[ , 1] * x[ , 6] + betas[10] * x[ , 5]^3
-y <- as.integer(y > 0)
-x <- cbind(y, x)
-x <- as.data.frame(x)
-names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
-model <- trainNs(x, out=c('model', 'tuning'), verbose=TRUE)
-model$tuning
-summary(model$model)
+
+NB YOU WILL NEED TO DO library(brglm2) TO RUN trainNs()!
+### model red-bellied lemurs
+data(mad0)
+data(lemurs)
+
+# climate data
+bios <- c(1, 5, 12, 15)
+clim <- raster::getData('worldclim', var='bio', res=10)
+clim <- raster::subset(clim, bios)
+clim <- raster::crop(clim, mad0)
+
+# occurrence data
+occs <- lemurs[lemurs$species == 'Eulemur rubriventer', ]
+occsEnv <- raster::extract(clim, occs[ , c('longitude', 'latitude')])
+
+# background sites
+bg <- 2000 # too few cells to locate 10000 background points
+bgSites <- dismo::randomPoints(clim, 2000)
+bgEnv <- extract(clim, bgSites)
+
+# collate
+presBg <- rep(c(1, 0), c(nrow(occs), nrow(bgSites)))
+env <- rbind(occsEnv, bgEnv)
+env <- cbind(presBg, env)
+env <- as.data.frame(env)
+
+preds <- paste0('bio', bios)
+
+# GLM
+gl <- trainGlm(
+	data = env,
+	resp = 'presBg',
+	preds = preds,
+ verbose = TRUE
+)
+
+# GAM
+ga <- trainGam(
+	data = env,
+	resp = 'presBg',
+	preds = preds,
+ verbose = TRUE
+)
+
+# NS
+ns <- trainNs(
+	data = env,
+	resp = 'presBg',
+	preds = preds,
+ verbose = TRUE
+)
+
+# prediction rasters
+mapGlm <- predict(clim, gl, type='response')
+mapGam <- predict(clim, ga, type='response')
+mapNs <- predict(clim, ga, type='response')
+
+par(mfrow=c(1, 3))
+plot(mapGlm, main='GLM')
+points(occs[ , c('longitude', 'latitude')])
+plot(mapGam, main='GAM')
+points(occs[ , c('longitude', 'latitude')])
+plot(mapNs, main='NS')
+points(occs[ , c('longitude', 'latitude')])
 }
 }
 \seealso{

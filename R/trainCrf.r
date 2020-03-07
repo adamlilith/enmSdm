@@ -10,23 +10,60 @@
 #' @return Object of class \code{RandomForest}.
 #' @seealso \code{\link[party]{cforest}}, \code{\link[enmSdm]{trainRf}}
 #' @examples
+#' \donttest{
+#' ### model red-bellied lemurs
+#' data(mad0)
+#' data(lemurs)
+#' 
+#' # climate data
+#' bios <- c(1, 5, 12, 15)
+#' clim <- raster::getData('worldclim', var='bio', res=10)
+#' clim <- raster::subset(clim, bios)
+#' clim <- raster::crop(clim, mad0)
+#' 
+#' # occurrence data
+#' occs <- lemurs[lemurs$species == 'Eulemur rubriventer', ]
+#' occsEnv <- raster::extract(clim, occs[ , c('longitude', 'latitude')])
+#' 
+#' # background sites
+#' bg <- 2000 # too few cells to locate 10000 background points
+#' bgSites <- dismo::randomPoints(clim, 2000)
+#' bgEnv <- extract(clim, bgSites)
+#' 
+#' # collate
+#' presBg <- rep(c(1, 0), c(nrow(occs), nrow(bgSites)))
+#' env <- rbind(occsEnv, bgEnv)
+#' env <- cbind(presBg, env)
+#' env <- as.data.frame(env)
+#' 
+#' preds <- paste0('bio', bios)
+#' 
 #' set.seed(123)
-#' x <- matrix(rnorm(n = 6*100), ncol = 6)
-#' # true variables will be #1, #2, #5, and #6, plus
-#' # the squares of #1 and #6, plus
-#' # interaction between #1 and #6
-#' # the cube of #5
-#' imp <- c('x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x1_pow2', 'x6_pow2', 'x1_by_x6', 'x5_pow3')
-#' betas <- c(5, 2, 0, 0, 1, -1, 8, 1, 2, -4)
-#' names(betas) <- imp
-#' y <- 0.5 + x %*% betas[1:6] + betas[7] * x[ , 1] +
-#' betas[8] * x[ , 6] + betas[9] * x[ , 1] * x[ , 6] + betas[10] * x[ , 5]^3
-#' y <- as.integer(y > 10)
-#' x <- cbind(y, x)
-#' x <- as.data.frame(x)
-#' names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
-#' model <- trainCrf(x)
-#' predict(model, newdata=x)
+#'
+#' # random forest
+#' rf <- trainRf(
+#' 	data = env,
+#' 	resp = 'presBg',
+#' 	preds = preds,
+#' )
+#' 
+#' # conditional random forest
+#' crf <- trainCrf(
+#' 	data = env,
+#' 	resp = 'presBg',
+#' 	preds = preds,
+#' )
+#' 
+#' plot(rf)
+#' 
+#' # prediction rasters
+#' mapRf1 <- predict(clim, rf, type='prob') # opposite class!
+#' mapRf2 <- 1 - predict(clim, rf, type='prob') # correct
+#' pointsFx <- function() points(occs[ , c('longitude', 'latitude')])
+#' plot(stack(mapRf1, mapRf2), addfun=pointsFx)
+#'
+#' # CRFs are tricky...
+#' }
 #' @export
 
 trainCrf <- function(

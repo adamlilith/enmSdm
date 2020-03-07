@@ -106,5 +106,5 @@ plot(pred3, pred3x1x2, xlim=c(0, 1), ylim=c(0, 1))
 }
 }
 \seealso{
-\code{\link[grpreg]{grpreg}}, \code{\link[grpregOverlap]{grpregOverlap}}, \code{\link[grpregOverlap]{predict.grpregOverlap}}, \code{\link[enmSdm]{makeLarsData}}, \code{\link[enmSdm]{trainLars}}
+\code{\link[grpreg]{grpreg}}, \code{\link[grpregOverlap]{grpregOverlap}}, \code{\link[grpregOverlap]{predict.grpregOverlap}}, \code{\link[enmSdm]{trainLars}}
 }

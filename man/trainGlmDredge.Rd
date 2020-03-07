@@ -37,23 +37,23 @@ trainGlmDredge(
 
 \item{tooBig}{Numeric. Used to catch errors when fitting a model fit with the \code{brglmFit} function in the \pkg{brglm2} package. In some cases fitted coefficients are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.}
 
-\item{construct}{Logical. If TRUE then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic}, \code{cubic}, \code{interaction}, and \code{interQuad}.}
+\item{construct}{Logical. If \code{TRUE} then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic}, \code{cubic}, \code{interaction}, and \code{interQuad}.}
 
-\item{select}{Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).}
+\item{select}{Logical. If \code{TRUE} then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).}
 
-\item{quadratic}{Logical. Used only if \code{construct} is TRUE. If TRUE then include quadratic terms in model construction stage for non-factor predictors.}
+\item{quadratic}{Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} then include quadratic terms in model construction stage for non-factor predictors.}
 
-\item{cubic}{Logical. Used only if \code{construct} is TRUE. If TRUE then include cubic terms in model construction stage for non-factor predictors.}
+\item{cubic}{Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} then include cubic terms in model construction stage for non-factor predictors.}
 
-\item{interaction}{Logical. Used only if \code{construct} is TRUE. If TRUE then include 2-way interaction terms (including interactions between factor predictors).}
+\item{interaction}{Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} then include 2-way interaction terms (including interactions between factor predictors).}
 
-\item{interQuad}{Logical. Used only if \code{construct} is TRUE. If TRUE then include all possible interactions of the form 'x * y^2' unless 'y' is a factor.}
+\item{interQuad}{Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} then include all possible interactions of the form 'x * y^2' unless 'y' is a factor.}
 
-\item{presPerTermInitial}{Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is TRUE.}
+\item{presPerTermInitial}{Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is \code{TRUE}.}
 
-\item{presPerTermFinal}{Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is TRUE.}
+\item{presPerTermFinal}{Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is \code{TRUE}.}
 
-\item{initialTerms}{Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 30, so if this number is >30 and \code{select} is \code{TRUE} then it is forced to 30 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.}
+\item{initialTerms}{Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is \code{TRUE}. The maximum that can be handled by \code{dredge()} is 30, so if this number is >30 and \code{select} is \code{TRUE} then it is forced to 30 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.}
 
 \item{w}{Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign equal total weights to presences and contrast sites (\code{TRUE}).}
 
@@ -61,7 +61,7 @@ trainGlmDredge(
 
 \item{out}{Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
 
-\item{verbose}{Logical. If TRUE then display intermediate results on the display device.}
+\item{verbose}{Logical. If \code{TRUE} then display intermediate results on the display device.}
 
 \item{...}{Arguments to pass to \code{brglm()} or \code{dredge()}.}
 }
@@ -69,7 +69,7 @@ trainGlmDredge(
 If \code{out = 'model'} this function returns an object of class \code{glm}. If \code{out = 'table'} this function returns a data frame with tuning parameters and AICc for each model tried. If \code{out = c('model', 'table'} then it returns a list object with the \code{glm} object and the data frame.
 }
 \description{
-This is a pseudo-deprecated function to construct a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to seperability, small sample size, and bias. This function uses \code{\link[MuMIn]{dredge}} in the \pkg{MuMIn} package to cycle through all possible models.
+This is a pseudo-deprecated function to construct a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, cubic, 2-way-interaction, and linear-by-quadratic terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is a table with AICc for all possible models (resulting from the "full" model) and/or the model of these with the lowest AICc. The procedure uses Firth's penalized likelihood to address issues related to separability, small sample size, and bias. This function uses \code{\link[MuMIn]{dredge}} in the \pkg{MuMIn} package to cycle through all possible models.
 }
 \examples{
 \donttest{

@@ -112,16 +112,27 @@ net <- trainMaxNet(
 	verbose=TRUE
 )
 
-# note the differences between the two models...
+# prediction rasters
+mapEnt <- predict(ent, clim, type='logistic')
+mapNet <- predict(clim, net, type='logistic')
+
+par(mfrow=c(1, 2))
+plot(mapEnt, main='MaxEnt')
+points(occs[ , c('longitude', 'latitude')])
+plot(mapNet, main='MaxNet')
+points(occs[ , c('longitude', 'latitude')])
+
+# note the differences between the tuning of the two models...
 # this is because maxnet() (used by trainMaxNet())
 # uses an approximation:
 # (note maxnet() calculates hinges and thresholds differently
 # so we will turn them off)
 
-data(bradypus, package='dismo')
+data(bradypus, package='maxnet')
 p <- bradypus$presence
 data <- bradypus[ , 2:3] # easier to inspect betas
-mn <- maxnet::maxnet(p, data, maxnet.formula(p, data, classes='lpq'))
+mn <- maxnet::maxnet(p, data,
+maxnet::maxnet.formula(p, data, classes='lpq'))
 mx <- dismo::maxent(data, p,
 args=c('linear=true', 'product=true', 'quadratic=true', 'hinge=false',
 'threshold=false'))
@@ -129,6 +140,7 @@ args=c('linear=true', 'product=true', 'quadratic=true', 'hinge=false',
 predMx <- dismo::predict(mx, data)
 predMn <- predict(mn, data, type='logistic')
 
+par(mfrow=c(1, 1))
 plot(predMx, predMn)
 abline(0, 1)
 }

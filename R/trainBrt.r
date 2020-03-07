@@ -1,6 +1,6 @@
 #' Calibrate a boosted regression tree (generalized boosting machine) model
 #'
-#' This function is a wrapper for \code{gbm.step()}. It returns the model with best combination of learning rate, tree depth, and bag fraction based on cross-validated deviance. It can also return a table with deviance of different combinations of tuning parameters that were tested, and all of the models tested.
+#' This function is a wrapper for \code{gbm.step()}. It returns the model with best combination of learning rate, tree depth, and bag fraction based on cross-validated deviance. It can also return a table with deviance of different combinations of tuning parameters that were tested, and all of the models tested. See Elith, J., J.R. Leathwick, and T. Hastie. 2008. A working guide to boosted regression trees. \emph{Journal of Animal Ecology} 77:802-813.
 #' @param data data frame with first column being response
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
@@ -24,7 +24,7 @@
 #' @return If \code{out = 'model'} this function returns an object of class \code{gbm}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters and cross-validation deviance for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{gbm} object and the data frame.
 #' @seealso [dismo::gbm.step()]
 #' @examples
-#' \dontest{
+#' \donttest{
 #' ### model red-bellied lemurs
 #' data(mad0)
 #' data(lemurs)

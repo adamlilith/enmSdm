@@ -8,7 +8,7 @@
 #' failOnMissing Logical. If \code{TRUE} then if no variable(s) stated in \code{pred} occurs in the model then cause an error. Variables can be missing either because the user did not include them in the original model or because the variable(s) had no variability and so were removed automatically in the model training process. Note that if \code{failOnMissing} is \code{TRUE} and there is at least one variable in \code{preds} that occurs in the model then this function will still return values (it will not cause an error). If \code{failOnMissing} is \code{FALSE} (default) and no variables in \code{preds} occurs in the model then a warning will be produced and the returned value will be \code{NULL}.
 #' @param ... Arguments to pass to \code{\link[grpregOverlap]{predict.grpregOverlap}}.
 #' @return Numeric.
-#' @seealso \code{\link[grpreg]{grpreg}}, \code{\link[grpregOverlap]{grpregOverlap}}, \code{\link[grpregOverlap]{predict.grpregOverlap}}, \code{\link[enmSdm]{makeLarsData}}, \code{\link[enmSdm]{trainLars}}
+#' @seealso \code{\link[grpreg]{grpreg}}, \code{\link[grpregOverlap]{grpregOverlap}}, \code{\link[grpregOverlap]{predict.grpregOverlap}}, \code{\link[enmSdm]{trainLars}}
 #' @examples
 #' # linear regression, a simulation demo
 #' (from grpregOverlap() function in the grpregOverlap package)
