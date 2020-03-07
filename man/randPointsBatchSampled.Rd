@@ -6,11 +6,14 @@
 \usage{
 randPointsBatchSampled(rands)
 }
+\arguments{
+\item{rands}{List object created using \code{\link{randPointsBatch}}.}
+}
 \value{
 A \code{\link[sp]{SpatialPoints}} object.
 }
 \description{
-This function is called using a list object typically generated using the \code{\link[enmSdm]{randPontsMaster}} function. It returns a \code{SpatialPoints} object that represents all of the randomized points from all of the iterations. These can be used as the "available environment" in a niche overlap test.
+This function is called using a list object typically generated using the \code{\link[enmSdm]{randPointsBatch}} function. It returns a \code{SpatialPoints} object that represents all of the randomized points from all of the iterations. These can be used as the "available environment" in a niche overlap test.
 }
 \examples{
 library(dismo)

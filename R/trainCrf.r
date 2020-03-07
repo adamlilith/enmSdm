@@ -1,14 +1,14 @@
 #' Calibrate a conditional random forest model
 #'
-#' This function trains a  conditional random forest model. It is nearly identical to the \code{\link[party]{cforest }} function in the \pkg{party} package but is included for constistancy with \code{\link{trainGlm}}, \code{\link{trainGam}}, and similar functions.
+#' This function trains a  conditional random forest model. It is nearly identical to the \code{\link[party]{cforest}} function in the \pkg{party} package but is included for consistency with \code{\link{trainGlm}}, \code{\link{trainGam}}, and similar functions.
 #' @param data Data frame.
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param family Name of family for data error structure (see \code{?family}). Default is to use the 'binomial' family.
 #' @param w Either logical in which case TRUE causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign a weight of 1 to each datum.
-#' @param ... Arguments to pass to [party::cforest()] function.
+#' @param ... Arguments to pass to \code{\link[party]{cforest}} function.
 #' @return Object of class \code{RandomForest}.
-#' @seealso \code{cforest} (in the \pkg{party} package), \code{\link{trainRf}}
+#' @seealso \code{\link[party]{cforest}}, \code{\link[enmSdm]{trainRf}}
 #' @examples
 #' set.seed(123)
 #' x <- matrix(rnorm(n = 6*100), ncol = 6)

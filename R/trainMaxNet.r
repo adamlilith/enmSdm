@@ -71,7 +71,7 @@
 #' # (note maxnet() calculates hinges and thresholds differently
 #' # so we will turn them off)
 #' 
-#' data(bradypus, package='dismo')
+#' data(bradypus, package='maxnet')
 #' p <- bradypus$presence
 #' data <- bradypus[ , 2:3] # easier to inspect betas
 #' mn <- maxnet::maxnet(p, data, maxnet.formula(p, data, classes='lpq'))

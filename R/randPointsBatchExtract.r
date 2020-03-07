@@ -1,7 +1,7 @@
 #' Updates a list of random points with environmental data from rasters
 #'
-#' This function is called using a list object typically generated using the \code{\link[enmSdm]{randPointsMaster}} function. To each set of random points represented in that list it adds environmental data extracted from a raster stack or brick.
-#' @param rands A list object typically generated using the \code{\link[enmSdm]{randPontsMaster}} function.
+#' This function is called using a list object typically generated using the \code{\link[enmSdm]{randPointsBatch}} function. To each set of random points represented in that list it adds environmental data extracted from a raster stack or brick.
+#' @param rands A list object typically generated using the \code{\link[enmSdm]{randPointsBatch}} function.
 #' @param rast A raster, raster stack, or raster brick from which to extract data.
 #' @param verbose Logical, if \code{TRUE} display progress.
 #' @return A list.

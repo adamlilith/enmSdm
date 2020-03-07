@@ -24,13 +24,13 @@ trainCrf(
 
 \item{w}{Either logical in which case TRUE causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign a weight of 1 to each datum.}
 
-\item{...}{Arguments to pass to [party::cforest()] function.}
+\item{...}{Arguments to pass to \code{\link[party]{cforest}} function.}
 }
 \value{
 Object of class \code{RandomForest}.
 }
 \description{
-This function trains a  conditional random forest model. It is nearly identical to the \code{\link[party]{cforest }} function in the \pkg{party} package but is included for constistancy with \code{\link{trainGlm}}, \code{\link{trainGam}}, and similar functions.
+This function trains a  conditional random forest model. It is nearly identical to the \code{\link[party]{cforest}} function in the \pkg{party} package but is included for consistency with \code{\link{trainGlm}}, \code{\link{trainGam}}, and similar functions.
 }
 \examples{
 set.seed(123)
@@ -52,5 +52,5 @@ model <- trainCrf(x)
 predict(model, newdata=x)
 }
 \seealso{
-\code{cforest} (in the \pkg{party} package), \code{\link{trainRf}}
+\code{\link[party]{cforest}}, \code{\link[enmSdm]{trainRf}}
 }
