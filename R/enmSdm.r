@@ -9,7 +9,7 @@
 #' 		\code{\link{elimCellDups}} Eliminate duplicate points in each cell of a raster \cr
 #' 		\code{\link{geoFold}} Generate geographically distinct k-folds \cr
 #' 		\code{\link{geoThin}} and \code{\link{geoThinApprox}} Geographically thin points \cr
-
+#'
 #' @section Model training:
 #' 		\code{\link{trainByCrossValid}} Wrapper for implementing some \code{trainXYZ} function across cross-validation folds (see also \code{summaryByCrossValid}). \cr
 #' 		\code{\link{trainBrt}} Boosted regression trees (BRTs) \cr
@@ -21,7 +21,7 @@
 #' 		\code{\link{trainMaxEnt}} and \code{\link{trainMaxNet}} Maxent models \cr
 #' 		\code{\link{trainNs}} Natural splines (NSs) \cr
 #' 		\code{\link{trainRf}} Random forests (RFs) \cr
-
+#'
 #' @section Model evaluation:
 #' 		\code{\link{aucWeighted}} AUC (with/out site weights) \cr
 #' 		\code{\link{aucMultiWeighted}} Multivariate version of AUC (with/out site weight) \cr
@@ -32,8 +32,7 @@
 #' 		\code{\link{thresholdStats}} Model performance statistics based on thresholded predictions (with/out site weights) \cr
 #' 		\code{\link{tssWeighted}} True Skill Statistic (TSS) (with/out site weights) \cr
 #' 		\code{\link{modelSize}} Number of response values in a model object \cr
-
-#' @section Niche overlap
+#' @section Niche overlap:
 #' 		\code{\link{compareNiches}} Niche overlap metrics \cr
 #' 		\code{\link{compareResponse}} Compare niche model responses to a single variable \cr
 #' 		\code{\link{mop}} Calculate mobility-oriented parity, a measure of multivariate distance as per Saupe et al. 2012. \cr
@@ -44,25 +43,24 @@
 #' 		\code{\link{randPointsBatchExtract}} Extract environment from a set of rasters for sets of randomized points generated using `randPointsBatch` \cr
 #' 		\code{\link{randPointsBatchSampled}} Collate all sets of randomized points generated using `randPointsBatch` \cr
 #' 		\code{\link{randPointsBatchNicheOverlap}} Calculate niche overlap between sets of randomized points that were generated using `randPointsBatch` \cr
-
-#' @section Spatial autocorrelation
+#' @section Spatial autocorrelation:
 #' 		\code{\link{localSpatialCorrForValues}} Calculate site-specific characteristic distance of local spatial autocorrelation for values associated with points or rasters \cr
 #' 		\code{\link{spatialCorrForPoints}} Calculate pairwise distance-based measure of global spatial autocorrelation between geographic points \cr
 #' 		\code{\link{spatialCorrForPointsSummary}} Characteristic cluster size of spatial points (distance of global autocorrelation) \cr
 #' 		\code{\link{spatialCorrForPointsPlot}} Plot observed and null distributions of pairwise distance-based measure of global spatial autocorrelation \cr
 #' 		\code{\link{spatialCorrForPointsWeight}} Assign weights to points based on pairwise distance-based measure of global spatial autocorrelation \cr
-
+#'
 #' @section Functions for rasters:
 #' 		\code{\link{bioticVelocity}} Velocity of movement across a series of rasters \cr
 #' 		\code{\link{interpolateRasters}} Interpolate a stack of rasters \cr
 #' 		\code{\link{longLatRasters}} Generate rasters with values of longitude/latitude for cell values \cr
 #' 		\code{\link{sampleRast}} and \code{\link{sampleRastStrat}} Sample raster with/out replacement and possibly in a stratified manner \cr
-
+#'
 #' @section Range area based on minimum convex polygons:
 #' 		\code{\link{mcpFromPolygons}} Minimum convex polygon from a set of polygons \emph{and} points \cr
 #' 		\code{\link{areaFromPointsOrPoly}} Area of a spatial polygon or set of points \cr
-
-#' @section Geographic utility functions
+#'
+#' @section Geographic utility functions:
 #' 		\code{\link{convertTropicosCoords}} Convert coordinates from the TROPICOS database \cr
 #' 		\code{\link{coordPrecision}} Calculate maximum possible coordinate precision \cr
 #' 		\code{\link{decimalToDms}} Convert decimal coordinate to degrees-minutes-seconds \cr
