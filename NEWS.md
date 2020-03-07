@@ -1,3 +1,6 @@
+enmSdm 0.4.0.5
+Added to documentation of trainMaxEnt() and trainMaxNet()
+
 enmSdm 0.4.0.3
 Added function makeCRS() for making custom coordinate reference systems
 
