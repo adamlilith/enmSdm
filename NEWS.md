@@ -1,4 +1,5 @@
 enmSdm 0.4.0.5
+trainMaxEnt() and trainMaxNet() internals harmonized
 Added to documentation
 
 enmSdm 0.4.0.3
