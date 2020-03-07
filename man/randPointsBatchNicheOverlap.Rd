@@ -7,7 +7,7 @@
 randPointsBatchNicheOverlap(rands, env, vars, x = NULL, bins = 100, cor = TRUE)
 }
 \arguments{
-\item{rands}{A list object typically generated using the \code{\link[enmSdm]{randPontsMaster}} function.}
+\item{rands}{A list object typically generated using the \code{\link[enmSdm]{randPointsBatchExtract}} function.}
 
 \item{env}{Either a data frame, matrix, or any object that can be coerced to a data frame containing environmental data at available background sites, \emph{or} an object of class \code{princomp} representing a principal components analysis generated using the \code{\link[stats]{princomp}} function with argument \code{scores = TRUE}.}
 
@@ -23,7 +23,7 @@ randPointsBatchNicheOverlap(rands, env, vars, x = NULL, bins = 100, cor = TRUE)
 Data frame.
 }
 \description{
-This function is called using a list object typically generated using the \code{\link[enmSdm]{randPontsMaster}} function (plus sometimes followed by the \code{\link[enmSdm]{randPointsExtract}} and \code{\link[enmSdm]{randPointsSampled}} functions). It calculates niche overlap for each set of points. Essentially it is a wrapper for \code{\link[enmSdm]{nicheOverlap}}.
+This function is called using a list object typically generated using the \code{\link[enmSdm]{randPointsBatchExtract}} function (plus sometimes followed by the \code{\link[enmSdm]{randPointsBatchExtract}} and \code{\link[enmSdm]{randPointsBatchSampled}} functions). It calculates niche overlap for each set of points. Essentially it is a wrapper for \code{\link[enmSdm]{nicheOverlap}}.
 }
 \examples{
 library(dismo)

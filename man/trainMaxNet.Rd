@@ -11,8 +11,9 @@ trainMaxNet(
   regMult = c(seq(0.5, 5, by = 0.5), 7.5, 10),
   classes = "default",
   testClasses = TRUE,
-  out = "model",
+  dropOverparam = TRUE,
   anyway = TRUE,
+  out = "model",
   verbose = FALSE,
   ...
 )
@@ -26,15 +27,17 @@ trainMaxNet(
 
 \item{regMult}{Numeric vector. Values of the master regularization parameters (called \code{beta} in some publications) to test.}
 
-\item{classes}{Character list. Names of feature classes to use (either \code{default} to use \code{lpqh} or any combination of \code{lpqht}), where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.}
+\item{classes}{Character list. Names of feature classes to use (either \code{default} to use \code{lpqh}) or any combination of \code{lpqht}, where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.}
 
-\item{testClasses}{Logical.  If TRUE then test all possible combinations of classes (note that all tested models will at least have linear features). If FALSE then use the classes provided (these will not vary between models).}
+\item{testClasses}{Logical. If \code{TRUE} (default) then test all possible combinations of classes (note that all tested models will at least have linear features). If \code{FALSE} then use the classes provided (these will not vary between models).}
+
+\item{dropOverparam}{Logical, if \code{TRUE} (default), drop models if they have more coefficients than training occurrences. It is possible for no models to fulfill this criterion, in which case no models will be returned.}
+
+\item{anyway}{Logical. If no model has fewer coefficients than predictors, return the model with the lowest AICc anyway. Default is \code{TRUE}.}
 
 \item{out}{Character. Indicates type of value returned. If \code{model} then returns an object of class \code{maxnet}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
 
-\item{anyway}{Logical. If no model has fewer coefficients than predictors, return the model with the lowest AICc anyway.}
-
-\item{verbose}{Logical. If TRUE report progress and AICc table.}
+\item{verbose}{Logical. If \code{TRUE} report progress and AICc table.}
 
 \item{...}{Arguments to pass to \code{maxnet()}.}
 }
@@ -42,27 +45,92 @@ trainMaxNet(
 If \code{out = 'model'} this function returns an object of class \code{maxnet}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log-likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{maxnet} object and the data frame.
 }
 \description{
-This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes.  See Warren, D.L. and S.N. Siefert.  2011.  Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria.  \emph{Ecological Applications} 21:335-342.  The function returns the best model and/or a data frame with AICc for each value of the multipler and combination of classes. Here, "best" is defined as the model with the lowest AICc, with ties broken by preferences for: lowest number of estimated parameters, and highest regularization multiplier.
+This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes. The "best" model has the lowest AICc, with ties broken by number of features (fewer is better), regularization multiplier (higher better), then finally the number of coefficients (fewer better). The function can return the best model (default), a list of models created using all possible combinations of feature classes and regularization multipliers, and/or a data frame with tuning statistics for each model. Models in the list and in the data frame are sorted from best to worst. See Warren, D.L. and S.N. Siefert. 2011. Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria. \emph{Ecological Applications} 21:335-342.
+}
+\details{
+The function ranks models by AICc (first), then breaks any ties by sorting by number of features (fewer is better), regularization multiplier (higher is better), then finally the number of coefficients (fewer is better).
 }
 \examples{
-set.seed(123)
-x <- matrix(rnorm(n = 6*100), ncol = 6)
-# true variables will be #1, #2, #5, and #6, plus
-# the squares of #1 and #6, plus
-# interaction between #1 and #6
-# the cube of #5
-imp <- c('x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x1_pow2', 'x6_pow2', 'x1_by_x6', 'x5_pow3')
-betas <- c(5, 2, 0, 0, 1, -1, 8, 1, 2, -4)
-names(betas) <- imp
-y <- 0.5 + x \%*\% betas[1:6] + betas[7] * x[ , 1] +
-betas[8] * x[ , 6] + betas[9] * x[ , 1] * x[ , 6] + betas[10] * x[ , 5]^3
-y <- as.integer(y > 10)
-x <- cbind(y, x)
-x <- as.data.frame(x)
-names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
-model <- trainMaxNet(x, regMult=1:2, out=c('tuning', 'model'), verbose=TRUE)
-model$tuning
-summary(model$model)
+### model red-bellied lemurs
+data(mad0)
+data(lemurs)
+
+# climate data
+bios <- c(1, 5, 12, 15)
+clim <- raster::getData('worldclim', var='bio', res=10)
+clim <- raster::subset(clim, bios)
+clim <- raster::crop(clim, mad0)
+
+# occurrence data
+occs <- lemurs[lemurs$species == 'Eulemur rubriventer', ]
+occsEnv <- raster::extract(clim, occs[ , c('longitude', 'latitude')])
+
+# background sites
+bg <- 2000 # too few cells to locate 10000 background points
+bgSites <- dismo::randomPoints(clim, 2000)
+bgEnv <- extract(clim, bgSites)
+
+# collate
+presBg <- rep(c(1, 0), c(nrow(occs), nrow(bgSites)))
+env <- rbind(occsEnv, bgEnv)
+env <- cbind(presBg, env)
+env <- as.data.frame(env)
+
+preds <- paste0('bio', bios)
+
+regMult <- 1:3 # default values are probably better, but these will be faster
+
+# calibrate MaxEnt model
+ent <- trainMaxEnt(
+	data=env,
+	resp='presBg',
+	preds=preds,
+	regMult=regMult,
+	classes='lpq',
+	verbose=TRUE
+)
+
+# calibrate MaxNet model
+net <- trainMaxNet(
+	data=env,
+	resp='presBg',
+	preds=preds,
+	regMult=regMult,
+	classes='lpq',
+	verbose=TRUE
+)
+
+# prediction rasters
+mapEnt <- predict(ent, clim, type='logistic')
+mapNet <- predict(clim, net, type='logistic')
+
+par(mfrow=c(1, 2))
+plot(mapEnt, main='MaxEnt')
+points(occs[ , c('longitude', 'latitude')])
+plot(mapNet, main='MaxNet')
+points(occs[ , c('longitude', 'latitude')])
+
+# note the differences between the tuning of the two models...
+# this is because maxnet() (used by trainMaxNet())
+# uses an approximation:
+# (note maxnet() calculates hinges and thresholds differently
+# so we will turn them off)
+
+data(bradypus, package='maxnet')
+p <- bradypus$presence
+data <- bradypus[ , 2:3] # easier to inspect betas
+mn <- maxnet::maxnet(p, data,
+maxnet::maxnet.formula(p, data, classes='lpq'))
+mx <- dismo::maxent(data, p,
+args=c('linear=true', 'product=true', 'quadratic=true', 'hinge=false',
+'threshold=false'))
+
+predMx <- dismo::predict(mx, data)
+predMn <- predict(mn, data, type='logistic')
+
+par(mfrow=c(1, 1))
+plot(predMx, predMn)
+abline(0, 1)
 }
 \seealso{
 \code{\link[maxnet]{maxnet}}, \code{\link[dismo]{maxent}}, \code{\link{trainMaxEnt}}

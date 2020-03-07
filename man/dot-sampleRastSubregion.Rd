@@ -13,7 +13,7 @@
 
 \item{width}{Positive numeric, size of buffer radius (in map units--usually meters).}
 
-\item{restrict}{Logical, if \code{TRUE} (default), then select random points from any non-\code{NA} cell in a restricted area. If \code{FALSE}, then select from any non-\code{NA} cell on the raster. If \code{FALSE}, then is exactly the same as using \code{\link[raster]{randomPoints}} exept that it automatically returns a SpatialPoints object for the random points.}
+\item{restrict}{Logical, if \code{TRUE} (default), then select random points from any non-\code{NA} cell in a restricted area. If \code{FALSE}, then select from any non-\code{NA} cell on the raster. If \code{FALSE}, then is exactly the same as using \code{\link[dismo]{randomPoints}} except that it automatically returns a SpatialPoints object for the random points.}
 
 \item{circleCent}{A SpatialPoints or SpatialPointsDataFrame object. The default value is \code{NULL}, in which case a centroid for the circle is randomly chosen. If supplied, then this will be the center of the circle.}
 

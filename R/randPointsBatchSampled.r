@@ -1,6 +1,7 @@
 #' Returns collated set of sampled sites from a set of "randPoints~" calls
 #'
-#' This function is called using a list object typically generated using the \code{\link[enmSdm]{randPontsMaster}} function. It returns a \code{SpatialPoints} object that represents all of the randomized points from all of the iterations. These can be used as the "available environment" in a niche overlap test.
+#' This function is called using a list object typically generated using the \code{\link[enmSdm]{randPointsBatch}} function. It returns a \code{SpatialPoints} object that represents all of the randomized points from all of the iterations. These can be used as the "available environment" in a niche overlap test.
+#' @param rands List object created using \code{\link{randPointsBatch}}.
 #' @return A \code{\link[sp]{SpatialPoints}} object.
 #' @seealso \code{\link[enmSdm]{randPointsRespectingSelf}}, \code{\link[enmSdm]{randPointsRespectingSelfOther1}}, \code{\link[enmSdm]{randPointsRespectingSelfOther2}}, \code{\link[enmSdm]{randPointsBatch}}, \code{\link[enmSdm]{randPointsBatchExtract}}, \code{\link[enmSdm]{randPointsBatchNicheOverlap}}
 #' @examples

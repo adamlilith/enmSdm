@@ -20,11 +20,11 @@ interpolateRasters(
 
 \item{interpTo}{Numeric vector, values of "distances" at which to interpolate the rasters.}
 
-\item{type}{Either \code{'linear'} or \code{'spline'}. The \code{\link[stats]{approx}} function is used for linear interpolation and \code{\link[stats]{spline}} for spline-based interpolation.}
+\item{type}{Either \code{'linear'} or \code{'spline'}. The \code{approx} function is used for linear interpolation and \code{spline} for spline-based interpolation.}
 
 \item{na.rm}{Logical, if \code{TRUE} (default) then ignore cases where all values in the same cells across rasters from which interpolations are made are \code{NA} (i.e., do not throw an error). If \code{FALSE}, then throw an error when this occurs.}
 
-\item{...}{Other arguments passed to \code{\link[stats]{approx}} or \code{\link[stats]{spline}}. \emph{Do not} include any of these arguments: \code{x}, \code{y}, or \code{xout}.}
+\item{...}{Other arguments passed to \code{approx} or \code{spline}. \emph{Do not} include any of these arguments: \code{x}, \code{y}, or \code{xout}.}
 }
 \value{
 A raster stack, one per element in \code{interpTo}.
@@ -56,5 +56,5 @@ x11()
 plot(spline)
 }
 \seealso{
-\code{\link[raster]{approxNA}}, \code{\link[stats]{approx}}, \code{\link[stats]{spline}}
+\code{\link[raster]{approxNA}}, \code{\link[stats]{approxfun}}, \code{\link[stats]{splinefun}}
 }
