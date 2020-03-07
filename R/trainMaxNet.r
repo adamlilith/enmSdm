@@ -1,15 +1,15 @@
 #' Calibrate a Maxent (ver 3.4.0+ or "maxnet") model using AICc
 #'
-#' This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes.  See Warren, D.L. and S.N. Siefert.  2011.  Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria.  \emph{Ecological Applications} 21:335-342.  The function returns the best model and/or a data frame with AICc for each value of the multipler and combination of classes. Here, "best" is defined as the model with the lowest AICc, with ties broken by preferences for: lowest number of estimated parameters, and highest regularization multiplier.
+#' This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes.  See Warren, D.L. and S.N. Siefert.  2011.  Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria.  \emph{Ecological Applications} 21:335-342.  The function returns the best model and/or a data frame with AICc for each value of the multiplier and combination of classes. Here, "best" is defined as the model with the lowest AICc, with ties broken by preferences for: lowest number of estimated parameters, and highest regularization multiplier.
 #' @param data  Data frame or matrix. Environmental predictors (and no other fields) for presences and background sites.
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param regMult Numeric vector. Values of the master regularization parameters (called \code{beta} in some publications) to test.
-#' @param classes Character list. Names of feature classes to use (either \code{default} to use \code{lpqh} or any combination of \code{lpqht}), where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.
+#' @param classes Character list. Names of feature classes to use (either \code{default} to use \code{lpqh}) or any combination of \code{lpqht}, where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.
 #' @param testClasses Logical.  If TRUE then test all possible combinations of classes (note that all tested models will at least have linear features). If FALSE then use the classes provided (these will not vary between models).
 #' @param out Character. Indicates type of value returned. If \code{model} then returns an object of class \code{maxnet}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
 #' @param anyway Logical. If no model has fewer coefficients than predictors, return the model with the lowest AICc anyway.
-#' @param verbose Logical. If TRUE report progress and AICc table.
+#' @param verbose Logical. If \code{TRUE} report progress and AICc table.
 #' @param ... Arguments to pass to \code{maxnet()}.
 #' @return If \code{out = 'model'} this function returns an object of class \code{maxnet}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log-likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{maxnet} object and the data frame.
 #' @seealso \code{\link[maxnet]{maxnet}}, \code{\link[dismo]{maxent}}, \code{\link{trainMaxEnt}}
@@ -32,6 +32,31 @@
 #' model <- trainMaxNet(x, regMult=1:2, out=c('tuning', 'model'), verbose=TRUE)
 #' model$tuning
 #' summary(model$model)
+#' 
+#' # differences between MaxEnt and MaxNet:
+#' # illustrated using maxent() and maxnet(), but these differences will appear
+#' # in the output of trainMaxEnt() and trainMaxNet() for the same data
+#' # ...note maxnet() calculates hinges and thresholds differently
+#' # so we will turn them off
+#' 
+#' library(dismo)
+#' library(maxnet)
+#' 
+#' data(bradypus, package='dismo')
+#' p <- bradypus$presence
+#' data <- bradypus[ , 2:3] # easier to inspect betas
+#' mn <- maxnet(p, data, maxnet.formula(p, data, classes='lpq'))
+#' mx <- maxent(data, p,
+#' args=c('linear=true', 'product=true', 'quadratic=true', 'hinge=false',
+#' 'threshold=false'))
+#' 
+#' predMx <- predict(mx, data)
+#' predMn <- predict(mn, data, type='logistic')
+#' predMnCll <- predict(mn, data, type='cloglog')
+#' 
+#' plot(predMx, predMn)
+#' points(predMx, predMnCll, col='red')
+#' abline(0, 1)
 #' @export
 
 trainMaxNet <- function(
@@ -102,12 +127,12 @@ trainMaxNet <- function(
 	# for each regularization multiplier
 	for (thisRegMult in regMult) {
 
-		if (verbose) omnibus::say('Calculating AICc for multiplier ', thisRegMult, ' with features:', post=0)
+		if (verbose) omnibus::say('Evaluating models with regularization multiplier:', thisRegMult)
 
 		# for each combination of class features
 		for (countCombo in 1:nrow(classGrid)) {
 
-			if (verbose) omnibus::say(classesToTest[c(classGrid[countCombo, ]) == 1], post=0)
+			# if (verbose) omnibus::say(classesToTest[c(classGrid[countCombo, ]) == 1], post=0)
 
 			theseClasses <- paste(classesToTest[as.logical(unlist(classGrid[countCombo, ]))], collapse='')
 

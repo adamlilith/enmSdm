@@ -5,7 +5,7 @@
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param regMult Numeric vector. Values of the master regularization parameters (called \code{beta} in some publications) to test.
-#' @param classes Character list. Names of feature classes to use (either \code{default} to use \code{lpqh} or any combination of \code{lpqht}), where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.
+#' @param classes Character list. Names of feature classes to use (either \code{default} to use \code{lpqh}) or any combination of \code{lpqht}, where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.
 #' @param testClasses Logical.  If \code{TRUE} (default) then test all possible combinations of classes (note that all tested models will at least have linear features). If \code{FALSE} then use the classes provided (these will not vary between models).
 #' @param scratchDir Character. Directory to which to write temporary files. Leave as NULL to create a temporary folder in the current working directory.
 #' @param forceLinear Logical. If \code{TRUE} (default) then require any tested models to include at least linear features.
@@ -14,7 +14,7 @@
 #' @param dropOverparam Logical, if \code{TRUE} (default), drop models if they have more coefficients than training occurrences. It is possible for no models to fulfill this criterion, in which case no models will be returned.
 #' @param args Character list. Options to pass to \code{maxent()}'s \code{args} argument. (Do not include \code{l}, \code{p}, \code{q}, \code{h}, \code{t}, \code{betamultiplier}, or \code{jackknife}!)
 #' @param anyway Logical. Same as \code{dropOverparam} (included for backwards compatibility. If \code{NULL} (default), then the value of \code{dropOverparam} will take precedence. If \code{TRUE} or \code{FALSE} then \code{anyway} will override the value of \code{dropOverparam}.
-#' @param verbose Logical. If TRUE report progress and AICc table.
+#' @param verbose Logical. If \code{TRUE} report progress and AICc table.
 #' @param ... Arguments to pass to \code{maxent()} or \code{predict.maxent()}.
 #' @return If \code{out = 'model'} this function returns an object of class \code{MaxEnt}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{MaxEnt} object and the data frame.
 #' @details This function is a wrapper for \code{maxent()}. That function relies on a maxent \code{jar} file being placed into the folder \code{./library/dismo/java}. See \code{\link[dismo]{maxent}} for more details. The \code{maxent()} function creates a series of files on disc for each model. This function assumes you do not want those files, so deletes most of them. However, there is one that cannot be deleted and the normal ways of changing its permissions in \code{R} do not work. So the function simply writes over that file (which is allowed) to make it smaller. Regardless, if you run many models your temporary directory (argument \code{scratchDir}) can fill up and require manual deletion.
@@ -48,8 +48,32 @@
 #' predsCloglog <- predictMaxEnt(out$model, trainData)
 #' plot(predsLogistic, predsCloglog, xlim=c(0, 1), ylim=c(0, 1))
 #' abline(0, 1, col='gray')
+#' 
+#' # differences between MaxEnt and MaxNet:
+#' # illustrated using maxent() and maxnet(), but these differences will appear
+#' # in the output of trainMaxEnt() and trainMaxNet() for the same data
+#' # ...note maxnet() calculates hinges and thresholds differently
+#' # so we will turn them off
+#' 
+#' library(dismo)
+#' library(maxnet)
+#' 
+#' data(bradypus, package='dismo')
+#' p <- bradypus$presence
+#' data <- bradypus[ , 2:3] # easier to inspect betas
+#' mn <- maxnet(p, data, maxnet.formula(p, data, classes='lpq'))
+#' mx <- maxent(data, p,
+#' args=c('linear=true', 'product=true', 'quadratic=true', 'hinge=false',
+#' 'threshold=false'))
+#' 
+#' predMx <- predict(mx, data)
+#' predMn <- predict(mn, data, type='logistic')
+#' predMnCll <- predict(mn, data, type='cloglog')
+#' 
+#' plot(predMx, predMn)
+#' points(predMx, predMnCll, col='red')
+#' abline(0, 1)
 #' @export
-
 trainMaxEnt <- function(
 	data,
 	resp = names(data)[1],
@@ -126,7 +150,7 @@ trainMaxEnt <- function(
 	## MAIN ##
 	##########
 
-	if (verbose) omnibus::say('Testing models with regularization multiplier:', post=0)
+	if (verbose) omnibus::say('Evaluating models with regularization multiplier:', post=0)
 
 	# remember all models and evaluation data
 	models <- list()

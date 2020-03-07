@@ -26,7 +26,7 @@ trainMaxNet(
 
 \item{regMult}{Numeric vector. Values of the master regularization parameters (called \code{beta} in some publications) to test.}
 
-\item{classes}{Character list. Names of feature classes to use (either \code{default} to use \code{lpqh} or any combination of \code{lpqht}), where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.}
+\item{classes}{Character list. Names of feature classes to use (either \code{default} to use \code{lpqh}) or any combination of \code{lpqht}, where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.}
 
 \item{testClasses}{Logical.  If TRUE then test all possible combinations of classes (note that all tested models will at least have linear features). If FALSE then use the classes provided (these will not vary between models).}
 
@@ -34,7 +34,7 @@ trainMaxNet(
 
 \item{anyway}{Logical. If no model has fewer coefficients than predictors, return the model with the lowest AICc anyway.}
 
-\item{verbose}{Logical. If TRUE report progress and AICc table.}
+\item{verbose}{Logical. If \code{TRUE} report progress and AICc table.}
 
 \item{...}{Arguments to pass to \code{maxnet()}.}
 }
@@ -42,7 +42,7 @@ trainMaxNet(
 If \code{out = 'model'} this function returns an object of class \code{maxnet}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log-likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{maxnet} object and the data frame.
 }
 \description{
-This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes.  See Warren, D.L. and S.N. Siefert.  2011.  Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria.  \emph{Ecological Applications} 21:335-342.  The function returns the best model and/or a data frame with AICc for each value of the multipler and combination of classes. Here, "best" is defined as the model with the lowest AICc, with ties broken by preferences for: lowest number of estimated parameters, and highest regularization multiplier.
+This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes.  See Warren, D.L. and S.N. Siefert.  2011.  Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria.  \emph{Ecological Applications} 21:335-342.  The function returns the best model and/or a data frame with AICc for each value of the multiplier and combination of classes. Here, "best" is defined as the model with the lowest AICc, with ties broken by preferences for: lowest number of estimated parameters, and highest regularization multiplier.
 }
 \examples{
 set.seed(123)
@@ -63,6 +63,31 @@ names(x) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
 model <- trainMaxNet(x, regMult=1:2, out=c('tuning', 'model'), verbose=TRUE)
 model$tuning
 summary(model$model)
+
+# differences between MaxEnt and MaxNet:
+# illustrated using maxent() and maxnet(), but these differences will appear
+# in the output of trainMaxEnt() and trainMaxNet() for the same data
+# ...note maxnet() calculates hinges and thresholds differently
+# so we will turn them off
+
+library(dismo)
+library(maxnet)
+
+data(bradypus, package='dismo')
+p <- bradypus$presence
+data <- bradypus[ , 2:3] # easier to inspect betas
+mn <- maxnet(p, data, maxnet.formula(p, data, classes='lpq'))
+mx <- maxent(data, p,
+args=c('linear=true', 'product=true', 'quadratic=true', 'hinge=false',
+'threshold=false'))
+
+predMx <- predict(mx, data)
+predMn <- predict(mn, data, type='logistic')
+predMnCll <- predict(mn, data, type='cloglog')
+
+plot(predMx, predMn)
+points(predMx, predMnCll, col='red')
+abline(0, 1)
 }
 \seealso{
 \code{\link[maxnet]{maxnet}}, \code{\link[dismo]{maxent}}, \code{\link{trainMaxEnt}}
