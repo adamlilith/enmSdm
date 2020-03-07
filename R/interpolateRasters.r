@@ -6,7 +6,6 @@
 #' @param interpTo Numeric vector, values of "distances" at which to interpolate the rasters.
 #' @param type Either \code{'linear'} or \code{'spline'}. The \code{\link[stats]{approx}} function is used for linear interpolation and \code{\link[stats]{spline}} for spline-based interpolation.
 #' @param na.rm Logical, if \code{TRUE} (default) then ignore cases where all values in the same cells across rasters from which interpolations are made are \code{NA} (i.e., do not throw an error). If \code{FALSE}, then throw an error when this occurs.
-#' @param verbose Logical, if \code{TRUE}, then display progress bar.
 #' @param ... Other arguments passed to \code{\link[stats]{approx}} or \code{\link[stats]{spline}}. \emph{Do not} include any of these arguments: \code{x}, \code{y}, or \code{xout}.
 #' @return A raster stack, one per element in \code{interpTo}.
 #' @details This function can be very memory-intensive for large rasters.  It may speed things up (and make them possible) to do interpolations piece by piece (e.g., instead of interpolating between times t0, t1, t2, t3, ..., interpolate between t0 and t1, then t1 and t2, etc. This may give results that differ from using the entire set, however. Note that using linear and splines will often yield very similar results except that in a small number of cases splines may produce very extreme interpolated values.
@@ -38,7 +37,6 @@ interpolateRasters <- function(
 	interpTo,
 	type = 'linear',
 	na.rm = TRUE,
-	verbose = FALSE,
 	...
 ) {
 
@@ -64,7 +62,7 @@ interpolateRasters <- function(
 	### interpolate each cell
 	#########################
 		
-		if (verbose) progress <- txtProgressBar(min=0, max=raster::ncell(rasts), style=3, width=min(64, getOption('width')))
+		# if (verbose) progress <- txtProgressBar(min=1, max=raster::ncell(rasts), style=3, width=min(64, getOption('width')))
 		
 		countCell <- 1
 		for (countRow in 1:rows) {
@@ -86,11 +84,13 @@ interpolateRasters <- function(
 				outArray[countRow, countCol, ] <- cellInterpol
 				countCell <- countCell + 1
 				
-				if (verbose) setTxtProgressBar(progress, countCell)
+				# if (verbose) setTxtProgressBar(progress, value=countCell)
 				
 			} # next row of output
 			
 		} # next column of output
+
+		# if (verbose) close(progress)
 
 	### reconfigure back to raster format
 	#####################################
