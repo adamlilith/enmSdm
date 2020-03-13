@@ -1,9 +1,14 @@
 #' Predict a MaxEnt model object (with optional feature-level permutation)
 #'
-#' Takes a MaxEnt \code{lambda} object or a MaxEnt object and returns raw or logistic predictions.  Its output is the same as the function \code{raster::predict(maxentModelObject, dataFrame)} or \code{raster::predict(maxentModelObject, dataFrame, args='outputformat=raw')} (to within rounding error), and in fact those functions should be faster.  However, this function does allow custom manipulations that those functions do not allow (e.g., permuting product features while leaving other features with the same variables intact).  This function is based on Peter D. Wilson's document "Guidelines for computing MaxEnt model output values from a lambdas file".
+#' Takes a MaxEnt \code{lambda} object or a MaxEnt object and returns raw or logistic predictions.  Its output is the same as the function \code{raster::predict(maxentModelObject, dataFrame)} or \code{raster::predict(maxentModelObject, dataFrame, args='outputformat=raw')} (to within rounding error), and in fact those functions should be faster. However, this function does allow custom manipulations that those functions do not allow (e.g., permuting product features while leaving other features with the same variables intact).  This function does \emph{not} clamp predictions--beyond the range of the training data, it extends the prediction in the direction it was going (up/down/no change). The function is based on Peter D. Wilson's document "Guidelines for computing MaxEnt model output values from a lambdas file".
 #' @param x Either a Maxent lambda object or a Maxent model object
 #' @param data Data frame. Data to which to make predictions
-#' @param type Charcater.  One of: \code{'raw'} ==> produce Maxent raw values; \code{'logistic'} ==> Maxent logistic values; or \code{'cloglog'} ==> complementary log-log output (as per version 3.4.0+ of maxent--called "\code{maxnet()}" in the package of the same name)
+#' @param type Character.  One of:
+#' \itemize{
+#' 		\item \code{'raw'}: Maxent "raw" values
+#' 		\item \code{'logistic'}: Maxent logistic values
+#' 		\item \code{'cloglog'} complementary log-log output (as per version 3.4.0+ of maxent--called "\code{maxnet()}" in the package of the same name)
+#' }
 #' @param perm Character list. Name(s) of variable to permute before calculating predictions. This permutes the variables for \emph{all} features in which they occur.  If a variable is named here, it overrides permutation settings for each feature featType.  Note that for product features the variable is permuted before the product is taken. This permutation is performed before any subsequent permutations (i.e., so if both variables in a product feature are included in \code{perms}, then this is equivalent to using the \code{'before'} rule for \code{permProdRule}). Ignored if \code{NULL}.
 #' @param permLinear Character list. Names(s) of variables to permute in linear features before calculating predictions.  Ignored if \code{NULL}.
 #' @param permQuad Names(s) of variables to permute in quadratic features before calculating predictions.  Ignored if \code{NULL}.
@@ -15,86 +20,92 @@
 #' @return Numeric.
 #' @seealso \code{\link[dismo]{maxent}}
 #' @examples
-#' \donttest{
-#' set.seed(123)
-#' data <- matrix(rnorm(n = 6*1000), ncol = 6)
-#' # true variables will be #1, #2, #5, and #6, plus
-#' # the squares of #1 and #6, plus
-#' # interaction between #1 and #6
-#' # the cube of #5
-#' imp <- c('x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x1_pow2', 'x6_pow2', 'x1_by_x6', 'x5_pow3')
-#' betas <- c(5, 2, 0, 0, 1, -1, 8, 1, 2, -4)
-#' names(betas) <- imp
-#' y <- 0.5 + data %*% betas[1:6] + betas[7] * data[ , 1] +
-#' betas[8] * data[ , 6] + betas[9] * data[ , 1] * data[ , 6] + betas[10] * data[ , 5]^3
-#' y <- as.integer(y > 10)
-#' data <- cbind(y, data)
-#' data <- as.data.frame(data)
-#' names(data) <- c('y', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6')
+#' ### model red-bellied lemurs
+#' data(mad0)
+#' data(lemurs)
 #' 
-#' x <- maxent(data[ , -1], data$y)
+#' # climate data
+#' bios <- c(1, 5, 12, 15)
+#' clim <- raster::getData('worldclim', var='bio', res=10)
+#' clim <- raster::subset(clim, bios)
+#' clim <- raster::crop(clim, mad0)
 #' 
-#' pred <- predict(x, data)
-#' predNew <- predictMaxEnt(x, data, type='logistic')
-#' plot(pred, predNew)
+#' # occurrence data
+#' occs <- lemurs[lemurs$species == 'Eulemur rubriventer', ]
+#' occsEnv <- raster::extract(clim, occs[ , c('longitude', 'latitude')])
+#' occsEnv <- as.data.frame(occsEnv) # need to do this for prediction later
 #' 
-#' predPermAll <- predictMaxEnt(
-#'     x=x,
-#'     data=data,
-#'     perm=c('x1', 'x2', 'x3', 'x4', 'x5', 'x6'),
-#' 	type='logistic'
+#' # background sites
+#' bg <- 2000 # too few cells to locate 10000 background points
+#' bgSites <- dismo::randomPoints(clim, 2000)
+#' bgEnv <- extract(clim, bgSites)
+#' 
+#' # collate
+#' presBg <- rep(c(1, 0), c(nrow(occs), nrow(bgSites)))
+#' env <- rbind(occsEnv, bgEnv)
+#' env <- cbind(presBg, env)
+#' env <- as.data.frame(env)
+#' 
+#' preds <- paste0('bio', bios)
+#' 
+#' regMult <- 1:3 # default values are probably better, but these will be faster
+#' 
+#' # calibrate MaxEnt model
+#' ent <- trainMaxEnt(
+#' 	data=env,
+#' 	resp='presBg',
+#' 	preds=preds,
+#' 	regMult=regMult,
+#' 	classes='lpq',
+#' 	verbose=TRUE
 #' )
 #' 
-#' predPermLinear <- predictMaxEnt(x=x, data=data, permLinear='x1', type='logistic')
-#' predPermQuad <- predictMaxEnt(x=x, data=data, permQuad='x1', type='logistic')
-#' predPermHinge <- predictMaxEnt(x=x, data=data, permHinge='x1', type='logistic')
-#' predPermThresh <- predictMaxEnt(x=x, data=data, permThresh='x1', type='logistic')
-#' predPermProdBefore <- predictMaxEnt(x=x, data=data, permProd=list(c('x1', 'x6')),
-#' 	permProdRule='before', type='logistic')
-#' predPermProdAfter <- predictMaxEnt(x=x, data=data, permProd=list(c('x1', 'x6')),
-#' 	permProdRule='after', type='logistic')
-#' predPermX1 <- predictMaxEnt(x=x, data=data, perm='x1', type='logistic')
-#' 
-#' predPermAll <- predPermAll[order(pred)]
-#' predPermLinear <- predPermLinear[order(pred)]
-#' predPermQuad <- predPermQuad[order(pred)]
-#' predPermHinge <- predPermHinge[order(pred)]
-#' predPermThresh <- predPermThresh[order(pred)]
-#' predPermProdBefore <- predPermProdBefore[order(pred)]
-#' predPermProdAfter <- predPermProdAfter[order(pred)]
-#' predPermX1 <- predPermX1[order(pred)]
-#' predNew <- predNew[order(pred)]
-#' pred <- pred[order(pred)]
-#' 
-#' plot(pred, ylab='Prediction', xlab='Index (ordered from low to high unpermuted prediction)')
-#' points(predNew, pch=3, col=2, cex=2)
-#' points(predPermLinear, pch=2, col=3)
-#' points(predPermQuad, pch=4, col=4)
-#' points(predPermHinge, pch=5, col=5)
-#' points(predPermThresh, pch=6, col=6)
-#' points(predPermProdBefore, pch=7, col=7)
-#' points(predPermProdAfter, pch=8, col=8)
-#' points(predPermAll, pch=9, col=9)
-#' points(predPermX1, pch=10, col=10)
-#' 
-#' legend('topleft',
-#' 	inset=0.01,
-#' 	pch=c(1, 3, 2, 4, 5, 6, 7, 8, 9, 10),
-#' 	col=1:10,
-#' 	bg='white',
-#' 	legend=c('raster::predict()',
-#' 		'enmSdm::predictMaxEnt()',
-#' 		'permuted x1 linear',
-#' 		'permuted x1 quadratic',
-#' 		'permuted x1 hinge',
-#' 		'permuted x1 threshold',
-#' 		'permuted x1 product (before)',
-#' 		'permuted x1 product (after)',
-#' 		'permuted (all variables/features)',
-#' 		'permuted x1 all features'
-#' 	)
+#' # calibrate MaxNet model
+#' net <- trainMaxNet(
+#' 	data=env,
+#' 	resp='presBg',
+#' 	preds=preds,
+#' 	regMult=regMult,
+#' 	classes='lpq',
+#' 	verbose=TRUE
 #' )
-#' }
+#' 
+#' # prediction rasters
+#' mapEnt <- predict(ent, clim, type='logistic')
+#' mapNet <- predict(clim, net, type='logistic')
+#'
+#' par(mfrow=c(1, 2))
+#' plot(mapEnt, main='MaxEnt')
+#' points(occs[ , c('longitude', 'latitude')])
+#' plot(mapNet, main='MaxNet')
+#' points(occs[ , c('longitude', 'latitude')])
+#'
+#' # predictions to occurrences
+#' (dismo::predict(ent, occsEnv, args=c('outputformat=logistic')))
+#' (enmSdm::predictMaxEnt(ent, occsEnv, type='logistic'))
+#' (c(predict(net, occsEnv, type='logistic')))
+#' 
+#' # note the differences between the tuning of the two models...
+#' # this is because maxnet() (used by trainMaxNet())
+#' # uses an approximation:
+#' # (note maxnet() calculates hinges and thresholds differently
+#' # so we will turn them off)
+#' 
+#' data(bradypus, package='maxnet')
+#' p <- bradypus$presence
+#' data <- bradypus[ , 2:3] # easier to inspect betas
+#' mn <- maxnet::maxnet(p, data,
+#' maxnet::maxnet.formula(p, data, classes='lpq'))
+#' mx <- dismo::maxent(data, p,
+#' args=c('linear=true', 'product=true', 'quadratic=true', 'hinge=false',
+#' 'threshold=false'))
+#' 
+#' predMx <- dismo::predict(mx, data)
+#' predMn <- predict(mn, data, type='logistic')
+#' 
+#' par(mfrow=c(1, 1))
+#' plot(predMx, predMn)
+#' abline(0, 1)
 #' @export
 predictMaxEnt <- function(
 	x,
@@ -110,16 +121,8 @@ predictMaxEnt <- function(
 	...
 ) {
 
-	####################
-	## PRE-PROCESSING ##
-	####################
-
 	# get lambdas is object is a model object
-	if (class(x)=='MaxEnt') x <- x@lambdas
-
-	##########
-	## MAIN ##
-	##########
+	if ('MaxEnt' %in% class(x)) x <- x@lambdas
 
 	### create meta value data frame
 	################################
@@ -156,26 +159,23 @@ predictMaxEnt <- function(
 	feats$featType[which(grepl(feats$feature, pattern='\''))] <- 'forward hinge'
 	feats$featType[which(grepl(feats$feature, pattern='`'))] <- 'reverse hinge'
 
-	## identify (first) variable used
-	# see which features have this variable string... note that there is a risk that the parts of a "feature" that have the *substring* including the variable name will falsely imply the variable is in the feature... sorting by length should obviate this
-	names <- sort(names(data))
-	names <- names[order(nchar(names))] # sort variable names by length
-	for (i in 1:length(names)) {
-
-		varIn <- grepl(feats$feature, pattern=names[i]) & is.na(feats$var1)
-		feats$var1[which(varIn)] <- names[i]
+	## identify variables used
+	for (i in 1:nrow(feats)) {
+	
+		vars <- strsplit(feats$feature[i], split=', ')[[1]][[1]]
 		
-	}
-
-	## identify second variable used (if any)... same risks as above
-	if ('product' %in% feats$featType) {
-		indexProd <- which(feats$featType=='product')
-		for (i in indexProd) {
-			for (j in (which(feats$var1[i] == names) + 1):length(names)) {
-				secondVarIn <- grepl(feats$feature[i], pattern=names[j])
-				if (secondVarIn) feats$var2[i] <- names[j]
-			}
-		}
+		vars <- gsub(vars, pattern='\\^2', replacement='')
+		vars <- gsub(vars, pattern='[(]', replacement='')
+		vars <- gsub(vars, pattern='[)]', replacement='')
+		vars <- gsub(vars, pattern='`', replacement='')
+		vars <- gsub(vars, pattern='\'', replacement='')
+		vars <- strsplit(vars, split='<')[[1]]
+		if (length(vars) == 2) vars <- vars[2]
+		vars <- strsplit(vars, split='\\*')[[1]]
+		
+		feats$var1[i] <- vars[1]
+		feats$var2[i] <- if (length(vars) == 2) { vars[2] } else { NA }
+	
 	}
 
 	## extract "betas"
@@ -202,11 +202,6 @@ predictMaxEnt <- function(
 		value2Compact <- t(data[ , feats$var2[which(feats$featType=='product')]])
 		value2[which(feats$featType=='product'), ] <- value2Compact
 	}
-
-	# value1 <<- value1
-	# value2 <<- value2
-	# feats <<- feats
-	# print(feats)
 
 	### permutations
 	################
@@ -323,18 +318,18 @@ predictMaxEnt <- function(
 				
 				thisRange <- thisBeta2 - thisBeta1
 				
-				if (featType=='linear') S[i] <- S[i] + sum(thisLambda * (thisValue1 - thisBeta1) / thisRange, na.rm=T)
-				if (featType=='quadratic') S[i] <- S[i] + sum(thisLambda * (thisValue1^2 - thisBeta1) / thisRange, na.rm=T)
-				if (featType=='product') S[i] <- S[i] + sum(thisLambda * (thisProd - thisBeta1) / thisRange, na.rm=T)
-				# if (featType=='forward hinge') S[i] <- S[i] + sum(thisLambda[thisValue1 >= thisCrit] * (thisValue1[thisValue1 >= thisCrit] - thisCrit[thisValue1 >= thisCrit]) / thisRange[thisValue1 >= thisCrit], na.rm=T)
+				if (featType=='linear') S[i] <- S[i] + sum(thisLambda * (thisValue1 - thisBeta1) / thisRange, na.rm=TRUE)
+				if (featType=='quadratic') S[i] <- S[i] + sum(thisLambda * (thisValue1^2 - thisBeta1) / thisRange, na.rm=TRUE)
+				if (featType=='product') S[i] <- S[i] + sum(thisLambda * (thisProd - thisBeta1) / thisRange, na.rm=TRUE)
+				# if (featType=='forward hinge') S[i] <- S[i] + sum(thisLambda[thisValue1 >= thisCrit] * (thisValue1[thisValue1 >= thisCrit] - thisCrit[thisValue1 >= thisCrit]) / thisRange[thisValue1 >= thisCrit], na.rm=TRUE)
 				
 				
-				if (featType=='forward hinge') S[i] <- S[i] + sum(thisLambda[thisValue1 >= thisCrit] * (thisValue1[thisValue1 >= thisCrit] - thisCrit[thisValue1 >= thisCrit]) / thisRange[thisValue1 >= thisCrit], na.rm=T)
-				if (featType=='reverse hinge') S[i] <- S[i] + sum(thisLambda[thisValue1 < thisCrit] * (thisCrit[thisValue1 < thisCrit] - thisValue1[thisValue1 < thisCrit]) / thisRange[thisValue1 < thisCrit], na.rm=T)
-				# if (featType=='reverse hinge') S[i] <- S[i] + sum(thisLambda[thisValue1 < thisCrit] * (thisCrit[thisValue1 < thisCrit] - thisValue1[thisValue1 < thisCrit]) / thisRange[thisValue1 < thisCrit], na.rm=T)
+				if (featType=='forward hinge') S[i] <- S[i] + sum(thisLambda[thisValue1 >= thisCrit] * (thisValue1[thisValue1 >= thisCrit] - thisCrit[thisValue1 >= thisCrit]) / thisRange[thisValue1 >= thisCrit], na.rm=TRUE)
+				if (featType=='reverse hinge') S[i] <- S[i] + sum(thisLambda[thisValue1 < thisCrit] * (thisCrit[thisValue1 < thisCrit] - thisValue1[thisValue1 < thisCrit]) / thisRange[thisValue1 < thisCrit], na.rm=TRUE)
+				# if (featType=='reverse hinge') S[i] <- S[i] + sum(thisLambda[thisValue1 < thisCrit] * (thisCrit[thisValue1 < thisCrit] - thisValue1[thisValue1 < thisCrit]) / thisRange[thisValue1 < thisCrit], na.rm=TRUE)
 				
 				
-				if (featType=='threshold') S[i] <- S[i] + sum(thisLambda[which(thisValue1 > thisCrit)], na.rm=T)
+				if (featType=='threshold') S[i] <- S[i] + sum(thisLambda[which(thisValue1 > thisCrit)], na.rm=TRUE)
 
 			}
 			
@@ -357,4 +352,3 @@ predictMaxEnt <- function(
 	out
 
 }
-

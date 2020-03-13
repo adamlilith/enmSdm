@@ -1,3 +1,6 @@
+enmSdm 0.5.0.0
+Fix bug in predictMaxEnt()
+
 enmSdm 0.4.0.5
 trainMaxEnt() and trainMaxNet() internals harmonized
 Made sensible examples for trainXXX() functions
