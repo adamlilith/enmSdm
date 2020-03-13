@@ -33,6 +33,7 @@
 #' # occurrence data
 #' occs <- lemurs[lemurs$species == 'Eulemur rubriventer', ]
 #' occsEnv <- raster::extract(clim, occs[ , c('longitude', 'latitude')])
+#' occsEnv <- as.data.frame(occsEnv) # need to do this for prediction later
 #' 
 #' # background sites
 #' bg <- 2000 # too few cells to locate 10000 background points
@@ -79,6 +80,11 @@
 #' plot(mapNet, main='MaxNet')
 #' points(occs[ , c('longitude', 'latitude')])
 #'
+#' # predictions to occurrences
+#' (dismo::predict(ent, occsEnv, args=c('outputformat=logistic')))
+#' (enmSdm::predictMaxEnt(ent, occsEnv, type='logistic'))
+#' (c(predict(net, occsEnv, type='logistic')))
+#' 
 #' # note the differences between the tuning of the two models...
 #' # this is because maxnet() (used by trainMaxNet())
 #' # uses an approximation:
@@ -164,14 +170,14 @@ trainMaxEnt <- function(
 	# create df of 1/0 to indicate each combination of classes to test
 	if (testClasses) {
 		classGrid <- expand.grid(rep(list(c(1, 0)), length(classesToTest)))
-		classGrid <- classGrid[-which(rowSums(classGrid) == 0), ]
+		classGrid <- classGrid[-which(rowSums(classGrid) == 0), , drop=FALSE]
 	} else {
 		classGrid <- data.frame(matrix(rep(1, length(classesToTest)), nrow=1))
 	}
 
 	names(classGrid) <- classesToTest
 
-	if (forceLinear & any(classGrid$l == 0)) classGrid <- classGrid[-which(classGrid$l == 0), ]
+	if (forceLinear & any(classGrid$l == 0)) classGrid <- classGrid[-which(classGrid$l == 0), , drop=FALSE]
 
 	##########
 	## MAIN ##
