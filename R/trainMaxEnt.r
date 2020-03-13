@@ -164,14 +164,14 @@ trainMaxEnt <- function(
 	# create df of 1/0 to indicate each combination of classes to test
 	if (testClasses) {
 		classGrid <- expand.grid(rep(list(c(1, 0)), length(classesToTest)))
-		classGrid <- classGrid[-which(rowSums(classGrid) == 0), ]
+		classGrid <- classGrid[-which(rowSums(classGrid) == 0), , drop=FALSE]
 	} else {
 		classGrid <- data.frame(matrix(rep(1, length(classesToTest)), nrow=1))
 	}
 
 	names(classGrid) <- classesToTest
 
-	if (forceLinear & any(classGrid$l == 0)) classGrid <- classGrid[-which(classGrid$l == 0), ]
+	if (forceLinear & any(classGrid$l == 0)) classGrid <- classGrid[-which(classGrid$l == 0), , drop=FALSE]
 
 	##########
 	## MAIN ##
