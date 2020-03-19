@@ -1,6 +1,12 @@
 #' Local characteristic distance of spatial autocorrelation for variables
 #'
-#' This function calculates the range of spatial autocorrelation for a set of predictors at a set of sites. Input can be a raster or raster stack, in which case the output is a raster stack, one layer per layer of input, with cell values equal to the characteristic distance of spatial autocorrelation for each cell.  Alternatively, input can be a raster and a matrix, data frame, SpatialPoints, or SpatialPoointsDataFrame object, in which case the output will be a matrix, data frame, or SpatialPointsDataFrame with the characteristic distance of spatial autocorrelation for each layer in the raster set at each point. Finally, input can simply be a matrix, data frame, of SpatialPointsDataFrame in which case the scale of autocorrelation is calculated using data from the sites, with output format matching the input format. See \emph{Details} for information on how the characteristic scale of spatial autocorrelation is estimated. This function is related to \code{\link[enmSdm]{spatialCorrForPoints}} which calculates spatial autocorrelation for distances between points, whereas this function calculates spatial autocorrelation for measurements taken at points (or raster cell centers).
+#' This function calculates the range of spatial autocorrelation for a set of predictors at a set of sites. The output is determined by the type of input:
+#' \itemize{
+#' 		\item If the input is raster or raster stack, the output is a raster stack, one layer per layer of input, with cell values equal to the characteristic distance of spatial autocorrelation for each cell.
+#' 		\item If input is a raster \emph{and} a matrix, data frame, \code{SpatialPoints}, or \code{SpatialPointsDataFrame} object, the output will be a matrix, data frame, or \code{SpatialPointsDataFrame} with the characteristic distance of spatial autocorrelation for each layer in the raster set at each point.
+#' 		\item If input is just a single matrix, data frame, or \code{SpatialPointsDataFrame}, output will reflect the scale of autocorrelation using data at just the sites represented by the input. The output format be the same as the input format.
+#' }
+#' See \emph{Details} for information on how the characteristic scale of spatial autocorrelation is estimated. This function is related to \code{\link[enmSdm]{spatialCorrForPoints}} which calculates spatial autocorrelation for distances between points. However, this function calculates spatial autocorrelation for numeric-valued \emph{measurements} taken at points (or raster cell centers).
 #' @param x Either a raster, raster stack/brick, matrix with column names, data frame, or SpatialPointsDataFrame. If you use a matrix or data frame then the first two columns will be assumed to represent longitude and latitude, in that order, and their coordinate reference system will be assumed to be WGS84 (unprojected).
 #' @param focal This has various uses depending on the type of object specified for \code{x}:
 #' \itemize{
@@ -31,7 +37,7 @@
 #' Note that this measure of spatial autocorrelation assumes anisotropy, meaning that from a given focal site the characteristic distance of spatial autocorrelation is the same in all directions.
 #' @seealso \code{\link[enmSdm]{spatialCorrForPoints}}
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # get rasters for mean annual temperature and total precipitation
 #' worldClim <- raster::getData('worldclim', var='bio', res=10)
 #' worldClim <- raster::subset(worldClim, c(1, 12))
@@ -44,6 +50,7 @@
 #' madRast <- raster::rasterize(mad0, madClim)
 #' madClim <- madClim * madRast
 #' names(madClim) <- c('bio1', 'bio12')
+#' madClim[['bio1']] <- madClim[['bio1']] / 10 # to deg C
 #' 
 #' ### spatial autocorrelation for raster (can take a long time!)
 #' sacRast <- localSpatialCorrForValues(x=madClim, focal=NULL)
@@ -57,7 +64,7 @@
 #' raster::plot(sacRast[['bio12']], main='BIO 12\nDistance (km)')
 #' 
 #' ### spatial autocorrelation for spatial points
-#' # faster than others, but still takes a while
+#' # faster than rasters, but still takes a while
 #' set.seed(123)
 #' x <- dismo::randomPoints(madClim, 200)
 #' env <- raster::extract(madClim, x)
@@ -71,53 +78,78 @@
 #' sacBio1 <- 4 * sacPoints$sacDistMid_bio1 / maxSacBio1
 #' sacBio12 <- 4 * sacPoints$sacDistMid_bio12 / maxSacBio12
 #' 
+#' # plot: notice points along transitional zones
+#' # have smaller distances, as expected
 #' par(mfrow=c(1, 2))
 #' leg <- '\n(small: short dist, large: long dist)'
 #' sp::plot(mad0, main=paste0('BIO 01', leg))
+#' raster::plot(madClim[['bio1']], add=TRUE)
 #' points(sacPoints, pch=1, cex=sacBio1, col='red')
 #' sp::plot(mad0, main=paste0('BIO 12', leg))
+#' raster::plot(madClim[['bio12']], add=TRUE)
 #' points(sacPoints, pch=1, cex=sacBio12, col='blue')
-#'
+#' #'
 #' par(mfrow=c(1, 1))
 #' maxDist <- max(c(sacPoints$sacDistMid_bio1, sacPoints$sacDistMid_bio12),
-#' 	na.rm=TRUE)
-#' hist(sacPoints$sacDistMid_bio1, col='red', xlim=c(0, maxDist), breaks=12)
-#' hist(sacPoints$sacDistMid_bio12, border='blue', breaks=12, add=TRUE)
+	#' na.rm=TRUE)
+#' yMax <- max(
+	#' hist(sacPoints$sacDistMid_bio1, breaks=10, plot=FALSE)$counts,
+#' 	hist(sacPoints$sacDistMid_bio12, breaks=10, plot=FALSE)$counts
+#' )
+#' 
+#' hist(sacPoints$sacDistMid_bio1, col='red', xlim=c(0, maxDist),
+	#' ylim=c(0, yMax), breaks=10, xlab='Distance (m)')
+#' hist(sacPoints$sacDistMid_bio12, border='blue', breaks=10, density=10,
+	#' add=TRUE)
+#' legend('topleft', inset=0.01, legend=c('BIO1', 'BIO12'), fill=c('red', NA),
+	#' density=c(NA, 15), border=c('black', 'blue'))
+#' 	
 #' 
 #' ### spatial autocorrelation for spatial points using raster as reference
-#' # can take a long time!
-#' data(lemur)
-#' sacLemur <- localSpatialCorrForValues(x=madClim, focal=lemur)
+#' data(lemurs)
+#' lemur <- lemurs[lemurs$species == 'Eulemur rufifrons',
+	#' c('longitude', 'latitude')]
+#' 	
+#' # remove record in water
+#' lemurBio1 <- raster::extract(madClim[['bio1']], lemur)
+#' nas <- which(is.na(inWater))
+#' lemur <- lemur[-nas, ]
+#' 
+#' sacLemur <- localSpatialCorrForValues(x=madClim, focal=lemur, breaks=10)
 #' 
 #' # plot: code point color by characteristic distance of spatial autocorrelation
-#' maxSacBio1 <- max(sacLemur$sacDistMid_bio1, na.rm=TRUE)
-#' maxSacBio12 <- max(sacLemur$sacDistMid_bio1, na.rm=TRUE)
-#' grayBio1 <- 100 - round(100 * sacLemur$sacDistMid_bio1 / maxSacBio1)
-#' grayBio12 <- 100 - round(100 * sacLemur$sacDistMid_bio12 / maxSacBio12)
+#' bio1SacScaled <- 
+	#' round(100 * omnibus::stretchMinMax(sacLemur$sacDistMid_bio1))
+#' bio12SacScaled <-
+	#' round(100 * omnibus::stretchMinMax(sacLemur$sacDistMid_bio12))
+#' 
+#' grayBio1 <- paste0('gray', bio1SacScaled)
+#' grayBio12 <- paste0('gray', bio12SacScaled)
 #' 
 #' par(mfrow=c(1, 2))
 #' leg <- '\n(dark: short dist, light: long dist)'
 #' raster::plot(madClim[['bio1']], cex=1.2, main=paste0('BIO 01', leg))
-#' points(lemur, pch=21, bg=paste0('gray', grayBio1))
+#' points(lemur, pch=21, bg=grayBio1)
 #' raster::plot(madClim[['bio12']], cex=1.2, main=paste0('BIO 12', leg))
-#' points(lemur, pch=21, bg=paste0('gray', grayBio12))
+#' points(lemur, pch=21, bg=grayBio12)
 #' 
 #' # plot buffers showing characteristic distance of spatial autocorrelation
 #' # around each point
 #' sacLemurEa <- sp::spTransform(sacLemur, getCRS('mollweide', TRUE))
 #' buffsBio1Ea <- rgeos::gBuffer(sacLemurEa, byid=TRUE,
-#' 		width=sacLemurEa$sacDistMid_bio1)
+		#' width=sacLemurEa$sacDistMid_bio1)
 #' buffsBio12Ea <- rgeos::gBuffer(sacLemurEa, byid=TRUE,
-#' 		width=sacLemurEa$sacDistMid_bio12)
+		#' width=sacLemurEa$sacDistMid_bio12)
 #' buffsBio1 <- sp::spTransform(buffsBio1Ea, getCRS('wgs84', TRUE))
 #' buffsBio12 <- sp::spTransform(buffsBio1Ea, getCRS('wgs84', TRUE))
 #' par(mfrow=c(1, 2))
 #' raster::plot(madClim[['bio1']], main=paste0('BIO 01', leg))
 #' sp::plot(buffsBio1, add=TRUE)
-#' points(lemur, pch=21, bg=paste0('gray', grayBio1))
+#' points(lemur, pch=21, bg=grayBio1)
 #' raster::plot(madClim[['bio12']], main=paste0('BIO 12', leg))
 #' sp::plot(buffsBio12, add=TRUE)
-#' points(lemur, pch=21, bg=paste0('gray', grayBio12))
+#' points(lemur, pch=21, bg=grayBio12)
+#' 
 #' }
 #' @export
 
@@ -138,7 +170,7 @@ localSpatialCorrForValues <- function(
 
 	# generate common working objects
 	# "refs" is set of reference points and associated data
-	# "focal" is set of points focal which to calculate SAC plus associated data
+	# "focal" is set of points at which to calculate SAC plus associated data
 	# note these may be the same set of points, depending on the input types
 	if (any(c('RasterLayer', 'RasterStack', 'RasterBrick') %in% class(x))) {
 
@@ -169,14 +201,16 @@ localSpatialCorrForValues <- function(
 			focal <- focal[ , 1:2]
 			focal <- SpatialPoints(focal, crs)
 			vals <- raster::extract(x, focal)
+			vals <- as.data.frame(vals)
 			colnames(vals) <- names(x)
-			focal <- sp::SpatialPointsDataFrame(focal, data=vals, crs)
+			focal <- sp::SpatialPointsDataFrame(focal, data=vals, proj4string=crs)
 		
 		} else if ('SpatialPoints' %in% class(focal)) {
 		
 			crs <- sp::CRS(raster::projection(focal))
 
 			vals <- raster::extract(x, focal)
+			vals <- as.data.frame(vals)
 			colnames(vals) <- names(x)
 			focal <- sp::SpatialPointsDataFrame(focal, data=vals, crs)
 			
