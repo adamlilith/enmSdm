@@ -1,3 +1,6 @@
+enmSdm 0.5.0.1
+Fix bug in spatialCorrForValues()
+
 enmSdm 0.5.0.0
 Fix bug in predictMaxEnt()
 

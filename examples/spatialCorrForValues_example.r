@@ -10,8 +10,8 @@
 #' # remove non-Malagasy islands
 #' madRast <- raster::rasterize(mad0, madClim)
 #' madClim <- madClim * madRast
-#' madClim[['bio1']] <- madClim[['bio1']] / 10 # to deg C
 #' names(madClim) <- c('bio1', 'bio12')
+#' madClim[['bio1']] <- madClim[['bio1']] / 10 # to deg C
 #' 
 #' ### spatial autocorrelation for raster (can take a long time!)
 #' sacRast <- localSpatialCorrForValues(x=madClim, focal=NULL)
