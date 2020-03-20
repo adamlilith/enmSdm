@@ -73,7 +73,7 @@
 #' 	
 #' # remove record in water
 #' lemurBio1 <- raster::extract(madClim[['bio1']], lemur)
-#' nas <- which(is.na(inWater))
+#' nas <- which(is.na(lemurBio1))
 #' lemur <- lemur[-nas, ]
 #' 
 #' sacLemur <- localSpatialCorrForValues(x=madClim, focal=lemur, breaks=10)
