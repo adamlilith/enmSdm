@@ -5,7 +5,7 @@
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param family Name of family for data error structure (see \code{\link[stats]{family}}).
-#' @param df Integer > 0 OR \code{NULL}. Sets flexibility of model fit. See documentation for \code{ns()}.
+#' @param df Integer > 0 OR \code{NULL}. Sets flexibility of model fit. See documentation for \code{\link[splines]{ns}}.
 #' @param construct Logical. If TRUE then construct model by computing AICc for all univariate and bivariate models. Then add terms up to maximum set by \code{presPerTermInitial} and \code{initialTerms}.
 #' @param select Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).
 #' @param presPerTermInitial Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is \code{TRUE}.
