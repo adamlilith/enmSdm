@@ -173,7 +173,7 @@ bioticVelocity <- function(
 		# total number of time periods
 		totalTimes <- if ('array' %in% xClass) {
 			dim(x)[3]
-		} else if ('RasterStack' %in% xClass) {
+		} else if (xClass %in% c('RasterStack', 'RasterBrick')) {
 			raster::nlayers(x)
 		} else if ('list' %in% xClass) {
 			ncol(x$Nvecs)

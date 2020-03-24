@@ -30,7 +30,7 @@ trainNs(
 
 \item{family}{Name of family for data error structure (see \code{\link[stats]{family}}).}
 
-\item{df}{Integer > 0 OR \code{NULL}. Sets flexibility of model fit. See documentation for \code{ns()}.}
+\item{df}{Integer > 0 OR \code{NULL}. Sets flexibility of model fit. See documentation for \code{\link[splines]{ns}}.}
 
 \item{construct}{Logical. If TRUE then construct model by computing AICc for all univariate and bivariate models. Then add terms up to maximum set by \code{presPerTermInitial} and \code{initialTerms}.}
 

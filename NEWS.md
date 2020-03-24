@@ -1,3 +1,6 @@
+enmSdm 0.5.0.2
+Fix bug in bioticVelocity()
+
 enmSdm 0.5.0.1
 Fix bug in spatialCorrForValues()
 
