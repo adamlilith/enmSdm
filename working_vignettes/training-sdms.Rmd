@@ -1,5 +1,6 @@
 ---
 title: "Calibrating species distribution models"
+author: "Adam B. Smith | Missouri Botanical Garden"
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -288,7 +289,7 @@ predictions <- predictEnmSdm(out, newdata=presBg)
 ```
 
 #Maxent
-Maximization of information entrop is a statistical method for finding probability distributions that reflect only--and no more than--what is known. The Maxent species distribution model first finds the probability of each environmental variable (or a transformation thereof) given a presence, then uses Bayes' theorem to inver the probabiliy to yield a prediction of the probability of presence (or an index thereof; Phillips et al. 2006; Phillips & Dudík 2008). For further reading on how Maxent works see Elith et al. (2011), Merow et al. (2013), and Phillips et al. (2017).
+Maximization of information entrop is a statistical method for finding probability distributions that reflect only--and no more than--what is known. The Maxent species distribution model first finds the probability of each environmental variable (or a transformation thereof) given a presence, then uses Bayes' theorem to inver the probabiliy to yield a prediction of the probability of presence (or an index thereof; Phillips et al. 2006; Phillips & Dud?k 2008). For further reading on how Maxent works see Elith et al. (2011), Merow et al. (2013), and Phillips et al. (2017).
 
 Maxent uses several tunable parameters and settings, including a "master regularization" parameter which controls the complexity (smoothness) of models and whethhr or not different transformations of predictors are used. The latter include linear, quadratic, and two-way interactions, plus hinge transformations (i.e., a flat line, then a linear increase or decrease, followed by a flat line again) and threshold transformatons (i.e., a flat line, then a "step" up or down followed by a flat line again). Maxent also allows for categorical variables. Maxent only uses categorical variables to estimate offsets from a model-wide intercept (i.e., you can't use a categorical variable interacting with a continuous variable).
 
@@ -378,15 +379,15 @@ Breiman, L. 2001. Random forests. __Machine Learning__ 45:5-32.
 
 Elith, J., J.R. Leathwick, and T. Hastie.  2008.  A working guide to boosted regression trees.  __Journal of Animal Ecology__ 77:802-813.
 
-Elith, J., S.J. Phillips, T. Hastie, M. Dudík, Y.E. Chee, and C.J. Yates.  2011.  A statistical explanation of MaxEnt for ecologists.  __Diversity and Distributions__ 17:43-57.
+Elith, J., S.J. Phillips, T. Hastie, M. Dud?k, Y.E. Chee, and C.J. Yates.  2011.  A statistical explanation of MaxEnt for ecologists.  __Diversity and Distributions__ 17:43-57.
 
 Merow, C., Smith, M.J., and Silander, J.A. Jr.  2013.  A practical guide to MaxEnt for modeling species' distributions: What it does, and why inputs and settings matter.  __Ecography__ 36:1058-1069.
 
-Phillips, S.J. and Dudík, M.  2008.  Modeling species distributions with Maxent: New extensions and a comprehensive evaluation. __Ecography__ 31:161-175.
+Phillips, S.J. and Dud?k, M.  2008.  Modeling species distributions with Maxent: New extensions and a comprehensive evaluation. __Ecography__ 31:161-175.
 
 Phillips, S.J., Anderson, R.P., and Schapire, R.E.  2006.  Maximum entropy modeling of species geographic distributions. __Ecological Modelling__ 190:231-259.
 
-Phillips, S.J., Anderson, R.P., Dudík, M. Schapire, R.E., and Blair, M.E.  2017.  Opening the black box: An open-source release of Maxent. __Ecography__ 40:887-893.
+Phillips, S.J., Anderson, R.P., Dud?k, M. Schapire, R.E., and Blair, M.E.  2017.  Opening the black box: An open-source release of Maxent. __Ecography__ 40:887-893.
 
 Firth, D. 1993. Bias reduction of maximum likelihood estimates. __Biometrika__ 80:27-38. (Note correction in __Biometrika__ 1995.)
 
