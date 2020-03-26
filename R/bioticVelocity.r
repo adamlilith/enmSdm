@@ -3,11 +3,11 @@
 #' This function calculates several metrics of biotic velocity for a stack of rasters, an array representing a gridded landscape, or a "pops" (list) object.
 #' @param x Either a \code{RasterStack}, a 3-dimensional array, or list representing colonization histories (a "pops" object). Regardless of the class of \code{x}, it is assumed values representing the entity for which to calculate velocities are either \code{NA} or >= 0 (i.e., no negative population size).
 #' \itemize{
-#' 	\item If \code{x} is a RasterStack then each raster is assumed to represent a time slice and the rasters \emph{must} be in an equal-area projection.
+#' 	\item If \code{x} is a \code{RasterStack} then each raster is assumed to represent a time slice and the rasters \emph{must} be in an equal-area projection.
 #' 	\item If \code{x} is an array then each matrix in the third dimension is assumed to represent a map at a particular time slice in an equal-area projection. Note that if this is an array you can also specify the arguments \code{longitude} and \code{latitude}.
 #'  \item If \code{x} is a list (a "pops" object), then it is assumed to have at minimum the field \code{x$Nvecs}. To ensure velocities are in spatial units (usually meters--as opposed to arbitrary units), it must have the fields \code{x$pophist$longitude} and \code{x$pophist$latitude} (if not, then it must have It must also have \code{x$pophist$row} and \code{x$pophist$col}). To ensure velocities are in units of time (vs arbitrary units) it also needs \code{x$pophist$time}.
 #' }
-#' @param times Numeric vector \emph{or} \code{NULL} (default). This specifies the time period represented by each layer in \code{x}. Times \emph{must} appear in sequential order. For example, if time periods are 24 kybp, 23 kybp, 22 kypb, use \code{c(-24, -23, -22)}, \emph{not} \code{c(24, 23, 22)}. If \code{NULL} (default), default values are assigned:
+#' @param times Numeric vector \emph{or} \code{NULL} (default). This specifies the time period represented by each layer in \code{x}. Times \emph{must} appear in sequential order. For example, if time periods are 24 kybp, 23 kybp, 22 kybp, use \code{c(-24, -23, -22)}, \emph{not} \code{c(24, 23, 22)}. If \code{NULL} (default), default values are assigned:
 #' \itemize{
 #'	\item If \code{x} is a \code{RasterStack} and \code{times} is \code{NULL}, then \code{times} will be assigned values starting at 1 and ending at the total number of rasters in \code{x}. Alternatively, you can supply a numeric vector with the same number of values as layers in \code{x}.
 #'	\item If \code{x} is an array and \code{times} is \code{NULL}, then \code{times} will be assigned values starting at 1 and ending at \code{dim(x)[3]}. Alternatively, you can supply a numeric vector with the same number of values as layers in the third dimension of \code{x}.
@@ -37,6 +37,7 @@
 #'  \item \code{prevalence}: Number of cells with values > 0 (this is not really a measure of "velocity").
 #' }
 #' @param quants Numeric vector indicating the quantiles at which biotic velocity is calculated for the "quant" and "Quants" metrics. Default is \code{c(0.05, 0.10, 0.5, 0.9, 0.95)}.
+#' @param onlyInSharedCells Logical, if \code{TRUE}, calculate biotic velocity using only those cells that are not \code{NA} in the start and end of each time period. This is useful for controlling for shifting land mass due to sea level rise, for example, when calculating biotic velocty for an ecosystem or a species.  The default is \code{FALSE}.
 #' @param warn Logical, if \code{TRUE} then display function-specific warnings.
 #' @param ... Other arguments (not used).
 #' @return A data frame with biotic velocities. Fields are as follows:
@@ -58,25 +59,27 @@
 #' }
 #' @details This function may yield erroneous velocities if the region of interest is near a pole and will yield erroneous results if the region spans the international date line. It converts rasters to arrays before doing calculations, so using very large rasters may yield slow performance and may not even work, depending on memory requirements.
 #' @examples
+#' ### setup for all examples
+#' ##########################
+#' 
 #' # simulate species starting at center of map
 #' # will be using a spatially Gaussian distribution
 #' # that uses only longitude and latitude as predictors
 #' gauss <- function(x1, x2, mu1=0, mu2=0, sigma1=1, sigma2=0, rho=0) {
 #' 
-#' 	first <- ((x1 - mu1) / sigma1)^2
-#' 	prod <- ((2 * rho * (x1 - mu1) * (x2 - mu2)) / (sigma1 * sigma2))
-#' 	second <- ((x2 - mu2) / sigma2)^2
-#' 	denom <- 2 * (1 - rho^2)
+#'		first <- ((x1 - mu1) / sigma1)^2
+#'		prod <- ((2 * rho * (x1 - mu1) * (x2 - mu2)) / (sigma1 * sigma2))
+#'		second <- ((x2 - mu2) / sigma2)^2
+#'		denom <- 2 * (1 - rho^2)
 #' 
-#' 	inside <- first - prod + second
-#' 	inside <- (-1 * inside) / denom
-#' 	
-#' 	expo <- exp(inside)
-#' 	
-#' 	expo
-#' 	
+#'		inside <- first - prod + second
+#'		inside <- (-1 * inside) / denom
+#' 
+#'		expo <- exp(inside)
+#'		expo
+#' 
 #' }
-#'
+#' 
 #' r <- raster()
 #' r[] <- 1
 #' mollweide <- enmSdm::getCRS('mollweide', TRUE)
@@ -117,15 +120,18 @@
 #' 	rho=-0.5)
 #' 	
 #' rasts <- raster::stack(species_t0, species_t1, species_t2, species_t3,
-#' 	species_t4, species_t5, species_t6, species_t7, species_t8,
+#' species_t4, species_t5, species_t6, species_t7, species_t8,
 #' 	species_t10, species_t11, species_t12)
 #' times <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12)
 #' names(rasts) <- paste0('t', times)
 #' plot(rasts)
 #' 
+#' ### example with stationary land mass
+#' #####################################
+#' 
 #' # across just start and end time periods
 #' (vels <- bioticVelocity(rasts, times=times, atTimes=c(0, 12),
-#' 	metrics='centroid'))
+#' metrics='centroid'))
 #' 
 #' # across each time interval
 #' (vels <- bioticVelocity(rasts, times=times, metrics='centroid'))
@@ -140,18 +146,61 @@
 #' 
 #' for (i in 1:(nrow(vels) - 1)) {
 #' 
-#' 	x1 <- vels$centroidLong[i]
-#' 	y1 <- vels$centroidLat[i]
-#' 	x2 <- vels$centroidLong[i + 1]
-#' 	y2 <- vels$centroidLat[i + 1]
-#' 	
-#' 	move <- sqrt((x1 - x2)^2 + (y1 - y2)^2)
-#' 	if (move > 10) arrows(x1, y1, x2, y2, angle=15, length=0.05)
+#' x1pos <- vels$centroidLong[i]
+#' y1pos <- vels$centroidLat[i]
+#' x2pos <- vels$centroidLong[i + 1]
+#' y2pos <- vels$centroidLat[i + 1]
+#' 
+#' 	move <- sqrt((x1pos - x2pos)^2 + (y1pos - y2pos)^2)
+#' if (move > 10) arrows(x1pos, y1pos, x2pos, y2pos, angle=15, length=0.05)
 #' 
 #' }
 #' 
 #' # all metrics
 #' (vels <- bioticVelocity(x=rasts, times=times))
+#' 
+#' ### example with shifting land mass
+#' ###################################
+#' 
+#' species_t0 <- gauss(x1=x1, x2=x2, sigma1=s1, sigma2=s2)
+#' rasts <- stack(species_t0, species_t0, species_t0, species_t0, species_t0)
+#' # simulated population trajectory:
+#' # time 0 to 1: species no change, lose eastward land
+#' # time 1 to 2: species no change, lose southward land
+#' # time 2 to 3: species no change, gain southward land
+#' # time 3 to 4: species no change, reset land to t0
+#' 
+#' # create masks
+#' ext <- extent(species_t0)
+#' 
+#' long <- ext@xmin + 0.55 * (ext@xmax - ext@xmin)
+#' longMask <- extent(long, ext@xmax, ext@ymin, ext@ymax)
+#' longMask <- as(longMask, 'SpatialPolygons')
+#' projection(longMask) <- projection(species_t0)
+#' 
+#' lat <- ext@ymin + 0.45 * (ext@ymax - ext@ymin)
+#' latMask <- extent(ext@xmin, ext@xmax, lat, ext@ymax)
+#' latMask <- as(latMask, 'SpatialPolygons')
+#' projection(latMask) <- projection(species_t0)
+#' 
+#' species_t1s <- mask(species_t0, longMask, inverse=TRUE) # lose eastward
+#' species_t2s <- mask(species_t1s, latMask1) # lose southward
+#' species_t3s <- species_t1s # gain southward
+#' species_t4s <- species_t0s # gain eastward
+#' 
+#' rasts <- stack(species_t0s, species_t1s, species_t2s, species_t3s,
+#' species_t4s)
+#' 
+#' plot(rasts)
+#' 
+#' # is this what you want? could be considered an artifact, could
+#' # be considered "true" biotic velocity... range shift is extrinsic
+#' (vels <- bioticVelocity(x=rasts, times=0:4, metrics=c('centroid', 'mean')))
+#' 
+#' # calculate velocity only for cells shared by start and end rasters
+#' # in each time step
+#' (vels <- bioticVelocity(x=rasts, times=0:4, metrics=c('centroid', 'mean'),
+#' onlyInSharedCells=TRUE))
 #' @export
 bioticVelocity <- function(
 	x,
@@ -161,6 +210,7 @@ bioticVelocity <- function(
 	latitude = NULL,
 	metrics = c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentroid', 'eCentroid', 'wCentroid', 'nsQuants', 'ewQuants', 'mean', 'quants', 'prevalence'),
 	quants = c(0.05, 0.10, 0.5, 0.9, 0.95),
+	onlyInSharedCells = FALSE,
 	warn = TRUE,
 	...
 ) {
@@ -213,7 +263,7 @@ bioticVelocity <- function(
 	################
 		
 		if (length(times) != totalTimes) stop('The length of "times" does not match the total number of time periods represented by "x".')
-		if (!all(atTimes %in% times)) stop ('All time slices specified in "atTimes" must also be in "times".')
+		if (!all(atTimes %in% times)) stop ('All time slices specified in "atTimes" must also appear in "times".')
 
 	### convert input to array and get geographic information
 	#########################################################
@@ -282,34 +332,38 @@ bioticVelocity <- function(
 
 		x1 <- x[ , , 1]
 
+		# correction for shared non-NA cells with next time period
+		x2mask <- if (onlyInSharedCells) {
+			!is.na(x[ , , 2])
+		} else {
+			matrix(1, nrow=nrow(x), ncol=ncol(x))
+		}
+		
+		x1 <- x1 * x2mask
+			
 		# weighted longitude/latitude... used for centroid calculations for velocities
 		if (any(c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentriod', 'eCentroid', 'wCentroid') %in% metrics)) {
-			
-			# mask longitude/latitude by NA cases in weights
-			x1maskedLong <- longitude * !is.na(x1)
-			x1maskedLat <- latitude * !is.na(x1)
-			
-			# weight longitude/latitude
-			x1weightedLongs <- x1maskedLong * x1
-			x1weightedLats <- x1maskedLat * x1
 
-			x1centroidLong <- sum(x1weightedLongs, na.rm=TRUE) / sum(x1, na.rm=TRUE)
-			x1centroidLat <- sum(x1weightedLats, na.rm=TRUE) / sum(x1, na.rm=TRUE)
-			
-			if (any(c('nCentroid', 'sCentroid', 'eCentroid', 'wCentroid') %in% metrics)) {
-			
-				x1sum <- sum(x1, na.rm=TRUE)
-				x2centroidLong <- sum(x1weightedLongs, na.rm=TRUE) / x1sum
-				x2centroidLat <- sum(x1weightedLats, na.rm=TRUE) / x1sum
-			
-			}
+			# weight longitude/latitude
+			x1weightedLongs <- longitude * x1
+			x1weightedLats <- latitude * x1
+
+			# centroid
+			x1sum <- sum(x1, na.rm=TRUE)
+			x1centroidLong <- sum(x1weightedLongs, na.rm=TRUE) / x1sum
+			x1centroidLat <- sum(x1weightedLats, na.rm=TRUE) / x1sum
 			
 		}
 
+	### if NOT correcting for shared non-NA cells, generate "correction" (has no effect)
+	####################################################################################
+	
+		if (!onlyInSharedCells) ones <- matrix(1, nrow=nrow(x), ncol=ncol(x))
+		
 	### calculate velocities
 	########################
 	
-		# output: data frame with on column per metric
+		# output: data frame with one column per metric
 		out <- data.frame()
 		
 		indicesFrom <- 1:(length(atTimes) - 1)
@@ -323,35 +377,49 @@ bioticVelocity <- function(
 			timeSpan <- timeTo - timeFrom
 			
 			### remember
-			timeSpan <- timeTo - timeFrom
-			
 			thisOut <- data.frame(
 				timeFrom = timeFrom,
 				timeTo = timeTo,
 				timeSpan = timeSpan
 			)
-			
-			### "to" layer
+				
+			### get start time/end period layers and correct for shared non-NA cells
+			x1 <- x[ , , indexFrom]
 			x2 <- x[ , , indexFrom + 1]
 
-			# weighted longitude/latitude... used for centroid calculations for velocities
+			# correction for shared non-NA cells with next time period
+			if (onlyInSharedCells) {
+				x1mask <- !is.na(x1)
+				x2mask <- !is.na(x2)
+			} else {
+				x1mask <- x2mask <- ones
+			}
+			
+			x1 <- x1 * x2mask
+			x2 <- x2 * x1mask
+					
+			### weighted longitude/latitude... used for centroid calculations for velocities
 			if (any(c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentriod', 'eCentroid', 'wCentroid') %in% metrics)) {
 
-				# mask longitude/latitude by NA cases in weights
-				x2maskedLong <- longitude * !is.na(x2)
-				x2maskedLat <- latitude * !is.na(x2)
-				
 				# weight longitude/latitude
-				x2weightedLongs <- x2maskedLong * x2
-				x2weightedLats <- x2maskedLat * x2
-						
+				x1weightedLongs <- longitude * x1
+				x1weightedLats <- latitude * x1
+
+				x2weightedLongs <- longitude * x2
+				x2weightedLats <- latitude * x2
+
+				# centroid
+				x1sum <- sum(x1, na.rm=TRUE)
+				x1centroidLong <- sum(x1weightedLongs, na.rm=TRUE) / x1sum
+				x1centroidLat <- sum(x1weightedLats, na.rm=TRUE) / x1sum
+				
 				x2sum <- sum(x2, na.rm=TRUE)
 				x2centroidLong <- sum(x2weightedLongs, na.rm=TRUE) / x2sum
 				x2centroidLat <- sum(x2weightedLats, na.rm=TRUE) / x2sum
 				
 			}
-			
-			### weighted centroid
+
+			### weighted centroid metric
 			if ('centroid' %in% metrics) {
 
 				metric <- .euclid(x1centroidLong, x1centroidLat, x2centroidLong, x2centroidLat)
@@ -638,7 +706,7 @@ bioticVelocity <- function(
 			### prevalence
 			if ('prevalence' %in% metrics) {
 			
-				metric <- sum(x2 > 0, na.rm=TRUE) / sum(!is.na(x2))
+				metric <- sum(x2 > 0, na.rm=TRUE) / sum(!is.na(x2 * x1mask))
 				
 				thisOut <- cbind(
 					thisOut,
@@ -648,20 +716,6 @@ bioticVelocity <- function(
 					row.names=NULL
 				)
 				
-			}
-			
-			### re-assign to obviate re-calculation
-			x1 <- x2
-			
-			# weighted longitude/latitude... used for centroid calculations for velocities
-			if (any(c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentriod', 'eCentroid', 'wCentroid') %in% metrics)) {
-
-				x1weightedLongs <- x2weightedLongs
-				x1weightedLats <- x2weightedLats
-				
-				x1centroidLong <- x2centroidLong
-				x1centroidLat <- x2centroidLat
-
 			}
 
 			### remember
