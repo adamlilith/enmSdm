@@ -13,6 +13,7 @@ bioticVelocity(
   metrics = c("centroid", "nsCentroid", "ewCentroid", "nCentroid", "sCentroid",
     "eCentroid", "wCentroid", "nsQuants", "ewQuants", "mean", "quants", "prevalence"),
   quants = c(0.05, 0.1, 0.5, 0.9, 0.95),
+  onlyInSharedCells = FALSE,
   warn = TRUE,
   ...
 )
@@ -20,12 +21,12 @@ bioticVelocity(
 \arguments{
 \item{x}{Either a \code{RasterStack}, a 3-dimensional array, or list representing colonization histories (a "pops" object). Regardless of the class of \code{x}, it is assumed values representing the entity for which to calculate velocities are either \code{NA} or >= 0 (i.e., no negative population size).
 \itemize{
-    \item If \code{x} is a RasterStack then each raster is assumed to represent a time slice and the rasters \emph{must} be in an equal-area projection.
+    \item If \code{x} is a \code{RasterStack} then each raster is assumed to represent a time slice and the rasters \emph{must} be in an equal-area projection.
     \item If \code{x} is an array then each matrix in the third dimension is assumed to represent a map at a particular time slice in an equal-area projection. Note that if this is an array you can also specify the arguments \code{longitude} and \code{latitude}.
  \item If \code{x} is a list (a "pops" object), then it is assumed to have at minimum the field \code{x$Nvecs}. To ensure velocities are in spatial units (usually meters--as opposed to arbitrary units), it must have the fields \code{x$pophist$longitude} and \code{x$pophist$latitude} (if not, then it must have It must also have \code{x$pophist$row} and \code{x$pophist$col}). To ensure velocities are in units of time (vs arbitrary units) it also needs \code{x$pophist$time}.
 }}
 
-\item{times}{Numeric vector \emph{or} \code{NULL} (default). This specifies the time period represented by each layer in \code{x}. Times \emph{must} appear in sequential order. For example, if time periods are 24 kybp, 23 kybp, 22 kypb, use \code{c(-24, -23, -22)}, \emph{not} \code{c(24, 23, 22)}. If \code{NULL} (default), default values are assigned:
+\item{times}{Numeric vector \emph{or} \code{NULL} (default). This specifies the time period represented by each layer in \code{x}. Times \emph{must} appear in sequential order. For example, if time periods are 24 kybp, 23 kybp, 22 kybp, use \code{c(-24, -23, -22)}, \emph{not} \code{c(24, 23, 22)}. If \code{NULL} (default), default values are assigned:
 \itemize{
 \item If \code{x} is a \code{RasterStack} and \code{times} is \code{NULL}, then \code{times} will be assigned values starting at 1 and ending at the total number of rasters in \code{x}. Alternatively, you can supply a numeric vector with the same number of values as layers in \code{x}.
 \item If \code{x} is an array and \code{times} is \code{NULL}, then \code{times} will be assigned values starting at 1 and ending at \code{dim(x)[3]}. Alternatively, you can supply a numeric vector with the same number of values as layers in the third dimension of \code{x}.
@@ -61,6 +62,8 @@ bioticVelocity(
 
 \item{quants}{Numeric vector indicating the quantiles at which biotic velocity is calculated for the "quant" and "Quants" metrics. Default is \code{c(0.05, 0.10, 0.5, 0.9, 0.95)}.}
 
+\item{onlyInSharedCells}{Logical, if \code{TRUE}, calculate biotic velocity using only those cells that are not \code{NA} in the start and end of each time period. This is useful for controlling for shifting land mass due to sea level rise, for example, when calculating biotic velocty for an ecosystem or a species.  The default is \code{FALSE}.}
+
 \item{warn}{Logical, if \code{TRUE} then display function-specific warnings.}
 
 \item{...}{Other arguments (not used).}
@@ -91,6 +94,9 @@ This function calculates several metrics of biotic velocity for a stack of raste
 This function may yield erroneous velocities if the region of interest is near a pole and will yield erroneous results if the region spans the international date line. It converts rasters to arrays before doing calculations, so using very large rasters may yield slow performance and may not even work, depending on memory requirements.
 }
 \examples{
+### setup for all examples
+##########################
+
 # simulate species starting at center of map
 # will be using a spatially Gaussian distribution
 # that uses only longitude and latitude as predictors
@@ -103,11 +109,10 @@ gauss <- function(x1, x2, mu1=0, mu2=0, sigma1=1, sigma2=0, rho=0) {
 
 	inside <- first - prod + second
 	inside <- (-1 * inside) / denom
-	
+
 	expo <- exp(inside)
-	
 	expo
-	
+
 }
 
 r <- raster()
@@ -150,15 +155,18 @@ species_t12 <- gauss(x1=x1, x2=x2, mu1=-4 * shift, mu2=4 * shift, sigma1=2 * s1,
 	rho=-0.5)
 	
 rasts <- raster::stack(species_t0, species_t1, species_t2, species_t3,
-	species_t4, species_t5, species_t6, species_t7, species_t8,
+species_t4, species_t5, species_t6, species_t7, species_t8,
 	species_t10, species_t11, species_t12)
 times <- c(0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12)
 names(rasts) <- paste0('t', times)
 plot(rasts)
 
+### example with stationary land mass
+#####################################
+
 # across just start and end time periods
 (vels <- bioticVelocity(rasts, times=times, atTimes=c(0, 12),
-	metrics='centroid'))
+metrics='centroid'))
 
 # across each time interval
 (vels <- bioticVelocity(rasts, times=times, metrics='centroid'))
@@ -173,16 +181,59 @@ plot(species_t0)
 
 for (i in 1:(nrow(vels) - 1)) {
 
-	x1 <- vels$centroidLong[i]
-	y1 <- vels$centroidLat[i]
-	x2 <- vels$centroidLong[i + 1]
-	y2 <- vels$centroidLat[i + 1]
-	
-	move <- sqrt((x1 - x2)^2 + (y1 - y2)^2)
-	if (move > 10) arrows(x1, y1, x2, y2, angle=15, length=0.05)
+x1pos <- vels$centroidLong[i]
+y1pos <- vels$centroidLat[i]
+x2pos <- vels$centroidLong[i + 1]
+y2pos <- vels$centroidLat[i + 1]
+
+	move <- sqrt((x1pos - x2pos)^2 + (y1pos - y2pos)^2)
+if (move > 10) arrows(x1pos, y1pos, x2pos, y2pos, angle=15, length=0.05)
 
 }
 
 # all metrics
 (vels <- bioticVelocity(x=rasts, times=times))
+
+### example with shifting land mass
+###################################
+
+species_t0 <- gauss(x1=x1, x2=x2, sigma1=s1, sigma2=s2)
+rasts <- stack(species_t0, species_t0, species_t0, species_t0, species_t0)
+# simulated population trajectory:
+# time 0 to 1: species no change, lose eastward land
+# time 1 to 2: species no change, lose southward land
+# time 2 to 3: species no change, gain southward land
+# time 3 to 4: species no change, reset land to t0
+
+# create masks
+ext <- extent(species_t0)
+
+long <- ext@xmin + 0.55 * (ext@xmax - ext@xmin)
+longMask <- extent(long, ext@xmax, ext@ymin, ext@ymax)
+longMask <- as(longMask, 'SpatialPolygons')
+projection(longMask) <- projection(species_t0)
+
+lat <- ext@ymin + 0.45 * (ext@ymax - ext@ymin)
+latMask <- extent(ext@xmin, ext@xmax, lat, ext@ymax)
+latMask <- as(latMask, 'SpatialPolygons')
+projection(latMask) <- projection(species_t0)
+
+species_t1s <- mask(species_t0, longMask, inverse=TRUE) # lose eastward
+species_t2s <- mask(species_t1s, latMask1) # lose southward
+species_t3s <- species_t1s # gain southward
+species_t4s <- species_t0s # gain eastward
+
+rasts <- stack(species_t0s, species_t1s, species_t2s, species_t3s,
+species_t4s)
+
+plot(rasts)
+
+# is this what you want? could be considered an artifact, could
+# be considered "true" biotic velocity... range shift is extrinsic
+(vels <- bioticVelocity(x=rasts, times=0:4, metrics=c('centroid', 'mean')))
+
+# calculate velocity only for cells shared by start and end rasters
+# in each time step
+(vels <- bioticVelocity(x=rasts, times=0:4, metrics=c('centroid', 'mean'),
+onlyInSharedCells=TRUE))
 }
