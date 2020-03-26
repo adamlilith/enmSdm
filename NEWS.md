@@ -1,3 +1,7 @@
+enmSdm 0.5.0.3
+bioticVelocity() can correct for non-shared land mass
+Fix bug in getCRS()
+
 enmSdm 0.5.0.2
 Fix bug in bioticVelocity()
 
