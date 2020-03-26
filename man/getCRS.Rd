@@ -14,14 +14,14 @@ getCRS(x, asCRS = FALSE)
 \item \code{climateNA} ClimateNA dataset: \code{+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0}.
 \item \code{chelsa} CHELSA climate dataset (actually WGS84): or \code{+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0}.
 \item \code{dayMet} DayMet dataset: \code{+proj=lcc +lon_0=-100 +lat_0=42.5 +x_0=0 +y_0=0 +a=6378137 +rf=298.257223563 +lat_1=25 +lat_2=60}.
-\item \code{lccCONUS} Lambert conformal conic for the contiguous United States: \code{+proj=lcc +lat_1=33 +lat_2=45 +lat_0=39 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m no_defs}.
-\item \code{lccEp} Lambert conformal conic for Europe: \code{+proj=lcc +lat_1=43 +lat_2=62 +lat_0=30 +lon_0=10 +x_0=0 +y_0=0 +ellps=intl +units=m no_defs}.
-\item \code{lccNA} Lambert conformal conic for North America: \code{+proj=lcc +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m no_defs}.
-\item \code{lccNAsia} Lambert conformal conic for North Asia: \code{+proj=lcc +lat_1=15 +lat_2=65 +lat_0=30 +lon_0=95 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m no_defs}.
-\item \code{lccSA} Lambert conformal conic for South America: \code{+proj=lcc +lat_1=-5 +lat_2=-42 +lat_0=-32 +lon_0=-60 +x_0=0 +y_0=0 +ellps=aust_SA +units=m no_defs}.
-\item \code{lccSAsia} Lambert conformal conic for South Asia: \code{+proj=lcc +lat_1=7 +lat_2=-32 +lat_0=-15 +lon_0=125 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m no_defs}.
-\item \code{laeaN} Lambert azimuthal equal area for the North Pole: \code{+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m no_defs}.
-\item \code{laeaS} Lambert azimuthal equal area for the South Pole: \code{+proj=laea +lat_0=-90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m no_defs}.
+\item \code{lccCONUS} Lambert conformal conic for the contiguous United States: \code{+proj=lcc +lat_1=33 +lat_2=45 +lat_0=39 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs}.
+\item \code{lccEp} Lambert conformal conic for Europe: \code{+proj=lcc +lat_1=43 +lat_2=62 +lat_0=30 +lon_0=10 +x_0=0 +y_0=0 +ellps=intl +units=m +no_defs}.
+\item \code{lccNA} Lambert conformal conic for North America: \code{+proj=lcc +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs}.
+\item \code{lccNAsia} Lambert conformal conic for North Asia: \code{+proj=lcc +lat_1=15 +lat_2=65 +lat_0=30 +lon_0=95 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs}.
+\item \code{lccSA} Lambert conformal conic for South America: \code{+proj=lcc +lat_1=-5 +lat_2=-42 +lat_0=-32 +lon_0=-60 +x_0=0 +y_0=0 +ellps=aust_SA +units=m +no_defs}.
+\item \code{lccSAsia} Lambert conformal conic for South Asia: \code{+proj=lcc +lat_1=7 +lat_2=-32 +lat_0=-15 +lon_0=125 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs}.
+\item \code{laeaN} Lambert azimuthal equal area for the North Pole: \code{+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs}.
+\item \code{laeaS} Lambert azimuthal equal area for the South Pole: \code{+proj=laea +lat_0=-90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs}.
 \item \code{mollweide} Mollweide equal-area for the world: \code{+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs}.
 \code{nad27} NAD27 (unprojected): \code{+proj=longlat +datum=NAD27 +no_defs +ellps=clrk66 +nadgrids=@conus,@alaska,@ntv2_0.gsb,@ntv1_can.dat}.
 \item \code{nad83} NAD83 (unprojected): \code{+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80 +towgs84=0,0,0}.
