@@ -76,6 +76,9 @@ A list object with several named elements:
 \description{
 This function is an extension of any of the "trainXYZ" functions for calibrating species distribution and ecological niche models. This function uses the "trainXYZ" function to calibrate and evaluate a suite of models using cross-validation. The models are evaluated against withheld data to determine the optimal settings for a "final" model using all available data.
 }
+\details{
+In some cases models do not converge (e.g., boosted regression trees and generalized additive models sometimes suffer from this issue). In this case the model will be skipped, but a data frame with the k-fold and model number in the fold will be returned in the $meta element in the output. If all models converged, then this data frame will be empty.
+}
 \examples{
 \dontrun{
 set.seed(123)
