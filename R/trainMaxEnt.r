@@ -309,7 +309,7 @@ trainMaxEnt <- function(
 			tuning <- topTuning
 		} else if (length(models) == 0 & !anyway) {
 			warning('No models had fewer coefficients than predictors. NA model(s) returned.', immediate.=TRUE)
-			model <- NA
+			model <- NULL
 		} else {
 			model <- models[[1]]
 		}
