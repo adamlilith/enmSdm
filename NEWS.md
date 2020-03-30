@@ -1,3 +1,6 @@
+enmSdm 0.5.0.4
+trainByCrossValid() handles non-converged models
+
 enmSdm 0.5.0.3
 bioticVelocity() can correct for non-shared land mass
 Fix bug in getCRS()
@@ -13,14 +16,13 @@ Fix bug in predictMaxEnt()
 
 enmSdm 0.4.0.5
 trainMaxEnt() and trainMaxNet() internals harmonized
-Made sensible examples for trainXXX() functions
+Made sensible examples for trainXYZ() functions
 
 enmSdm 0.4.0.3
 Added function makeCRS() for making custom coordinate reference systems
 
 enmSdm 0.4.0.2
 Added function decimalToDms() for converting decimal coordinates to degrees-minutes-seconds format
-
 Fixed bug in spatialCorrForPoints() when supplying distance bins in km
 
 enmSdm 0.4.0.1
