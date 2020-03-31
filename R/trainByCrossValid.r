@@ -291,12 +291,11 @@ trainByCrossValid <- function(
 				
 					nonConvergedModels <- rbind(
 						nonConvergedModels,
-						cbind(
-							data.frame(
-								kFold = k,
-								modelNumber = countModel
-							),
-							kTuning[countModel, ]
+						insertCol(
+							data.frame(modelNumber = countModel),
+							into=kTuning[countModel, ],
+							where='k',
+							before=FALSE
 						)
 					)
 
