@@ -16,8 +16,9 @@ trainMaxEnt(
   out = "model",
   forceLinear = TRUE,
   jackknife = TRUE,
-  args = "",
+  arguments = NULL,
   scratchDir = NULL,
+  cores = 1,
   verbose = FALSE,
   ...
 )
@@ -45,13 +46,15 @@ trainMaxEnt(
 
 \item{jackknife}{Logical. If \code{TRUE} (default) the the returned model will be also include jackknife testing of variable importance.}
 
-\item{args}{Character list. Options to pass to \code{maxent()}'s \code{args} argument. (Do not include \code{l}, \code{p}, \code{q}, \code{h}, \code{t}, \code{betamultiplier}, or \code{jackknife}!)}
+\item{arguments}{\code{NULL} (default) or a character list. Options to pass to \code{maxent()}'s \code{args} argument. (Do not include \code{l}, \code{p}, \code{q}, \code{h}, \code{t}, \code{betamultiplier}, or \code{jackknife}!)}
 
 \item{scratchDir}{Character. Directory to which to write temporary files. Leave as NULL to create a temporary folder in the current working directory.}
 
+\item{cores}{Integer >= 1. Number of cores to use. Default is 1.}
+
 \item{verbose}{Logical. If \code{TRUE} report progress and AICc table.}
 
-\item{...}{Arguments to pass to \code{maxent()} or \code{predict.maxent()}.}
+\item{...}{Extra arguments. Not used.}
 }
 \value{
 If \code{out = 'model'} this function returns an object of class \code{MaxEnt}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{MaxEnt} object and the data frame.
