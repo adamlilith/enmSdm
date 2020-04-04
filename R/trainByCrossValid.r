@@ -226,8 +226,8 @@ trainByCrossValid <- function(
 		### train model
 		###############
 
-			# thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2, ...)
-			thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2)
+			thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2, ...)
+			# thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2)
 			kModels <- thisOut$models
 			kTuning <- thisOut$tuning
 
@@ -294,7 +294,7 @@ trainByCrossValid <- function(
 						insertCol(
 							data.frame(modelNumber = countModel),
 							into=kTuning[countModel, ],
-							where='k',
+							at='k',
 							before=FALSE
 						)
 					)
