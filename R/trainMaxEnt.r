@@ -301,20 +301,20 @@ trainMaxEnt <- function(
 
 	### return
 	##########
-	
-	if (length(out) > 1) {
-		output <- list()
-		if ('models' %in% out) output$models <- models
-		if ('model' %in% out) output$model <- model
-		if ('tuning' %in% out) output$tuning <- tuning
-		output
-	} else if (out == 'models') {
-		models
-	} else if (out == 'model') {
-		model
-	} else if (out == 'tuning') {
-		tuning
-	}
+		
+		if (length(out) > 1) {
+			output <- list()
+			if ('models' %in% out) output$models <- models
+			if ('model' %in% out) output$model <- model
+			if ('tuning' %in% out) output$tuning <- tuning
+			output
+		} else if (out == 'models') {
+			models
+		} else if (out == 'model') {
+			model
+		} else if (out == 'tuning') {
+			tuning
+		}
 
 }
 
