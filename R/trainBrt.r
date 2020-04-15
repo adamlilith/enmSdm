@@ -19,6 +19,7 @@
 #' If \code{tryBy} is NULL then the function attempts to train the model with the same parameters up to \code{tries} times.
 #' @param w Either logical in which case TRUE causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign a weight of 1 to each datum.
 #' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{gbm}. If \code{models} then all models that were trained are returned in a list in the order they appear in the tuning table (this may take a lot of memory!). If \code{tuning} then just return a data frame with tuning parameters and deviance of each model sorted by deviance. If both then return a 2-item list with the best model and the tuning table.
+#' @param cores Integer >= 1. Number of cores to use. Default is 1.
 #' @param verbose Logical. If \code{TRUE} display progress.
 #' @param ... Arguments to pass to `gbm.step`.
 #' @return If \code{out = 'model'} this function returns an object of class \code{gbm}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters and cross-validation deviance for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{gbm} object and the data frame.
@@ -92,203 +93,252 @@ trainBrt <- function(
 	tryBy = c('learningRate', 'treeComplexity', 'maxTrees', 'stepSize'),
 	w = TRUE,
 	out = 'model',
+	cores = 1,
 	verbose = FALSE,
 	...
 ) {
+	
+	### setup 
+	#########
 
-	# # add dummy variable if using univariate model to avoid errors
-	# if (ncol(data)==2) {
-		# data$DUMMY <- 1
-		# preds <- c(preds, 'DUMMY')
-	# }
+		# # add dummy variable if using univariate model to avoid errors
+		# if (ncol(data)==2) {
+			# data$DUMMY <- 1
+			# preds <- c(preds, 'DUMMY')
+		# }
 
-	# response and predictors
-	if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
-	if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
+		# response and predictors
+		if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
+		if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
 
-	# model weights
-	if (class(w)[1] == 'logical') {
-		w <- if (w & (family == 'binomial' | family == 'quasibinomial')) {
-			c(rep(1, sum(data[ , resp])), rep(sum(data[ , resp]) / sum(data[ , resp] == 0), sum(data[ , resp] == 0)))
-		} else {
-			rep(1, nrow(data))
+		# model weights
+		if (class(w)[1] == 'logical') {
+			w <- if (w & (family == 'binomial' | family == 'quasibinomial')) {
+				c(rep(1, sum(data[ , resp])), rep(sum(data[ , resp]) / sum(data[ , resp] == 0), sum(data[ , resp] == 0)))
+			} else {
+				rep(1, nrow(data))
+			}
+		} else if (class(w) == 'character') {
+			w <- data[ , w]
 		}
-	} else if (class(w) == 'character') {
-		w <- data[ , w]
-	}
 
-	w <- w / max(w)
+		w <- w / max(w)
 
-	# initialize tuning table
-	tuning <- data.frame()
-
-	# initialize lowest cross-validation deviance
-	lowestDeviance <- Inf
-
-	# initialize best model
-	bestModel <- NA
-	
-	# initialize models
-	if ('models' %in% out) models <- list()
-	
-	############
-	### MAIN ###
-	############
-
-	# by LEARNING RATE
-	for (thisLr in learningRate) {
-
-		# by TREE COMPLEXITY
-		for (thisTc in treeComplexity) {
-
-			tempTc <- thisTc
-
-			# by BAG FRACTION
-			for (thisBag in bagFraction) {
-
-				# for each parameter combination, train model and get deviance, remember if model with lowest deviance so far
-				for (thisMaxTrees in maxTrees) {
-
-					# flag to indicate if model converged or not
-					converged <- FALSE
-					tempLr <- thisLr
-					tempTc <- thisTc
-					tempMaxTrees <- thisMaxTrees
-					tempStepSize <- 50 # default for n.trees in gbm.step
-
-					# by TRY
-					numTries <- 0
-					while (numTries <= tries & !converged) {
-
-						numTries <- numTries + 1
-
-						# try with different parameter combinations
-						if (numTries > 1 && !is.null(tryBy)) {
-
-							if ('learningRate' %in% tryBy) tempLr <- tempLr / 10
-							if ('treeComplexity' %in% tryBy) tempTc <- max(1, tempTc + ifelse(runif(1) > 0.5, 1, -1))
-							if ('maxTrees' %in% tryBy) tempMaxTrees <- round(1.2 * tempMaxTrees)
-							if ('stepSize' %in% tryBy) tempStepSize <- round(0.8 * tempStepSize)
-
-						}
-
-						# display parameters
-						if (verbose) omnibus::say('try: ', numTries, ' | max trees: ', tempMaxTrees, ' | step: ', tempStepSize, ' trees | learning: ', tempLr, ' | complexity: ', tempTc, ' | bag: ', thisBag, post=0)
-
-						# train model... using tryCatch because model may not converge
-						model <- tryCatch(
-							model <- dismo::gbm.step(
-								data=data,
-								gbm.x=preds,
-								gbm.y=resp,
-								family=family,
-								tree.complexity=tempTc,
-								learning.rate=tempLr,
-								bag.fraction=thisBag,
-								max.trees=tempMaxTrees,
-								n.trees=tempStepSize,
-								plot.main=FALSE,
-								plot.folds=FALSE,
-								silent=TRUE,
-								verbose=TRUE,
-								site.weights=w#,
-								#...
-							),
-							error=function(err) return(FALSE)
-						)
-
-						# if model training succeeded (model will be gbm object if training succeeded)
-						if (class(model) == 'gbm') {
-
-							converged <- TRUE
-							dev <- model$cv.statistics$deviance.mean
-							if (dev < lowestDeviance && model$gbm.call$best.trees >= 1000) {
-								bestModel <- model
-								lowestDeviance <- dev
-								bestTc <- tempTc
-								bestLr <- tempLr
-								bestBF <- thisBag
-								bestMaxTrees <- tempMaxTrees
-								bestStepSize <- tempStepSize
-							}
-							
-							if ('models' %in% out) models[[length(models) + 1]] <- model
-
-						} else {
-							dev <- NA
-						}
-
-						if (verbose) omnibus::say('| CV deviance: ', sprintf('%.4f', dev))
-
-						# save tuning table
-						tuning <- rbind(
-							tuning,
-							data.frame(
-								learningRate = tempLr,
-								treeComplexity = tempTc,
-								bagFraction = thisBag,
-								maxTrees = tempMaxTrees,
-								stepSize = tempStepSize,
-								nTrees = ifelse(converged, model$gbm.call$best.trees, NA),
-								converged = converged,
-								deviance = dev
-							)
-						)
-
-					} # while trying to train model
-
-					tempLr <- thisLr
-					tempTc <- thisTc
-					tempMaxTrees <- thisMaxTrees
-					tempStepSize <- 50
-
-				} # next max number of trees
-
-			} # next bag fraction
-
-		} # next tree complexity
-
-	} # next learning rate
-
-	# sort models by deviance
-	tuningOrder <- order(tuning$dev)
-	tuning <- tuning[tuningOrder, ]
-	if ('models' %in% out) models <- models[tuningOrder]
-
-	# accept models with >=1000 trees
-	tuning$enoughTrees <- (tuning$nTrees >= minTrees & !is.na(tuning$deviance))
-	if (any(tuning$enoughTrees) & any(!tuning$enoughTrees)) {
-	
-		newOrder <- order(!tuning$enoughTrees)
-		if ('models' %in% out) models <- models[newOrder]
-		tuning <- tuning[newOrder, ]
-	
-	}
+	### generate table of parameterizations
+	#######################################
 		
-	modelRank <- 1:nrow(tuning)
-	modelRank[!tuning$converged] <- NA
-	tuning <- cbind(modelRank, tuning)
+		params <- expand.grid(learningRate=learningRate, treeComplexity=treeComplexity, bagFraction=bagFraction, maxTrees=maxTrees)
+		
+	### MAIN
+	########
 
-	if (verbose) {
-		omnibus::say('')
-		print(tuning)
-		omnibus::say('')
-	}
+		if (cores > 1) {
+			`%makeWork%` <- foreach::`%dopar%`
+			cl <- parallel::makeCluster(cores)
+			doParallel::registerDoParallel(cl)
+		} else {
+			`%makeWork%` <- foreach::`%do%`
+		}
+		
+		mcOptions <- list(preschedule=TRUE, set.seed=TRUE, silent=FALSE)
+		
+		# work <- foreach::foreach(i=1:nrow(tuning), .options.multicore=mcOptions, .combine='c', .inorder=FALSE, .export=c('.trainBrtWorker'), .packages = c('gbm')) %makeWork%
+		work <- foreach::foreach(i=1:nrow(params), .options.multicore=mcOptions, .combine='c', .inorder=FALSE, .export=c('.trainBrtWorker')) %makeWork%
+			.trainBrtWorker(
+				i = i,
+				params = params,
+				data = data,
+				preds = preds,
+				resp = resp,
+				family = family,
+				learningRate = learningRate,
+				treeComplexity = treeComplexity,
+				bagFraction = bagFraction,
+				minTrees = minTrees,
+				maxTrees = maxTrees,
+				tries = tries,
+				tryBy = tryBy,
+				w = w,
+				...
+			)
+				
+		if (cores > 1) parallel::stopCluster(cl)
 
-	# return
-	if (length(out) > 1) {
-		output <- list()
-		if ('models' %in% out) output$models <- models
-		if ('model' %in% out) output$model <- model
-		if ('tuning' %in% out) output$tuning <- tuning
-		output
-	} else if ('models' %in% out) {
-		models
-	} else if ('model' %in% out) {
-		bestModel
-	} else if ('tuning' %in% out) {
-		tuning
-	}
+	### collate models
+	##################
+		
+		models <- list()
+		tuning <- data.frame()
+
+		for (i in seq_along(work)) {
+		
+			models[[i]] <- work[[i]]$model
+			tuning <- rbind(tuning, work[[i]]$workerTuning)
+		
+		}
+		
+	### process models
+	##################
+
+		# remove non-converged models
+		keeps <- which(tuning$converged)
+		tuning <- tuning[keeps, , drop=FALSE]
+		models <- models[keeps]
+
+		if (length(models) > 0) {
+		
+			# remove models with fewer trees than required
+			keeps <- which(omnibus::naCompare('>=', tuning$nTrees, minTrees))
+			tuning <- tuning[keeps, , drop=FALSE]
+			models <- models[keeps]
+			
+			if (length(models) > 0) {
+			
+				# sort from best to worst model
+				modelOrder <- order(tuning$dev, decreasing=FALSE)
+				tuning <- tuning[modelOrder, , drop=FALSE]
+				models <- models[modelOrder]
+				
+				rownames(tuning) <- 1:nrow(tuning)
+				
+			}
+				
+		}
+		
+	### return
+	##########
+		
+		if (verbose) {
+			omnibus::say('')
+			print(tuning, digits=4)
+			omnibus::say('')
+		}
+		
+		if (length(out) > 1) {
+			output <- list()
+			if ('models' %in% out) output$models <- models
+			if ('model' %in% out) output$model <- models[[1]]
+			if ('tuning' %in% out) output$tuning <- tuning
+			output
+		} else if (out == 'models') {
+			models
+		} else if (out == 'model') {
+			models[[1]]
+		} else if (out == 'tuning') {
+			tuning
+		}
 
 }
 
+
+#######################
+### worker function ###
+#######################
+
+.trainBrtWorker <- function(
+	i,								# iterator
+	params,							# parameterizations
+	data,							# data frame
+	preds,							# character
+	resp,							# character
+	family,							# character
+	learningRate,					# learning rate
+	treeComplexity,					# tree depth
+	bagFraction,					# bag fraction
+	minTrees,						# minimum number of trees in a model
+	maxTrees,						# maximum number of trees in a model
+	tries,							# number of times to try if non-convergence
+	tryBy,							# one or more of c('learningRate', 'treeComplexity', 'maxTrees', 'stepSize')
+	w,								# weights (numeric vector),
+	...								# other (to pass to step.gbm)
+) {
+
+	# flag to indicate if model converged or not
+	converged <- FALSE
+
+	# starter values
+	tempLr <- params$learningRate[i]
+	tempTc <- params$treeComplexity[i]
+	tempBf <- params$bagFraction[i]
+	tempMaxTrees <- params$maxTrees[i]
+	
+	tempStepSize <- 50 # default for n.trees in gbm.step
+
+	# tuning table
+	workerTuning <- data.frame()
+	
+	# by TRY
+	numTries <- 0
+	while (numTries <= tries & !converged) {
+
+		numTries <- numTries + 1
+
+		# try with different parameter combinations
+		if (numTries > 1 && !is.null(tryBy)) {
+
+			if ('learningRate' %in% tryBy) tempLr <- tempLr / 10
+			if ('treeComplexity' %in% tryBy) tempTc <- max(1, tempTc + ifelse(runif(1) > 0.5, 1, -1))
+			if ('maxTrees' %in% tryBy) tempMaxTrees <- round(1.2 * tempMaxTrees)
+			if ('stepSize' %in% tryBy) tempStepSize <- round(0.8 * tempStepSize)
+
+		}
+
+		# train model... using tryCatch because model may not converge
+		model <- tryCatch(
+			model <- dismo::gbm.step(
+				data=data,
+				gbm.x=preds,
+				gbm.y=resp,
+				family=family,
+				tree.complexity=tempTc,
+				learning.rate=tempLr,
+				bag.fraction=tempBf,
+				max.trees=tempMaxTrees,
+				n.trees=tempStepSize,
+				plot.main=FALSE,
+				plot.folds=FALSE,
+				silent=TRUE,
+				verbose=TRUE,
+				site.weights=w,
+				...
+			),
+			error=function(err) return(NULL)
+		)
+
+		# if model training succeeded (model will be gbm object if training succeeded)
+		if (!is.null(model)) {
+
+			converged <- TRUE
+			dev <- model$cv.statistics$deviance.mean
+
+		} else {
+			dev <- NA
+		}
+
+		# save tuning table
+		workerTuning <- rbind(
+			workerTuning,
+			data.frame(
+				learningRate = tempLr,
+				treeComplexity = tempTc,
+				bagFraction = tempBf,
+				maxTrees = tempMaxTrees,
+				stepSize = tempStepSize,
+				nTrees = ifelse(converged, model$gbm.call$best.trees, NA),
+				converged = converged,
+				deviance = dev
+			)
+		)
+
+	} # while trying to train model
+
+	workerOut <- list(
+		list(
+			model=model,
+			workerTuning=workerTuning
+		)
+	)
+	
+	workerOut
+	
+}

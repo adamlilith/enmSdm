@@ -226,8 +226,8 @@ trainByCrossValid <- function(
 		### train model
 		###############
 
-			# thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2, ...)
-			thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2)
+			thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2, ...)
+			# thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2)
 			kModels <- thisOut$models
 			kTuning <- thisOut$tuning
 
@@ -291,12 +291,11 @@ trainByCrossValid <- function(
 				
 					nonConvergedModels <- rbind(
 						nonConvergedModels,
-						cbind(
-							data.frame(
-								kFold = k,
-								modelNumber = countModel
-							),
-							kTuning[countModel, ]
+						insertCol(
+							data.frame(modelNumber = countModel),
+							into=kTuning[countModel, ],
+							at='k',
+							before=FALSE
 						)
 					)
 

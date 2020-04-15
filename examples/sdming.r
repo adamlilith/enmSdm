@@ -61,7 +61,7 @@ MAXENT AND MAXNET
 #' points(occs[ , c('longitude', 'latitude')])
 #'
 #' # predictions to occurrences
-#' (dismo::predict(ent, occsEnv, args=c('outputformat=logistic')))
+#' (dismo::predict(ent, occsEnv, arguments=c('outputformat=logistic')))
 #' (enmSdm::predictMaxEnt(ent, occsEnv, type='logistic'))
 #' (c(predict(net, occsEnv, type='logistic')))
 #' 

@@ -12,10 +12,11 @@
 #' @param out Character. Indicates type of value returned. Values can be \code{'model'} (default; return model with lowest AICc), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with elements named "model", "models", and/or "tuning". If \code{'models'} is specified, they will only be produced if \code{select = TRUE}. The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{glm}, a list with objects of class \code{glm}, or a data frame.
 #' @param forceLinear Logical. If \code{TRUE} (default) then require any tested models to include at least linear features.
 #' @param jackknife Logical. If \code{TRUE} (default) the the returned model will be also include jackknife testing of variable importance.
-#' @param args Character list. Options to pass to \code{maxent()}'s \code{args} argument. (Do not include \code{l}, \code{p}, \code{q}, \code{h}, \code{t}, \code{betamultiplier}, or \code{jackknife}!)
+#' @param arguments \code{NULL} (default) or a character list. Options to pass to \code{maxent()}'s \code{args} argument. (Do not include \code{l}, \code{p}, \code{q}, \code{h}, \code{t}, \code{betamultiplier}, or \code{jackknife}!)
 #' @param scratchDir Character. Directory to which to write temporary files. Leave as NULL to create a temporary folder in the current working directory.
+#' @param cores Integer >= 1. Number of cores to use. Default is 1.
 #' @param verbose Logical. If \code{TRUE} report progress and AICc table.
-#' @param ... Arguments to pass to \code{maxent()} or \code{predict.maxent()}.
+#' @param ... Extra arguments. Not used.
 #' @return If \code{out = 'model'} this function returns an object of class \code{MaxEnt}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{MaxEnt} object and the data frame.
 #' @details This function is a wrapper for \code{maxent()}. That function relies on a maxent \code{jar} file being placed into the folder \code{./library/dismo/java}. See \code{\link[dismo]{maxent}} for more details. The \code{maxent()} function creates a series of files on disc for each model. This function assumes you do not want those files, so deletes most of them. However, there is one that cannot be deleted and the normal ways of changing its permissions in \code{R} do not work. So the function simply writes over that file (which is allowed) to make it smaller. Regardless, if you run many models your temporary directory (argument \code{scratchDir}) can fill up and require manual deletion. \cr
 #' @seealso \code{\link[maxnet]{maxnet}}, \code{\link[dismo]{maxent}}, \code{\link{trainMaxNet}}
@@ -119,8 +120,9 @@ trainMaxEnt <- function(
 	out = 'model',
 	forceLinear = TRUE,
 	jackknife = TRUE,
-	args = '',
+	arguments = NULL,
 	scratchDir = NULL,
+	cores = 1,
 	verbose = FALSE,
 	...
 ) {
@@ -129,232 +131,305 @@ trainMaxEnt <- function(
 	## setup ##
 	###########
 
-	if (!is.null(anyway)) dropOverparam <- anyway
+		if (!is.null(anyway)) dropOverparam <- anyway
+		
+		# response and predictors
+		if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
+		if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
+
+		# get response and predictors
+		presentBg <- data[ , resp]
+		data <- data[ , preds, drop=FALSE]
+
+		## collate all presences
+		allPres <- data[presentBg == 1, , drop=FALSE]
+
+		## collate all background sites
+		allBg <- data[presentBg == 0, , drop=FALSE]
+
+	### generate table of parameterizations
+	#######################################
+		
+		### get combinations of features to test for each regularization multiplier
+		classesToTest <- if (classes == 'default') {
+			c('l', 'p', 'q', 'h')
+		} else {
+			unlist(strsplit(classes, ''))
+		}
+
+		if (any('p' %in% classesToTest) & ncol(data) == 1) {
+			product <- FALSE
+			warning('Data has only one variable so forcing product features to FALSE.')
+		}
+
+		# create df of 1/0 to indicate each combination of classes to test
+		if (testClasses) {
+			classGrid <- expand.grid(rep(list(c(1, 0)), length(classesToTest)))
+			classGrid <- classGrid[-which(rowSums(classGrid) == 0), , drop=FALSE]
+		} else {
+			classGrid <- data.frame(matrix(rep(1, length(classesToTest)), nrow=1))
+		}
+
+		names(classGrid) <- classesToTest
+
+		if (forceLinear & any(classGrid$l == 0)) classGrid <- classGrid[-which(classGrid$l == 0), , drop=FALSE]
+
+		tuning <- data.frame()
+		
+		# by beta
+		for (thisRegMult in regMult) {
+
+			# by feature combination
+			for (countParam in 1:nrow(classGrid)) {
+
+				# classes
+				classes <- paste0(
+					ifelse('l' %in% names(classGrid) && classGrid$l[countParam] == 1, 'l', ''),
+					ifelse('p' %in% names(classGrid) && classGrid$p[countParam] == 1, 'p', ''),
+					ifelse('q' %in% names(classGrid) && classGrid$q[countParam] == 1, 'q', ''),
+					ifelse('h' %in% names(classGrid) && classGrid$h[countParam] == 1, 'h', ''),
+					ifelse('t' %in% names(classGrid) && classGrid$t[countParam] == 1, 't', '')
+				)
+				
+				tuning <- rbind(
+					tuning,
+						data.frame(
+						regMult=thisRegMult,
+						classes=classes
+					)
+				)
+				
+			}
+			
+		}
+
+	### train models
+	################
+		
+		if (cores > 1) {
+			`%makeWork%` <- foreach::`%dopar%`
+			cl <- parallel::makeCluster(cores)
+			doParallel::registerDoParallel(cl)
+		} else {
+			`%makeWork%` <- foreach::`%do%`
+		}
+		
+		mcOptions <- list(preschedule=TRUE, set.seed=FALSE, silent=FALSE)
+		
+		work <- foreach::foreach(i=1:nrow(tuning), .options.multicore=mcOptions, .combine='c', .inorder=FALSE, .export=c('.trainMaxEntWorker'), .packages = c('rJava')) %makeWork%
+			.trainMaxEntWorker(
+				i = i,
+				scratchDir = scratchDir,
+				tuning = tuning,
+				presentBg = presentBg,
+				data = data,
+				allPres = allPres,
+				allBg = allBg,
+				jackknife = jackknife,
+				arguments = arguments
+			)
+				
+		if (cores > 1) parallel::stopCluster(cl)
 	
-	# response and predictors
-	if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
-	if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
+	### collate results
+	###################
 
-	# get response and predictors
-	presentBg <- data[ , resp]
-	data <- data[ , preds, drop=FALSE]
+		models <- list()
+		tuning <- data.frame()
 
-	### get combinations of features to test for each regularization multiplier
-	classesToTest <- if (classes == 'default') {
-		c('l', 'p', 'q', 'h')
-	} else {
-		unlist(strsplit(classes, ''))
-	}
+		for (i in seq_along(work)) {
+		
+			models[[i]] <- work[[i]]$model
+			tuning <- rbind(tuning, work[[i]]$thisTuning)
+		
+		}
+		
+	### process models
+	##################
+		
+		# sort from best to worst model
+		modelOrder <- order(tuning$AICc, tuning$numClasses, tuning$regMult, tuning$numCoeff, decreasing=c(FALSE, FALSE, TRUE, FALSE))
+		tuning <- tuning[modelOrder, ]
+		models <- models[modelOrder]
 
-	if (any('p' %in% classesToTest) & ncol(data) == 1) {
-		product <- FALSE
-		warning('Data has only one variable so forcing product features to FALSE.')
-	}
+		# remove models with more parameters than data points that have more than 0 parameters
+		if (dropOverparam) {
+		
+			topModel <- models[[1]]
+			topTuning <- tuning[1, , drop=FALSE]
 
+			overparamModels <- which(tuning$n < tuning$numCoeff)
+			if (length(overparamModels) > 0) {
+				tuning <- tuning[-overparamModels, ]
+				models <- models[-overparamModels]
+			}
+
+			if (length(models) == 0 & anyway) {
+				warning('No models had fewer coefficients than predictors. Returning best model anyway.', immediate.=TRUE)
+				model <- topModel
+				tuning <- topTuning
+			} else if (length(models) == 0 & !anyway) {
+				warning('No models had fewer coefficients than predictors. NA model(s) returned.', immediate.=TRUE)
+				model <- NULL
+			} else {
+				model <- models[[1]]
+			}
+				
+		}
+		
+		# AICc weights
+		if (nrow(tuning) > 0) {
+
+			tuning$deltaAICc <- tuning$AICc - min(tuning$AICc)
+			tuning$relLike <- exp(-0.5 * tuning$deltaAICc)
+			tuning$aicWeight <- tuning$relLike / sum(tuning$relLike)
+
+			rownames(tuning) <- 1:nrow(tuning)
+		
+		}
+
+		if (verbose) {
+
+			omnibus::say('')
+			print(tuning, digits=3)
+			omnibus::say('')
+
+		}
+
+		# remove temporary files... note that "species.lambda" file cannot be removed unless R is closed, so we'll just make it smaller to reduce disk space usage
+		unlink(scratchDir, recursive=TRUE, force=TRUE)
+
+	### return
+	##########
+		
+		if (length(out) > 1) {
+			output <- list()
+			if ('models' %in% out) output$models <- models
+			if ('model' %in% out) output$model <- model
+			if ('tuning' %in% out) output$tuning <- tuning
+			output
+		} else if (out == 'models') {
+			models
+		} else if (out == 'model') {
+			model
+		} else if (out == 'tuning') {
+			tuning
+		}
+
+}
+
+#######################
+### worker function ###
+#######################
+
+.trainMaxEntWorker <- function(
+	i,								# iterator
+	scratchDir,						# master temp path
+	tuning,							# tuning data frame
+	presentBg,						# vector with 1 (present) / 0 (background)
+	data,							# df with all presence/background environmental data
+	allPres,						# df with all presence environmental data
+	allBg,							# df with all background environmental data
+	jackknife,						# logical
+	arguments						# string of arguments for maxent()
+) {
+	
+	thisRegMult <- tuning$regMult[i]
+	thisClasses <- tuning$classes[i]
+	
 	# create scratch directory
-	scratchDir <- if (is.null(scratchDir)) {
+	thisScratchDir <- if (is.null(scratchDir)) {
 		base::tempfile(pattern='/_maxentTempFiles/')
 	} else {
 		base::tempfile(pattern='/_maxentTempFiles/', tmpdir=scratchDir)
 	}
+	
+	omnibus::dirCreate(thisScratchDir, '/plots')
 
-	omnibus::dirCreate(scratchDir)
-	omnibus::dirCreate(scratchDir, '/plots')
+	# get parameters
+	params <- c(
+		paste0('betamultiplier=', thisRegMult),
+		paste0('linear=', ifelse(grepl('l', thisClasses), 'true', 'false')),
+		paste0('product=', ifelse(grepl('p', thisClasses), 'true', 'false')),
+		paste0('quadratic=', ifelse(grepl('q', thisClasses), 'true', 'false')),
+		paste0('hinge=', ifelse(grepl('h', thisClasses), 'true', 'false')),
+		paste0('threshold=', ifelse(grepl('t', thisClasses), 'true', 'false')),
+		paste0('jackknife=', ifelse(jackknife, 'true', 'false'))
+	)
 
-	## collate all presences
-	allPres <- data[presentBg == 1, , drop=FALSE]
-
-	## collate all background sites
-	allBg <- data[presentBg == 0, , drop=FALSE]
-
-	# create df of 1/0 to indicate each combination of classes to test
-	if (testClasses) {
-		classGrid <- expand.grid(rep(list(c(1, 0)), length(classesToTest)))
-		classGrid <- classGrid[-which(rowSums(classGrid) == 0), , drop=FALSE]
+	params <- if (!is.null(arguments)) {
+		c(params, arguments)
 	} else {
-		classGrid <- data.frame(matrix(rep(1, length(classesToTest)), nrow=1))
+		params
 	}
 
-	names(classGrid) <- classesToTest
+	# train model
+	model <- dismo::maxent(
+		x=data,
+		p=as.vector(presentBg),
+		path=thisScratchDir,
+		args=params
+	)
 
-	if (forceLinear & any(classGrid$l == 0)) classGrid <- classGrid[-which(classGrid$l == 0), , drop=FALSE]
+	## predict to training (and maybe test presences)
+	predPres <- dismo::predict(
+		object=model,
+		x=allPres,
+		na.rm=TRUE,
+		arguments='outputformat=raw'
+	)
 
-	##########
-	## MAIN ##
-	##########
+	## predict to background
+	predBg <- dismo::predict(
+		object=model,
+		x=allBg,
+		na.rm=TRUE,
+		arguments='outputformat=raw'
+	)
 
-	if (verbose) omnibus::say('Evaluating models with regularization multiplier:', post=0)
+	rawSum <- sum(c(predPres, predBg), na.rm=TRUE)
 
-	# remember all models and evaluation data
-	models <- list()
-	tuning <- data.frame()
+	## log likelihood
+	ll <- sum(log(predPres / rawSum), na.rm=TRUE)
 
-	# by BETA
-	for (thisRegMult in regMult) {
+	## number of parameters
+	numCoeff <- 0
 
-		if (verbose) omnibus::say(thisRegMult, post=0)
+	for (thisLambda in model@lambdas) { # for each line in lambda object
 
-		# by FEATURE COMBINATION
-		for (countParam in 1:nrow(classGrid)) {
+		# if not a meta-data line
+		if (!grepl(thisLambda, pattern='linearPredictorNormalizer') & !grepl(thisLambda, pattern='densityNormalizer') & !grepl(thisLambda, pattern='numBackgroundPoints') & !grepl(thisLambda, pattern='entropy')) {
 
-			# get parameters
-			params <- c(
-				paste0('betamultiplier=', thisRegMult),
-				paste0('linear=', ifelse('l' %in% names(classGrid) && classGrid$l[countParam] == 1, 'true', 'false')),
-				paste0('product=', ifelse('p' %in% names(classGrid) && classGrid$p[countParam] == 1, 'true', 'false')),
-				paste0('quadratic=', ifelse('q' %in% names(classGrid) && classGrid$q[countParam] == 1, 'true', 'false')),
-				paste0('hinge=', ifelse('h' %in% names(classGrid) && classGrid$h[countParam] == 1, 'true', 'false')),
-				paste0('threshold=', ifelse('t' %in% names(classGrid) && classGrid$t[countParam] == 1, 'true', 'false')),
-				paste0('jackknife=', ifelse(jackknife, 'true', 'false'))
-			)
+			split <- strsplit(thisLambda, ', ')
+			paramValue <- as.numeric(split[[1]][2])
+			if (paramValue !=0) numCoeff <- numCoeff + 1 # increment number of parameters
 
-			if (args != '') params <- c(params, args)
-
-			# train model
-			model <- dismo::maxent(
-				x=data,
-				p=as.vector(presentBg),
-				path=scratchDir,
-				args=params
-			)
-
-			## predict to training (and maybe test presences)
-			predPres <- dismo::predict(
-				object=model,
-				x=allPres,
-				na.rm=TRUE,
-				args='outputformat=raw',
-				...
-			)
-
-			## predict to background
-			predBg <- dismo::predict(
-				object=model,
-				x=allBg,
-				na.rm=TRUE,
-				args='outputformat=raw',
-				...
-			)
-
-			rawSum <- sum(c(predPres, predBg), na.rm=TRUE)
-
-			## log likelihood
-			ll <- sum(log(predPres / rawSum), na.rm=TRUE)
-
-			## number of parameters
-			numCoeff <- 0
-
-			for (thisLambda in model@lambdas) { # for each line in lambda object
-
-				# if not a meta-data line
-				if (!grepl(thisLambda, pattern='linearPredictorNormalizer') & !grepl(thisLambda, pattern='densityNormalizer') & !grepl(thisLambda, pattern='numBackgroundPoints') & !grepl(thisLambda, pattern='entropy')) {
-
-					split <- strsplit(thisLambda, ', ')
-					paramValue <- as.numeric(split[[1]][2])
-					if (paramValue !=0) numCoeff <- numCoeff + 1 # increment number of parameters
-
-				}
-
-			}
-
-			# AICc
-			AICc <- -2 * ll + 2 * numCoeff + (2 * numCoeff * (numCoeff + 1)) / (sum(presentBg) - numCoeff - 1)
-
-			# remember
-			classes <- paste0(
-				ifelse('l' %in% names(classGrid) && classGrid$l[countParam] == 1, 'l', ''),
-				ifelse('p' %in% names(classGrid) && classGrid$p[countParam] == 1, 'p', ''),
-				ifelse('q' %in% names(classGrid) && classGrid$q[countParam] == 1, 'q', ''),
-				ifelse('h' %in% names(classGrid) && classGrid$h[countParam] == 1, 'h', ''),
-				ifelse('t' %in% names(classGrid) && classGrid$t[countParam] == 1, 't', '')
-			)
-				
-			thisTuning <- data.frame(
-				regMult=thisRegMult,
-				numPres=sum(presentBg),
-				classes=classes,
-				numClasses=sum(classGrid[countParam, ]),
-				numCoeff=numCoeff,
-				logLik=ll,
-				AICc=AICc
-			)
-
-			models[[length(models) + 1]] <- model
-			tuning <- rbind(tuning, thisTuning)
-
-		} # next set of parameters
-
-	} # next regMult
-	
-	# sort from best to worst model
-	modelOrder <- order(tuning$AICc, tuning$numClasses, tuning$regMult, tuning$numCoeff, decreasing=c(FALSE, FALSE, TRUE, FALSE))
-	tuning <- tuning[modelOrder, ]
-	models <- models[modelOrder]
-
-	# remove models with more parameters than data points that have more than 0 parameters
-	if (dropOverparam) {
-	
-		topModel <- models[[1]]
-		topTuning <- tuning[1, , drop=FALSE]
-
-		overparamModels <- which(tuning$n < tuning$numCoeff)
-		if (length(overparamModels) > 0) {
-			tuning <- tuning[-overparamModels, ]
-			models <- models[-overparamModels]
 		}
 
-		if (length(models) == 0 & anyway) {
-			warning('No models had fewer coefficients than predictors. Returning best model anyway.', immediate.=TRUE)
-			model <- topModel
-			tuning <- topTuning
-		} else if (length(models) == 0 & !anyway) {
-			warning('No models had fewer coefficients than predictors. NA model(s) returned.', immediate.=TRUE)
-			model <- NULL
-		} else {
-			model <- models[[1]]
-		}
-			
-	}
-	
-	# AICc weights
-	if (nrow(tuning) > 0) {
-
-		tuning$deltaAICc <- tuning$AICc - min(tuning$AICc)
-		tuning$relLike <- exp(-0.5 * tuning$deltaAICc)
-		tuning$aicWeight <- tuning$relLike / sum(tuning$relLike)
-
-		rownames(tuning) <- 1:nrow(tuning)
-	
 	}
 
-	if (verbose) {
-
-		omnibus::say('')
-		print(tuning)
-		omnibus::say('')
-
-	}
+	# AICc
+	AICc <- -2 * ll + 2 * numCoeff + (2 * numCoeff * (numCoeff + 1)) / (sum(presentBg) - numCoeff - 1)
 
 	# remove temporary files... note that "species.lambda" file cannot be removed unless R is closed, so we'll just make it smaller to reduce disk space usage
-	write.csv(NULL, paste0(scratchDir, '/species.lambdas'))
-	if (file.exists(paste0(scratchDir, '/presences'))) write.csv(NULL, paste0(scratchDir, '/presences'))
-	if (file.exists(paste0(scratchDir, '/absences'))) write.csv(NULL, paste0(scratchDir, '/absences'))
-	unlink(paste0(scratchDir, '/plots'), recursive=TRUE, force=TRUE)
-	unlink(scratchDir, recursive=TRUE, force=TRUE)
+	write.csv(NULL, paste0(thisScratchDir, '/species.lambdas'))
+	if (file.exists(paste0(thisScratchDir, '/presences'))) write.csv(NULL, paste0(scratchDir, '/', i, '/presences'))
+	if (file.exists(paste0(thisScratchDir, '/absences'))) write.csv(NULL, paste0(scratchDir, '/', i, '/absences'))
+	unlink(paste0(thisScratchDir, '/plots'), recursive=TRUE, force=TRUE)
+	unlink(thisScratchDir, recursive=TRUE, force=TRUE)
 
-	# return
-	if (length(out) > 1) {
-		output <- list()
-		if ('models' %in% out) output$models <- models
-		if ('model' %in% out) output$model <- model
-		if ('tuning' %in% out) output$tuning <- tuning
-		output
-	} else if (out == 'models') {
-		models
-	} else if (out == 'model') {
-		model
-	} else if (out == 'tuning') {
-		tuning
-	}
+	out <- list(list(
+		model=model,
+		thisTuning=data.frame(
+			regMult=thisRegMult,
+			classes=thisClasses,
+			numClasses=nchar(thisClasses),
+			numCoeff=numCoeff,
+			logLik=ll,
+			AICc=AICc
+		)
+	))
+	
+	out
 
 }

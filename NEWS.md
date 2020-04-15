@@ -1,3 +1,7 @@
+enmSdm 0.5.1.1
+trainBrt() parallelized
+trainMaxEnt() parallelized
+
 enmSdm 0.5.0.4
 trainByCrossValid() handles non-converged models
 
