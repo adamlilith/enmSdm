@@ -124,18 +124,6 @@ trainBrt <- function(
 
 		w <- w / max(w)
 
-		# initialize tuning table
-		tuning <- data.frame()
-
-		# initialize lowest cross-validation deviance
-		lowestDeviance <- Inf
-
-		# initialize best model
-		bestModel <- NA
-		
-		# initialize models
-		if ('models' %in% out) models <- list()
-		
 	### generate table of parameterizations
 	#######################################
 		
@@ -170,7 +158,8 @@ trainBrt <- function(
 				maxTrees = maxTrees,
 				tries = tries,
 				tryBy = tryBy,
-				w = w
+				w = w,
+				...
 			)
 				
 		if (cores > 1) parallel::stopCluster(cl)
@@ -310,8 +299,8 @@ trainBrt <- function(
 				plot.folds=FALSE,
 				silent=TRUE,
 				verbose=TRUE,
-				site.weights=w#,
-				# ...
+				site.weights=w,
+				...
 			),
 			error=function(err) return(NULL)
 		)

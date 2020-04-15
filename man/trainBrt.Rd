@@ -18,6 +18,7 @@ trainBrt(
   tryBy = c("learningRate", "treeComplexity", "maxTrees", "stepSize"),
   w = TRUE,
   out = "model",
+  cores = 1,
   verbose = FALSE,
   ...
 )
@@ -53,6 +54,8 @@ If \code{tryBy} is NULL then the function attempts to train the model with the s
 \item{w}{Either logical in which case TRUE causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign a weight of 1 to each datum.}
 
 \item{out}{Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{gbm}. If \code{models} then all models that were trained are returned in a list in the order they appear in the tuning table (this may take a lot of memory!). If \code{tuning} then just return a data frame with tuning parameters and deviance of each model sorted by deviance. If both then return a 2-item list with the best model and the tuning table.}
+
+\item{cores}{Integer >= 1. Number of cores to use. Default is 1.}
 
 \item{verbose}{Logical. If \code{TRUE} display progress.}
 
