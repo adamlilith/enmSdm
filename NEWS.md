@@ -1,4 +1,4 @@
-enmSdm 0.5.1.1
+enmSdm 0.5.1.2
 trainBrt() parallelized
 trainMaxEnt() parallelized
 

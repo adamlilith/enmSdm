@@ -223,10 +223,14 @@ trainByCrossValid <- function(
 			
 			}
 
+			dotArgs <- list(...)
+			dotArgs <- modifyList(dotArgs, list(w = trainWeights, data=trainData, preds=preds, resp=resp, verbose=verbose > 2, out=c('models', 'tuning')))
+			
 		### train model
 		###############
 
-			thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2, ...)
+			thisOut <- do.call(trainFx, args=dotArgs)
+			# thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2, ...)
 			# thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2)
 			kModels <- thisOut$models
 			kTuning <- thisOut$tuning
