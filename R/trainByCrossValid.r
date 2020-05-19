@@ -132,8 +132,10 @@ trainByCrossValid <- function(
 	# total number of models
 	foldsClass <- class(folds)
 	if (any(c('matrix', 'data.frame') %in% foldsClass)) {
+	
 		foldsType <- 'custom'
-		foldCodes <- na.omit(sort(unique(c(unlist(folds)))))
+		foldCodes <- na.omit(sort(unique(c(as.matrix(folds)))))
+		if (length(foldCodes) != 2) stop('"folds" matrix must have two unique values (aside from NAs).')
 		numFolds <- ncol(folds)
 
 		# codes for train/test sets
@@ -198,24 +200,25 @@ trainByCrossValid <- function(
 			} else {
 			
 				# copy data and get folds codes
-				thisData <- data
+				thisData <- data[ , c(resp, preds)]
 				thisFolds <- folds[ , k, drop=TRUE]
-				foldCodes <- sort(unique(na.omit(thisFolds)))
-				if (length(foldCodes) != 2) stop('"folds" matrix/data frame must contain only two unique values (aside from NAs).')
+			
+				if (hasWeights) thisWeights <- w
 			
 				# drop NAs
 				nas <- which(is.na(thisFolds))
 				if (length(nas) > 0) {
 					thisData <- thisData[-nas, , drop=FALSE]
-					if (hasWeights) w <- w[-nas]
+					if (hasWeights) thisWeights <- thisWeights[-nas]
 				}
 			
 				# train/test data
-				trainData <- data[which(thisFolds == trainCode), c(resp, preds), drop=FALSE]
-				testData <- data[which(thisFolds == testCode), c(resp, preds), drop=FALSE]
+				trainData <- thisData[which(thisFolds == trainCode), , drop=FALSE]
+				testData <- thisData[which(thisFolds == testCode), , drop=FALSE]
 				if (hasWeights) {
-					trainWeights <- w[which(thisFolds == trainCode)]
-					testWeights <- w[which(thisFolds == testCode)]
+				
+					trainWeights <- thisWeights[which(thisFolds == trainCode)]
+					testWeights <- thisWeights[which(thisFolds == testCode)]
 				} else {
 					trainWeights <- rep(1, nrow(trainData))
 					testWeights <- rep(1, nrow(testData))
@@ -224,7 +227,7 @@ trainByCrossValid <- function(
 			}
 
 			dotArgs <- list(...)
-			dotArgs <- modifyList(dotArgs, list(w = trainWeights, data=trainData, preds=preds, resp=resp, verbose=verbose > 2, out=c('models', 'tuning')))
+			dotArgs <- modifyList(dotArgs, list(w = trainWeights, resp=resp, preds=preds, data=trainData, verbose=verbose > 2, out=c('models', 'tuning')))
 			
 		### train model
 		###############
