@@ -1,3 +1,6 @@
+enmSdm 0.5.1.3
+Recompiled for R 4.0.0
+
 enmSdm 0.5.1.2
 trainBrt() parallelized
 trainMaxEnt() parallelized
