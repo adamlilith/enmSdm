@@ -1,3 +1,6 @@
+enmSdm 0.5.1.4
+Added data 'countryISO3'
+
 enmSdm 0.5.1.3
 Recompiled for R 4.0.0
 
