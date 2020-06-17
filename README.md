@@ -4,12 +4,7 @@ This package is a complement to the popular `dismo` package for R by Robert Hijm
 
 You can install this package in R using these commands:
 
-`install.packages('devtools') # if you haven't done this already`  
-`library(devtools)`  
-`devtools::install_github('adamlilith/omnibus')`  
-`devtools::install_github('adamlilith/statisfactory')`  
-`devtools::install_github('adamlilith/legendary')`  
-`devtools::install_github('adamlilith/enmSdm')`  
+`remotes::install_github('adamlilith/enmSdm')`  
 
 NB: If for some reason these commands don't work, you can install the package(s) by downloading the latest zip/tar file from the `zipTarFiles` directory and installing the package(s) manually. If you do this, you will also have to install the `omnibus`,  `statisfactory`, and `legendary` packages, which are on GitHub also under my account (`adamlilith`).
 
@@ -78,3 +73,8 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `getCRS`: Return a proj4string (coordinate reference system string) using a nickname
 * `pointDist`: Geographic distance between set(s) of points
 * `xToCoords`: Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object
+
+## Data
+* `countryISO3`: Crosswalk table between potentially "messy" country names and ISO3 codes
+* `lemurs`: Lemur occurrences
+* `mad0`: Madagascar spatial object

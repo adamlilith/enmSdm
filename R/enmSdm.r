@@ -68,6 +68,10 @@
 #' 		\code{\link{getCRS}} Return a proj4string (coordinate reference system string) using a nickname \cr
 #' 		\code{\link{pointDist}} Geographic distance between set(s) of points \cr
 #' 		\code{\link{xToCoords}} Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object \cr
+#' @section Data:
+#' 		\code{\link{countryISO3}}: Crosswalk table between potentially "messy" country names and ISO3 codes \cr
+#' 		\code{\link{lemurs}}: Lemur occurrences \cr
+#' 		\code{\link{mad0}}: Madagascar spatial object \cr
 #' @docType package
 #' @author Adam B. Smith
 #' @name enmSdm
