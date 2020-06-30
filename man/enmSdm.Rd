@@ -94,7 +94,6 @@ Create an issue on \href{https://github.com/adamlilith/enmSdm/issues}{GitHub}.
 
 \section{Data}{
 
-		\code{\link{countryISO3}}: Crosswalk table between potentially "messy" country names and ISO3 codes \cr
 		\code{\link{lemurs}}: Lemur occurrences \cr
 		\code{\link{mad0}}: Madagascar spatial object \cr
 }

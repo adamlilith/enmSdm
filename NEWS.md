@@ -1,4 +1,5 @@
 enmSdm 0.5.1.5
+Add Robinson projection to getCRS()
 
 enmSdm 0.5.1.3
 Recompiled for R 4.0.0
