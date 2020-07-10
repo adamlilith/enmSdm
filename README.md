@@ -75,6 +75,5 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `xToCoords`: Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object
 
 ## Data
-* `countryISO3`: Crosswalk table between potentially "messy" country names and ISO3 codes
 * `lemurs`: Lemur occurrences
 * `mad0`: Madagascar spatial object
