@@ -4,20 +4,24 @@
 \alias{coordPrecision}
 \title{Calculate the precision of a geographic coordinate}
 \usage{
-coordPrecision(x, distFunct = NULL, ...)
+coordPrecision(x, dms = FALSE, epsilon = 2, distFunct = NULL, ...)
 }
 \arguments{
 \item{x}{Matrix, data frame, SpatialPoints, or SpatialPointsDataFrame object. If this is a matrix or data frame, the first two columns must represent longitude and latitude (in that order). If \code{x} is a matrix or data frame, the coordinates are assumed to be unprojected (WGS84) (a coordinate reference system proj4 string or \code{CRS} object can be passed into the function using \code{...}). If \code{x} is a SpatialPoints or SpatialPointsDataFrame and not in WGS84 or NAD83, then coordinates are projected to WGS84 (with a warning).}
 
+\item{dms}{Logical, if \code{FALSE} (default), it is assumed that the original format in which coordinate were reported is in decimal notation. For example, if the coordinate was 37.38, then precision will be based on 37.375 and 37.385.  If \code{TRUE}, it will be assumed that coordinates were originally reported in degrees-minutes-seconds format. Precision will then be calculated by adding/subtracting half of the smallest unit reported. For example, the bounding box for 37deg 37min 38sec will be calculated from 37deg 37min 37.5sec and 37deg 37min 38.5sec, precision for 37deg 37min (and 0 sec) will be based on 37deg 36.5min and 37deg 37.5 min, and 37deg (and 0min 0sec) from 36deg 0.5min and 37deg 0.5 min), assuming the other coordinate has similar or worse reported precision.}
+
+\item{epsilon}{Zero or positive integer, number of digits to which to round seconds value if \code{dms} is \code{TRUE}. Ignored if \code{dms} is \code{FALSE}. This is used to accommodate inexact integer values when converting from DMS to decimal. For example, -108.932222 converted to DMS format is 108deg 55min 7.9992sec, but if \code{episilon} = 2 then it would be converted to 108deg 55min 08sec.}
+
 \item{distFunct}{Either a function or \code{NULL}. If \code{NULL} then \code{\link[geosphere]{distVincentyEllipsoid}} is used to calculate distances. Other "dist" functions (e.g., \code{\link[geosphere]{distGeo}}) can be used.  Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.}
 
-\item{...}{Arguments to pass to \code{distVincentyEllipsoid}. Note that if \code{x} is a matrix or data frame a coordinate reference system may be passed using \code{crs = <proj4 string code} or \code{crs = <object of class CRS (see sp package)>}. Otherwise WGS84 is assumed.}
+\item{...}{Arguments to pass to \code{distVincentyEllipsoid}. Note that if \code{x} is a matrix or data frame a coordinate reference system may be passed using \code{crs = <proj4 string code>} or \code{crs = <object of class CRS (see sp package)>}. Otherwise WGS84 is assumed.}
 }
 \value{
 Numeric values (by default in units of meters).
 }
 \description{
-This function calculates the maximum precision of geographic coordinates in decimal-degrees format. Coordinate precision is the maximum distance between any point defined by increasing/decreasing the value of each longitude/latitude pair by one more digit past the decimal place then increasing/decreasing this value by 5. For example, if the longitude is 82.3 and latitude 45.75 then the precision is the distance between the point pairs (82.25, 45.745) and (82.35, 45.755).
+This function calculates the imprecision of geographic coordinates due to rounded coordinate values. For coordinates originally reported in decimal notation, coordinate imprecision is \emph{half} the distance between the two opposing corners on the bounding box of a point defined by 1) finding the maximum number of significant digits after the decimal in the longitude/latitude pair; 2) adding/subtracting 5 to the decimal place that falls just after this; and 3) calculating the distance between these points then dividing by 2. For example, if longitude is 82.37 and latitude 45.8 then the number of significant digits after the decimal place is 2 and 1, respectively so 2 is used on the assumption that latitude is measured to the nearest 100th degree. The precision is then the distance between the point pairs (82.365, 45.795) and (82.375, 45.805). For coordinates originally reported in degree-minus-second (DMS) format, the bounding box is defined by adding/subtracting 0.5 units (degrees, minutes, or seconds, depending on the smallest non-zero unit reported) from the coordinate. For example, if longitude is 90deg 00min 00sec and latitude is 37deg 37min 37sec, then the bounding box will be defined by adding/subtracting 0.5 arcsec to the coordinate.
 }
 \examples{
 # coarse-precision cases
@@ -48,6 +52,21 @@ lat <-  c(45, 45, 90, -90)
 ll <- cbind(long, lat)
 precision_m <- coordPrecision(ll)
 cbind(ll, precision_m)
+
+# original coordinates in degrees-minutes-seconds format
+longDD <- c(90, 90, 90, 90, 90, 90)
+longMM <- c(0, 0, 0, 11, 11, 0)
+longSS <- c(0, 0, 0, 0, 52, 52)
+latDD <- c(38, 38, 38, 38, 38, 38)
+latMM <- c(0, 37, 37, 37, 37, 0)
+latSS <- c(0, 0, 38, 38, 38, 0)
+longHemis <- rep('W', 6)
+latHemis <- rep('N', 6)
+longDec <- dmsToDecimal(longDD, longMM, longSS, longHemis)
+latDec <- dmsToDecimal(latDD, latMM, latSS, latHemis)
+decimal <- cbind(longDec, latDec)
+coordPrecision(decimal)
+coordPrecision(decimal, dms=TRUE)
 
 \donttest{
 # known error when longitude is negative and latitude is -90

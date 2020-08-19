@@ -14,18 +14,16 @@
 #' @export
 dmsToDecimal <- function(dd, mm, ss, hemis = NULL) {
 
-	if (is.null(hemis)) {
-		sgn <- 1
-		warning('Hemispshere not specified. Assuming northern/western hemisphere.')
-	} else if (toupper(hemis) == 'S' | toupper(hemis) == 'W') {
-		sgn <- -1
-	} else if (toupper(hemis) == 'E' | toupper(hemis) == 'N') {
-		sgn <- 1
+	n <- length(dd)
+
+	if (all(is.null(hemis))) {
+		sgn <- rep(1, n)
+		warning('Hemisphere not specified. Assuming northern/western hemisphere.')
 	} else {
-		sgn <- 1
-		warning('Hemispshere not specified. Assuming northern/western hemisphere.')
+		sgn <- ifelse(toupper(hemis) == 'S' | toupper(hemis) == 'W', -1, ifelse(toupper(hemis) == 'E' | toupper(hemis) == 'N', 1, 1))
+		if (!any(toupper(hemis) %in% c('N', 'S', 'E', 'W'))) warning('Hemisphere invalid for at least some coordinates. Assuming northern/western hemisphere for these coordinates.')
 	}
-		
+	
 	out <- sgn * (dd + mm / 60 + ss / 3600)
 	out
 	

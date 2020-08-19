@@ -1,3 +1,6 @@
+enmSdm 0.5.1.6
+coordPrecision() handles coordinates in DMS format
+
 enmSdm 0.5.1.5
 Add Robinson projection to getCRS()
 

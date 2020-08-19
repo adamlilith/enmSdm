@@ -219,7 +219,7 @@ latMask <- as(latMask, 'SpatialPolygons')
 projection(latMask) <- projection(species_t0)
 
 species_t1s <- mask(species_t0, longMask, inverse=TRUE) # lose eastward
-species_t2s <- mask(species_t1s, latMask1) # lose southward
+species_t2s <- mask(species_t1s, latMask) # lose southward
 species_t3s <- species_t1s # gain southward
 species_t4s <- species_t0s # gain eastward
 
