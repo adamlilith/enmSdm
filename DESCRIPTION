@@ -1,8 +1,8 @@
 Package: enmSdm
 Type: Package
 Title: Tools for modeling niches and distributions of species
-Version: 0.5.1.5
-Date: 2020-06-29
+Version: 0.5.1.6
+Date: 2020-08-18
 Author: Adam B. Smith <adam.smith@mobot.org>
 Maintainer: Adam B. Smith <adam.smith@mobot.org>
 Description: Better modeling of niches and distributions.
@@ -17,8 +17,6 @@ Imports:
 	foreach,
 	geosphere,
 	gbm,
-	grpreg,
-	grpregOverlap,
 	MASS,
 	maxnet,
 	mgcv,
@@ -37,6 +35,8 @@ Remotes:
 Suggests:
 	brglm2,
 	devtools,
+	grpreg,
+	grpregOverlap,
     knitr,
     rmarkdown
 License: GPL (>=3) + file LICENSE
@@ -44,5 +44,5 @@ LazyData: false
 LazyLoad: yes
 URL: http://www.earthSkySea.org
 Encoding: UTF-8
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 VignetteBuilder: knitr

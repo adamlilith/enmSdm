@@ -4,20 +4,18 @@
 \alias{decimalToDms}
 \title{Convert geographic coordinates in decimal format to degrees-minutes-second}
 \usage{
-decimalToDms(x, hemis)
+decimalToDms(x)
 }
 \arguments{
-\item{x}{Numeric, longitude or latitude in decimal format.}
+\item{x}{Numeric or vector of numeric values, longitude or latitude in decimal format.}
 }
 \value{
-A numeric vector with three named elements: degrees, seconds, and seconds.
+A numeric matrix with three columns: degrees, seconds, and seconds. Note that the hemisphere (i.e., indicated by the sign of x) is not returned since it could be either north/south or east/west.
 }
 \description{
 This function converts geographic coordinates in decimal format to degrees-minutes-seconds (DD-MM-SS) format.
 }
 \examples{
 decimalToDms(38.56123) # latitude of St. Louis, Missouri, USA
-decimalToDms(38.56123) # latitude of St. Louis, Missouri, USA
-decimalToDms(90.06521) # longitude of St. Louis, Missouri, USA
 decimalToDms(90.06521) # longitude of St. Louis, Missouri, USA
 }

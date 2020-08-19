@@ -184,7 +184,7 @@
 #' projection(latMask) <- projection(species_t0)
 #' 
 #' species_t1s <- mask(species_t0, longMask, inverse=TRUE) # lose eastward
-#' species_t2s <- mask(species_t1s, latMask1) # lose southward
+#' species_t2s <- mask(species_t1s, latMask) # lose southward
 #' species_t3s <- species_t1s # gain southward
 #' species_t4s <- species_t0s # gain eastward
 #' 
@@ -249,7 +249,7 @@ bioticVelocity <- function(
 		}
 	
 		if (!all(order(times) == 1:totalTimes) & warn) {
-			warning('Times assigned to each period are not sequential (e.g., {1, 2, 3} versus {3, 2, 1}). Velocities can have incorrect sign.')
+			warning('Times assigned to each period are not sequential (e.g., {1, 2, 3} versus {3, 2, 1}). Velocities may have incorrect signs.')
 		}
 	
 		# times across which to calculate velocity
@@ -333,13 +333,17 @@ bioticVelocity <- function(
 		x1 <- x[ , , 1]
 
 		# correction for shared non-NA cells with next time period
-		x2mask <- if (onlyInSharedCells) {
-			!is.na(x[ , , 2])
-		} else {
-			matrix(1, nrow=nrow(x), ncol=ncol(x))
-		}
+		if (onlyInSharedCells) {
+
+			x2 <- x[ , , 2]
+			x1x2mask <- matrix(NA, nrow=nrow(x), ncol=ncol(x))
+			for (i in seq_along(x1x2mask)) {
+				x1x2mask[i] <- ifelse(is.na(x1[i]) | is.na(x2[i]), NA, 1)
+			}
 		
-		x1 <- x1 * x2mask
+			x1 <- x1 * x1x2mask
+			
+		}
 			
 		# weighted longitude/latitude... used for centroid calculations for velocities
 		if (any(c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentriod', 'eCentroid', 'wCentroid') %in% metrics)) {
@@ -355,11 +359,6 @@ bioticVelocity <- function(
 			
 		}
 
-	### if NOT correcting for shared non-NA cells, generate "correction" (has no effect)
-	####################################################################################
-	
-		if (!onlyInSharedCells) ones <- matrix(1, nrow=nrow(x), ncol=ncol(x))
-		
 	### calculate velocities
 	########################
 	
@@ -389,15 +388,17 @@ bioticVelocity <- function(
 
 			# correction for shared non-NA cells with next time period
 			if (onlyInSharedCells) {
-				x1mask <- !is.na(x1)
-				x2mask <- !is.na(x2)
-			} else {
-				x1mask <- x2mask <- ones
+			
+				x1x2mask <- matrix(NA, nrow=nrow(x), ncol=ncol(x))
+				for (i in seq_along(x1x2mask)) {
+					x1x2mask[i] <- ifelse(is.na(x1[i]) | is.na(x2[i]), NA, 1)
+				}
+
+				x1 <- x1 * x1x2mask
+				x2 <- x2 * x1x2mask
+						
 			}
 			
-			x1 <- x1 * x2mask
-			x2 <- x2 * x1mask
-					
 			### weighted longitude/latitude... used for centroid calculations for velocities
 			if (any(c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentriod', 'eCentroid', 'wCentroid') %in% metrics)) {
 
@@ -706,7 +707,7 @@ bioticVelocity <- function(
 			### prevalence
 			if ('prevalence' %in% metrics) {
 			
-				metric <- sum(x2 > 0, na.rm=TRUE) / sum(!is.na(x2 * x1mask))
+				metric <- sum(x2 > 0, na.rm=TRUE) / sum(!is.na(x2))
 				
 				thisOut <- cbind(
 					thisOut,
