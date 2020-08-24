@@ -10,9 +10,9 @@ getCRS(x, asCRS = FALSE)
 \item{x}{Character. Name of proj4 string to return. Possible values include:
 \itemize{
 \item \code{albersNA} Albers equal-area conic for North America: \code{+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs}
-\item \code{madAlbers} Albers equal-area conic for Madagascar: \code{+proj=aea +lat_1=-14 +lat_2=-24 +lat_0=-19 +lon_0=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,}
-\item \code{climateNA} ClimateNA dataset: \code{+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0}
-\item \code{chelsa} CHELSA climate dataset (actually WGS84): or \code{+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0}
+\item \code{madAlbers} Albers equal-area conic for Madagascar: \code{+proj=aea +lat_1=-14 +lat_2=-24 +lat_0=-19 +lon_0=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84}
+\item \code{climateNA} ClimateNA dataset: \code{+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84}
+\item \code{chelsa} CHELSA climate dataset (actually WGS84): or \code{+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84}
 \item \code{dayMet} DayMet dataset: \code{+proj=lcc +lon_0=-100 +lat_0=42.5 +x_0=0 +y_0=0 +a=6378137 +rf=298.257223563 +lat_1=25 +lat_2=60}
 \item \code{lccCONUS} Lambert conformal conic for the contiguous United States: \code{+proj=lcc +lat_1=33 +lat_2=45 +lat_0=39 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs}
 \item \code{lccEp} Lambert conformal conic for Europe: \code{+proj=lcc +lat_1=43 +lat_2=62 +lat_0=30 +lon_0=10 +x_0=0 +y_0=0 +ellps=intl +units=m +no_defs}
@@ -24,14 +24,14 @@ getCRS(x, asCRS = FALSE)
 \item \code{laeaS} Lambert azimuthal equal area for the South Pole: \code{+proj=laea +lat_0=-90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs}
 \item \code{mollweide} Mollweide equal-area for the world: \code{+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs}
 \code{nad27} NAD27 (unprojected): \code{+proj=longlat +datum=NAD27 +no_defs +ellps=clrk66 +nadgrids=@conus,@alaska,@ntv2_0.gsb,@ntv1_can.dat}
-\item \code{nad83} NAD83 (unprojected): \code{+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80 +towgs84=0,0,0}
+\item \code{nad83} NAD83 (unprojected): \code{+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80}
 \item \code{nad83harn} NAD83 HARN (unprojected): \code{+proj=longlat +ellps=GRS80 +no_defs}
 \item \code{plateCaree} Plate Caree using WGS84: \code{+proj=eqc +lat_ts=0 +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_def}
-\item \code{prism} PRISM dataset (actually WGS84): \code{+proj=longlat +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +no_defs}
+\item \code{prism} PRISM dataset (actually WGS84): \code{+proj=longlat +ellps=GRS80,0,0,0,0 +no_defs}
 \item \code{robinson} Robinson: \code{+proj=robin +lon_0=0 +x_0=0 +y_0=0}
 \item \code{wgs72} CRS for WGS72 (unprojected): \code{+proj=longlat +ellps=WGS72 +no_defs}
-\item \code{wgs84} CRS for WGS84 (unprojected): \code{+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0}
-\item \code{worldclim} WORLDCLIM climate data set (actually WGS84): \code{+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0}
+\item \code{wgs84} CRS for WGS84 (unprojected): \code{+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84}
+\item \code{worldclim} WORLDCLIM climate data set (actually WGS84): \code{+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84}
  \item UTM projections require the datum (e.g., NAD27, NAD83, WGS84, etc.), the hemisphere (north or south) and the zone. The "code" is as:
 \code{utm<coordinate system><hemisphere><zone>}. For example, \code{utmNad83north9} returns the CRS for UTM zone 9 in the northern hemisphere using the NAD83 coordinate reference system. Likewise, \code{utmNad27south6} returns the CRS for UTM zone 6 in the southern hemisphere using the NAD27 coordinate system. So far the following have been implemented:
     \itemize{
