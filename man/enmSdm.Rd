@@ -73,6 +73,7 @@ Create an issue on \href{https://github.com/adamlilith/enmSdm/issues}{GitHub}.
 		\code{\link{interpolateRasters}} Interpolate a stack of rasters \cr
 		\code{\link{longLatRasters}} Generate rasters with values of longitude/latitude for cell values \cr
 		\code{\link{sampleRast}} and \code{\link{sampleRastStrat}} Sample raster with/out replacement and possibly in a stratified manner \cr
+		\code{\link{squareRasterCells}} Resample a raster so cells are "square" \cr
 }
 
 \section{Range area based on minimum convex polygons}{

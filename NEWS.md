@@ -1,3 +1,6 @@
+enmSdm 0.5.1.7
+Add squareRasterCells()
+
 enmSdm 0.5.1.6
 coordPrecision() handles coordinates in DMS format
 
