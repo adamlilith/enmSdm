@@ -8,11 +8,11 @@
 #' }
 #' See \emph{Details} for information on how the characteristic scale of spatial autocorrelation is estimated. This function is related to \code{\link[enmSdm]{spatialCorrForPoints}} which calculates spatial autocorrelation for distances between points. However, this function calculates spatial autocorrelation for numeric-valued \emph{measurements} taken at points (or raster cell centers).
 #' @param x Either a raster, raster stack/brick, matrix with column names, data frame, or SpatialPointsDataFrame. If you use a matrix or data frame then the first two columns will be assumed to represent longitude and latitude, in that order, and their coordinate reference system will be assumed to be WGS84 (unprojected).
-#' @param focal This has various uses depending on the type of object specified for \code{x}:
+#' @param focals This has various uses depending on the type of object specified for \code{x}:
 #' \itemize{
-#'		\item If \code{x} is a raster or raster stack/brick and \code{focal} is \code{NULL} (default), then spatial autocorrelation will be calculated across all non-\code{NA} cells in  \code{x}.
-#'		\item If \code{x} is a SpatialPointsDataFrame and \code{focal} is \code{NULL} (default), then spatial autocorrelation will be calculated across all non-\code{NA} points represented by \code{x}.
-#' 		\item If \code{x} is a raster or raster stack/brick and \code{x} is a matrix with column names, data frame, SpatialPoints, or SpatialPointsDataFrame object, then autocorrelation will be calculated focal all sites in \code{focal}. If you use a matrix or data frame then the first two columns will be assumed to represent longitude and latitude, in that order, and their coordinate reference system will be assumed to be the same as the raster or raster stack/brick.
+#'		\item If \code{x} is a raster or raster stack/brick and \code{focals} is \code{NULL} (default), then spatial autocorrelation will be calculated across all non-\code{NA} cells in  \code{x}.
+#'		\item If \code{x} is a SpatialPointsDataFrame and \code{focals} is \code{NULL} (default), then spatial autocorrelation will be calculated across all non-\code{NA} points represented by \code{x}.
+#' 		\item If \code{x} is a raster or raster stack/brick and \code{x} is a matrix with column names, data frame, SpatialPoints, or SpatialPointsDataFrame object, then autocorrelation will be calculated focals all sites in \code{focals}. If you use a matrix or data frame then the first two columns will be assumed to represent longitude and latitude, in that order, and their coordinate reference system will be assumed to be the same as the raster or raster stack/brick.
 #' }
 #' @param vars Character vector or \code{NULL} (default). If \code{x} is a SpatialPointsDataFrame, by default the variables on which to calculate spatial autocorrelation will be taken from the column names of \code{x}. However, you can use \code{vars} to specify the column names in \code{x} to use. This is ignored if \code{x} is not a SpatialPointsDataFrame.
 #' @param breaks Either: A single integer, three numeric values, or a matrix or data frame with at least two columns:
@@ -28,13 +28,13 @@
 #' @param verbose Logical, if \code{TRUE} (default) show progress.
 #' @param ... Other arguments (not used).
 #' @return A raster, raster stack/brick, or SpatialPointsDataFrame, depending on the input. If the output is a raster, raster stack, or raster brick, then values represent the minimum distance at which spatial autocorrelation is not significantly different from random expectation (i.e., the "left" side of the distance bin at which this occurs). If the output is a SpatialPointsDataFrame, then columns will be named "sacDistMin_XYZ", "sacDistMid_XYZ" and "sacDistMax_XYZ", where "XYZ" refers to the variable name and "Min", "Mid", and "Max" refer to the minimum, middle, and maximum distance of spatial autocorrelation for each site in the output (i.e., the left, middle, and right side of teh distance bin at which spatial autocorrelation for the site is not different from random expectation).
-#' @details The characteristic scale of spatial autocorrelation for a variable for a specific "focal" site relative to a set of "reference" sites is estimated through a multi-step process. The nature of the focal and reference sites depends on the values of \code{x} and \code{focal}. If \code{x} is supplied but \code{focal} is not, then all sites (or cells) in \code{x} will be assumed to be the reference and focal sites. If \code{x} and \code{focal} are supplied, then sites in \code{focal} are the focal sites and sites (or cells) in \code{x} are the reference sites.
+#' @details The characteristic scale of spatial autocorrelation for a variable for a specific "focals" site relative to a set of "reference" sites is estimated through a multi-step process. The nature of the focals and reference sites depends on the values of \code{x} and \code{focals}. If \code{x} is supplied but \code{focals} is not, then all sites (or cells) in \code{x} will be assumed to be the reference and focals sites. If \code{x} and \code{focals} are supplied, then sites in \code{focals} are the focals sites and sites (or cells) in \code{x} are the reference sites.
 #' \enumerate{
-#'  \item For each distance bin, calculate the observed upper quantile of the distribution of absolute difference between the value of the variable at the the focal site and all other "reference" sites supplied in argument \code{x}. Here, the upper quantile is given by 100 - 0.5 * (100 - \code{perc}). So if \code{perc = 95} (default), this is the 97.5th quantile of the observed absolute difference for values associated with all reference points in each distance bin.
-#'	\item Apply a permutation test by scrambling the absolute differences associated with each pairwise distance between the focal site at reference sites. For each distance bin generate a null expectation from the randomized absolute differences by calculating the value of the 100 - \code{perc}th quantile (so if \code{perc = 95} this is the 5th quantile of the distribution). Repeat \code{iters} times and for each bin calculate the mean of the 100 - \code{perc}th quantile.
-#	\item Starting at the first distance bin (smallest distance from the focal site), find the bin at which the observed absolute upper quantile (values from step 1) first falls above the mean of the 100 - \code{perc}th quantile of the randomized values (values from step 2). The distances (lower/middle/upper) associated with the bin at which this occurs represent the characteristic scale of spatial autocorrelation for the given variable at the focal site.
+#'  \item For each distance bin, calculate the observed upper quantile of the distribution of absolute difference between the value of the variable at the the focals site and all other "reference" sites supplied in argument \code{x}. Here, the upper quantile is given by 100 - 0.5 * (100 - \code{perc}). So if \code{perc = 95} (default), this is the 97.5th quantile of the observed absolute difference for values associated with all reference points in each distance bin.
+#'	\item Apply a permutation test by scrambling the absolute differences associated with each pairwise distance between the focals site at reference sites. For each distance bin generate a null expectation from the randomized absolute differences by calculating the value of the 100 - \code{perc}th quantile (so if \code{perc = 95} this is the 5th quantile of the distribution). Repeat \code{iters} times and for each bin calculate the mean of the 100 - \code{perc}th quantile.
+#	\item Starting at the first distance bin (smallest distance from the focals site), find the bin at which the observed absolute upper quantile (values from step 1) first falls above the mean of the 100 - \code{perc}th quantile of the randomized values (values from step 2). The distances (lower/middle/upper) associated with the bin at which this occurs represent the characteristic scale of spatial autocorrelation for the given variable at the focals site.
 #' }
-#' Note that this measure of spatial autocorrelation assumes anisotropy, meaning that from a given focal site the characteristic distance of spatial autocorrelation is the same in all directions.
+#' Note that this measure of spatial autocorrelation assumes anisotropy, meaning that from a given focals site the characteristic distance of spatial autocorrelation is the same in all directions.
 #' @seealso \code{\link[enmSdm]{spatialCorrForPoints}}
 #' @examples
 #' \donttest{
@@ -53,7 +53,7 @@
 #' madClim[['bio1']] <- madClim[['bio1']] / 10 # to deg C
 #' 
 #' ### spatial autocorrelation for raster (can take a long time!)
-#' sacRast <- localSpatialCorrForValues(x=madClim, focal=NULL)
+#' sacRast <- localSpatialCorrForValues(x=madClim, focals=NULL)
 #' sacRast <- sacRast / 1000 # convert to km
 #' 
 #' # plot
@@ -115,7 +115,7 @@
 #' nas <- which(is.na(lemurBio1))
 #' lemur <- lemur[-nas, ]
 #' 
-#' sacLemur <- localSpatialCorrForValues(x=madClim, focal=lemur, breaks=10)
+#' sacLemur <- localSpatialCorrForValues(x=madClim, focals=lemur, breaks=10)
 #' 
 #' # plot: code point color by characteristic distance of spatial autocorrelation
 #' bio1SacScaled <- 
@@ -151,11 +151,10 @@
 #' points(lemur, pch=21, bg=grayBio12)
 #' 
 #' }
-#' @export
 
 localSpatialCorrForValues <- function(
 	x,
-	focal = NULL,
+	focals = NULL,
 	vars = NULL,
 	breaks = 20,
 	limitDist = FALSE,
@@ -166,11 +165,11 @@ localSpatialCorrForValues <- function(
 	...
 ) {
 
-	focalSupplied <- if (is.null(focal)) { FALSE } else { TRUE }
+	focalSupplied <- if (is.null(focals)) { FALSE } else { TRUE }
 
 	# generate common working objects
 	# "refs" is set of reference points and associated data
-	# "focal" is set of points at which to calculate SAC plus associated data
+	# "focals" is set of points at which to calculate SAC plus associated data
 	# note these may be the same set of points, depending on the input types
 	if (any(c('RasterLayer', 'RasterStack', 'RasterBrick') %in% class(x))) {
 
@@ -189,60 +188,60 @@ localSpatialCorrForValues <- function(
 		nonNas <- which(complete.cases(refs@data))
 		if (length(nonNas) != raster::ncell(x)) refs <- refs[nonNas, ]
 
-		# convert "focal" to SPSDF
-		if (is.null(focal)) {
+		# convert "focals" to SPSDF
+		if (is.null(focals)) {
 			
-			focal <- refs
+			focals <- refs
 
-		} else if (any(c('matrix', 'data.frame') %in% class(focal))) {
+		} else if (any(c('matrix', 'data.frame') %in% class(focals))) {
 		
 			crs <- sp::CRS(raster::projection(x))
 		
-			focal <- focal[ , 1:2]
-			focal <- SpatialPoints(focal, crs)
-			vals <- raster::extract(x, focal)
+			focals <- focals[ , 1:2]
+			focals <- SpatialPoints(focals, crs)
+			vals <- raster::extract(x, focals)
 			vals <- as.data.frame(vals)
 			colnames(vals) <- names(x)
-			focal <- sp::SpatialPointsDataFrame(focal, data=vals, proj4string=crs)
+			focals <- sp::SpatialPointsDataFrame(focals, data=vals, proj4string=crs)
 		
-		} else if ('SpatialPoints' %in% class(focal)) {
+		} else if ('SpatialPoints' %in% class(focals)) {
 		
-			crs <- sp::CRS(raster::projection(focal))
+			crs <- sp::CRS(raster::projection(focals))
 
-			vals <- raster::extract(x, focal)
+			vals <- raster::extract(x, focals)
 			vals <- as.data.frame(vals)
 			colnames(vals) <- names(x)
-			focal <- sp::SpatialPointsDataFrame(focal, data=vals, crs)
+			focals <- sp::SpatialPointsDataFrame(focals, data=vals, crs)
 			
-		} else if ('SpatialPointsDataFrame' %in% class(focal)) {
+		} else if ('SpatialPointsDataFrame' %in% class(focals)) {
 
-			vals <- raster::extract(x, focal)
+			vals <- raster::extract(x, focals)
 			vals <- as.data.frame(vals)
 			colnames(vals) <- names(x)
-			focal@data <- vals
+			focals@data <- vals
 			
 		}
 		
 		refsAndFocalSame <- FALSE
 		
-	} else if (c('SpatialPointsDataFrame') %in% class(x) & is.null(focal)) {
+	} else if (c('SpatialPointsDataFrame') %in% class(x) & is.null(focals)) {
 
-		focal <- refs <- x
+		focals <- refs <- x
 		if (is.null(vars)) vars <- names(refs)
 		
 		refsAndFocalSame <- TRUE
 		
-	} else if (any(c('matrix', 'data.frame') %in% class(x)) & is.null(focal)) {
+	} else if (any(c('matrix', 'data.frame') %in% class(x)) & is.null(focals)) {
 
 		if (is.null(vars)) vars <- colnames(x)[3:ncol(x)]
 		data <- as.data.frame(x[ , vars, drop=FALSE])
 		x <- sp::SpatialPointsDataFrame(x[ , 1:2], data=data, proj4=enmSdm::getCRS('wgs84', TRUE))
-		focal <- refs <- x
+		focals <- refs <- x
 		
 		refsAndFocalSame <- TRUE
 		
 	} else {
-		stop('Incorrect arguments: "x" must be a raster/raster stack and "focal" NULL; OR "x" must be a raster/raster stack and "focal" a matrix, data frame, SpatialPoints, or SpatialPointsDataFrame; OR "x" must be a matrix, data frame, or SpatialPointsDataFrame, and "focal" NULL.')
+		stop('Incorrect arguments: "x" must be a raster/raster stack and "focals" NULL; OR "x" must be a raster/raster stack and "focals" a matrix, data frame, SpatialPoints, or SpatialPointsDataFrame; OR "x" must be a matrix, data frame, or SpatialPointsDataFrame, and "focals" NULL.')
 	}
 
 	### pre-calculations and -allocations
@@ -294,20 +293,20 @@ localSpatialCorrForValues <- function(
 		if (verbose) omnibus::say(thisVar)
 			
 		# for saving characteristic distance of SAC
-		focal@data$DUMMY3 <- focal@data$DUMMY2 <- focal@data$DUMMY1 <- NA
-		names(focal@data)[(ncol(focal@data) - 2):ncol(focal@data)] <- paste0(c('sacDistMin_', 'sacDistMid_', 'sacDistMax_'), thisVar)
+		focals@data$DUMMY3 <- focals@data$DUMMY2 <- focals@data$DUMMY1 <- NA
+		names(focals@data)[(ncol(focals@data) - 2):ncol(focals@data)] <- paste0(c('sacDistMin_', 'sacDistMid_', 'sacDistMax_'), thisVar)
 
 		# observed values
-		focalObs <- focal@data[ , thisVar, drop=TRUE]
+		focalObs <- focals@data[ , thisVar, drop=TRUE]
 		refsObs <- refs@data[ , thisVar, drop=TRUE]
 
-		if (verbose) progress <- txtProgressBar(min=0, max=nrow(focal), style=3, width=min(40, getOption('width')))
+		if (verbose) progress <- txtProgressBar(min=0, max=nrow(focals), style=3, width=min(40, getOption('width')))
 
-		# for each focal point
-		for (countFocal in 1:nrow(focal)) {
+		# for each focals point
+		for (countFocal in 1:nrow(focals)) {
 
-			# the focal point and its data
-			thisFocal <- focal[countFocal, , drop=FALSE]
+			# the focals point and its data
+			thisFocal <- focals[countFocal, , drop=FALSE]
 						
 			### distances
 			
@@ -385,15 +384,15 @@ localSpatialCorrForValues <- function(
 				
 				# if there is a characteristic distance of SAC
 				if (!is.na(sacMinDistIndex)) {
-					focal@data[countFocal, paste0('sacDistMin_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'lower'])
-					focal@data[countFocal, paste0('sacDistMid_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'middle'])
-					focal@data[countFocal, paste0('sacDistMax_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'upper'])
+					focals@data[countFocal, paste0('sacDistMin_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'lower'])
+					focals@data[countFocal, paste0('sacDistMid_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'middle'])
+					focals@data[countFocal, paste0('sacDistMax_', thisVar)] <- max(0, distDistrib[sacMinDistIndex, 'upper'])
 				# if none occurred in the intervals considered, return maximum value (if desired)
 				} else if (returnMax) {
 					numDistBins <- nrow(distDistrib)
-					focal@data[countFocal, paste0('sacDistMin_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
-					focal@data[countFocal, paste0('sacDistMid_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
-					focal@data[countFocal, paste0('sacDistMax_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
+					focals@data[countFocal, paste0('sacDistMin_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
+					focals@data[countFocal, paste0('sacDistMid_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
+					focals@data[countFocal, paste0('sacDistMax_', thisVar)] <- max(0, distDistrib[numDistBins, 'upper'])
 				}
 
 				# ### plot
@@ -413,7 +412,7 @@ localSpatialCorrForValues <- function(
 				
 			if (verbose) setTxtProgressBar(progress, countFocal)
 			
-		} # next "focal" site
+		} # next "focals" site
 		
 		if (verbose) close(progress)
 		
@@ -426,9 +425,9 @@ localSpatialCorrForValues <- function(
 			
 			focalVals <- rep(NA, raster::ncell(x))
 			if (length(nonNas) > 0) {
-				focalVals[nonNas] <- focal@data[ , paste0('sacDistMin_', vars[countVar])]
+				focalVals[nonNas] <- focals@data[ , paste0('sacDistMin_', vars[countVar])]
 			} else {
-				focalVals <- focal@data[ , paste0('sacDistMin_', vars[countVar])]
+				focalVals <- focals@data[ , paste0('sacDistMin_', vars[countVar])]
 			}
 		
 			thisOut <- x[[1]]
@@ -450,7 +449,7 @@ localSpatialCorrForValues <- function(
 	# else other format
 	} else {
 	
-		focal
+		focals
 		
 	}
 	

@@ -44,7 +44,6 @@
 #' 		\code{\link{randPointsBatchSampled}} Collate all sets of randomized points generated using `randPointsBatch` \cr
 #' 		\code{\link{randPointsBatchNicheOverlap}} Calculate niche overlap between sets of randomized points that were generated using `randPointsBatch` \cr
 #' @section Spatial autocorrelation:
-#' 		\code{\link{localSpatialCorrForValues}} Calculate site-specific characteristic distance of local spatial autocorrelation for values associated with points or rasters \cr
 #' 		\code{\link{spatialCorrForPoints}} Calculate pairwise distance-based measure of global spatial autocorrelation between geographic points \cr
 #' 		\code{\link{spatialCorrForPointsSummary}} Characteristic cluster size of spatial points (distance of global autocorrelation) \cr
 #' 		\code{\link{spatialCorrForPointsPlot}} Plot observed and null distributions of pairwise distance-based measure of global spatial autocorrelation \cr

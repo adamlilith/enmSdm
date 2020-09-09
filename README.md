@@ -49,7 +49,6 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `randPointsBatchNicheOverlap`: Calculate niche overlap between sets of randomized points that were generated using `randPointsBatch`
 
 ## Spatial autocorrelation ##
-* `localSpatialCorrForValues`: Calculate site-specific characteristic distance of local spatial autocorrelation for values associated with points or rasters
 * `spatialCorrForPoints`: Calculate pairwise distance-based measure of global spatial autocorrelation between geographic points
 * `spatialCorrForPointsSummary`: Characteristic cluster size of spatial points (distance of global autocorrelation)
 * `spatialCorrForPointsPlot`: Plot observed and null distributions of pairwise distance-based measure of global spatial autocorrelation
