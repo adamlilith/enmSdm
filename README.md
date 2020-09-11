@@ -4,7 +4,7 @@ This package is a complement to the popular `dismo` package for R by Robert Hijm
 
 You can install this package in R using these commands:
 
-`remotes::install_github('adamlilith/enmSdm')`  
+`remotes::install_github('adamlilith/enmSdm', dependencies=TRUE)`  
 
 NB: If for some reason these commands don't work, you can install the package(s) by downloading the latest zip/tar file from the `zipTarFiles` directory and installing the package(s) manually. If you do this, you will also have to install the `omnibus`,  `statisfactory`, and `legendary` packages, which are on GitHub also under my account (`adamlilith`).
 
