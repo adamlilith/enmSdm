@@ -32,10 +32,6 @@
 #' print(res(byWidth))
 #' print('Cell dimensions, height fixed:')
 #' print(res(byHeight))
-#' print('Relative difference in width:')
-#' print(res(byWidth)[2] / res(byWidth)[1])
-#' print('Relative difference in height:')
-#' print(res(byHeight)[1] / res(byHeight)[2])
 #' }
 #' @export
 
@@ -49,12 +45,12 @@ squareRastCells <- function(x, keepWidth = TRUE, ...) {
 		
 		# pad extent so it can accommodate all necessary rows
 		width <- res(x)[1]
-		northSouth <- abs(ext[4] - ext[3])
+		northSouth <- ext[4] - ext[3]
 		ncols <- ncol(x)
 
-		neededRows <- ceiling(northSouth / width)
+		nrows <- ceiling(northSouth / width)
 		crammedRows <- northSouth / width
-		pad <- (width * (neededRows - crammedRows)) / 2
+		pad <- (width * (nrows - crammedRows)) / 2
 		ext <- c(
 			ext[1],
 			ext[2],
@@ -66,12 +62,12 @@ squareRastCells <- function(x, keepWidth = TRUE, ...) {
 	
 		# pad extent so it can accommodate all necessary columns
 		height <- res(x)[2]
-		eastWest <- abs(ext[2] - ext[1])
+		eastWest <- ext[2] - ext[1]
 		nrows <- nrow(x)
 
-		neededCols <- ceiling(eastWest / height)
+		ncols <- ceiling(eastWest / height)
 		crammedCols <- eastWest / height
-		pad <- (height * (neededCols - crammedCols)) / 2
+		pad <- (height * (ncols - crammedCols)) / 2
 		ext <- c(
 			ext[1] - pad,
 			ext[2] + pad,

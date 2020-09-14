@@ -46,9 +46,5 @@ print('Cell dimensions, width fixed:')
 print(res(byWidth))
 print('Cell dimensions, height fixed:')
 print(res(byHeight))
-print('Relative difference in width:')
-print(res(byWidth)[2] / res(byWidth)[1])
-print('Relative difference in height:')
-print(res(byHeight)[1] / res(byHeight)[2])
 }
 }
