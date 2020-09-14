@@ -59,6 +59,7 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `interpolateRasters`: Interpolate a stack of rasters
 * `longLatRasters`: Generate rasters with values of longitude/latitude for cell values
 * `sampleRast` and `sampleRastStrat`: Sample raster with/out replacement and possibly in a stratified manner
+* `squareRastCells`: Resample a raster so cells are square
 
 ## Range area based on minimum convex polygons
 * `mcpFromPolygons`: Minimum convex polygon from a set of polygons *and* points
