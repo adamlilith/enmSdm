@@ -4,13 +4,14 @@
 #' \itemize{
 #' 	\item Cells will not really be square on the ground because, after all, the Earth is spherical and every projection distorts shape.
 #' 	\item If a raster is in an unprojected coordinate system (e.g., if it has WGS84 or NAD83), then the new cells (as the old cells) will have the same length/width dimensions in degrees, but cells will not actually be "square" on the ground because degrees of longitude represent smaller absolute distances at higher latitudes.
-#'	\item Since re-sizing cells typically means that at the edges only a fractional cell can be fit, a template raster is created that has the same extent as the input raster is created. This is then extended by one cell in both directions in the dimension in which cells of the input raster are being expanded/contracted. The new raster is created by resampling to the extent and dimensions of this template raster. As a result, the new extent will be slightly larger than the old extent.
+#'	\item Since re-sizing cells typically means that ony a fractional cell can be fit at the edges of the extent, a template raster is created that has the same extent as the input raster is created. This is then extended by one cell in both directions in the dimension in which cells of the input raster are being expanded/contracted. The new raster is created by resampling to the extent and dimensions of this template raster. As a result, the new extent will be slightly larger than the old extent.
 #'  \item Owing to the preceding reason, rasters that have edges near a pole and/or the international date line may not yield workable results if the new cells extend the raster "over" the pole or date line.
 #' }
 #' @param x Raster.
 #' @param keepWidth Logical, if \code{TRUE}, then use the width (east-west direction) as the baseline distance and resample so that height (north-south distance) of a cell is the same. If \code{FALSE}, use height as the baseline.
 #' @param ... Arguments to send to \code{\link[raster]{resample}}.
 #' @return Raster object.
+#' @seealso \code{\link{rastWithSquareCells}}, \code{\link[raster]{resample}}, \code{\link[raster]{aggregate}}
 #' @examples
 #' \donttest{
 #' # get WORLDCLIM elevation data
