@@ -1,4 +1,5 @@
 enmSdm 0.5.1.14
+Create rastWithSquareCells()
 Fix squareRasterCells(); rename to squareRastCells()
 
 enmSdm 0.5.1.8

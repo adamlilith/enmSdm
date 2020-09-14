@@ -58,6 +58,7 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `bioticVelocity`: Velocity of movement across a series of rasters
 * `interpolateRasters`: Interpolate a stack of rasters
 * `longLatRasters`: Generate rasters with values of longitude/latitude for cell values
+* `rastWithSquareCells`: Create a raster with square cells from an object with an extent
 * `sampleRast` and `sampleRastStrat`: Sample raster with/out replacement and possibly in a stratified manner
 * `squareRastCells`: Resample a raster so cells are square
 

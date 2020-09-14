@@ -53,6 +53,7 @@
 #' 		\code{\link{bioticVelocity}} Velocity of movement across a series of rasters \cr
 #' 		\code{\link{interpolateRasters}} Interpolate a stack of rasters \cr
 #' 		\code{\link{longLatRasters}} Generate rasters with values of longitude/latitude for cell values \cr
+#' 		\code{\link{rastWithSquareCells}} Create a raster with square cells \cr
 #' 		\code{\link{sampleRast}} and \code{\link{sampleRastStrat}} Sample raster with/out replacement and possibly in a stratified manner \cr
 #' 		\code{\link{squareRastCells}} Resample a raster so cells are "square" \cr
 #'
