@@ -4,7 +4,7 @@ This package is a complement to the popular `dismo` package for R by Robert Hijm
 
 You can install this package in R using these commands:
 
-`remotes::install_github('adamlilith/enmSdm')`  
+`remotes::install_github('adamlilith/enmSdm', dependencies=TRUE)`  
 
 NB: If for some reason these commands don't work, you can install the package(s) by downloading the latest zip/tar file from the `zipTarFiles` directory and installing the package(s) manually. If you do this, you will also have to install the `omnibus`,  `statisfactory`, and `legendary` packages, which are on GitHub also under my account (`adamlilith`).
 
@@ -49,7 +49,6 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `randPointsBatchNicheOverlap`: Calculate niche overlap between sets of randomized points that were generated using `randPointsBatch`
 
 ## Spatial autocorrelation ##
-* `localSpatialCorrForValues`: Calculate site-specific characteristic distance of local spatial autocorrelation for values associated with points or rasters
 * `spatialCorrForPoints`: Calculate pairwise distance-based measure of global spatial autocorrelation between geographic points
 * `spatialCorrForPointsSummary`: Characteristic cluster size of spatial points (distance of global autocorrelation)
 * `spatialCorrForPointsPlot`: Plot observed and null distributions of pairwise distance-based measure of global spatial autocorrelation
@@ -60,6 +59,7 @@ NB: If for some reason these commands don't work, you can install the package(s)
 * `interpolateRasters`: Interpolate a stack of rasters
 * `longLatRasters`: Generate rasters with values of longitude/latitude for cell values
 * `sampleRast` and `sampleRastStrat`: Sample raster with/out replacement and possibly in a stratified manner
+* `squareRastCells`: Resample a raster so cells are square
 
 ## Range area based on minimum convex polygons
 * `mcpFromPolygons`: Minimum convex polygon from a set of polygons *and* points

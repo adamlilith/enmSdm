@@ -1,3 +1,9 @@
+enmSdm 0.5.1.14
+Fix squareRasterCells(); rename to squareRastCells()
+
+enmSdm 0.5.1.8
+Remove export of localSpatialCorrForValues() because of instability issue
+
 enmSdm 0.5.1.7
 Add squareRasterCells()
 

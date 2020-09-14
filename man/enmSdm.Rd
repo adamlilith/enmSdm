@@ -60,7 +60,6 @@ Create an issue on \href{https://github.com/adamlilith/enmSdm/issues}{GitHub}.
 
 \section{Spatial autocorrelation}{
 
-		\code{\link{localSpatialCorrForValues}} Calculate site-specific characteristic distance of local spatial autocorrelation for values associated with points or rasters \cr
 		\code{\link{spatialCorrForPoints}} Calculate pairwise distance-based measure of global spatial autocorrelation between geographic points \cr
 		\code{\link{spatialCorrForPointsSummary}} Characteristic cluster size of spatial points (distance of global autocorrelation) \cr
 		\code{\link{spatialCorrForPointsPlot}} Plot observed and null distributions of pairwise distance-based measure of global spatial autocorrelation \cr
@@ -73,7 +72,7 @@ Create an issue on \href{https://github.com/adamlilith/enmSdm/issues}{GitHub}.
 		\code{\link{interpolateRasters}} Interpolate a stack of rasters \cr
 		\code{\link{longLatRasters}} Generate rasters with values of longitude/latitude for cell values \cr
 		\code{\link{sampleRast}} and \code{\link{sampleRastStrat}} Sample raster with/out replacement and possibly in a stratified manner \cr
-		\code{\link{squareRasterCells}} Resample a raster so cells are "square" \cr
+		\code{\link{squareRastCells}} Resample a raster so cells are "square" \cr
 }
 
 \section{Range area based on minimum convex polygons}{
