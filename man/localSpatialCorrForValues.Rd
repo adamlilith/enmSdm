@@ -6,7 +6,7 @@
 \usage{
 localSpatialCorrForValues(
   x,
-  focal = NULL,
+  focals = NULL,
   vars = NULL,
   breaks = 20,
   limitDist = FALSE,
@@ -20,11 +20,11 @@ localSpatialCorrForValues(
 \arguments{
 \item{x}{Either a raster, raster stack/brick, matrix with column names, data frame, or SpatialPointsDataFrame. If you use a matrix or data frame then the first two columns will be assumed to represent longitude and latitude, in that order, and their coordinate reference system will be assumed to be WGS84 (unprojected).}
 
-\item{focal}{This has various uses depending on the type of object specified for \code{x}:
+\item{focals}{This has various uses depending on the type of object specified for \code{x}:
 \itemize{
-    \item If \code{x} is a raster or raster stack/brick and \code{focal} is \code{NULL} (default), then spatial autocorrelation will be calculated across all non-\code{NA} cells in  \code{x}.
-    \item If \code{x} is a SpatialPointsDataFrame and \code{focal} is \code{NULL} (default), then spatial autocorrelation will be calculated across all non-\code{NA} points represented by \code{x}.
-        \item If \code{x} is a raster or raster stack/brick and \code{x} is a matrix with column names, data frame, SpatialPoints, or SpatialPointsDataFrame object, then autocorrelation will be calculated focal all sites in \code{focal}. If you use a matrix or data frame then the first two columns will be assumed to represent longitude and latitude, in that order, and their coordinate reference system will be assumed to be the same as the raster or raster stack/brick.
+    \item If \code{x} is a raster or raster stack/brick and \code{focals} is \code{NULL} (default), then spatial autocorrelation will be calculated across all non-\code{NA} cells in  \code{x}.
+    \item If \code{x} is a SpatialPointsDataFrame and \code{focals} is \code{NULL} (default), then spatial autocorrelation will be calculated across all non-\code{NA} points represented by \code{x}.
+        \item If \code{x} is a raster or raster stack/brick and \code{x} is a matrix with column names, data frame, SpatialPoints, or SpatialPointsDataFrame object, then autocorrelation will be calculated focals all sites in \code{focals}. If you use a matrix or data frame then the first two columns will be assumed to represent longitude and latitude, in that order, and their coordinate reference system will be assumed to be the same as the raster or raster stack/brick.
 }}
 
 \item{vars}{Character vector or \code{NULL} (default). If \code{x} is a SpatialPointsDataFrame, by default the variables on which to calculate spatial autocorrelation will be taken from the column names of \code{x}. However, you can use \code{vars} to specify the column names in \code{x} to use. This is ignored if \code{x} is not a SpatialPointsDataFrame.}
@@ -61,12 +61,12 @@ This function calculates the range of spatial autocorrelation for a set of predi
 See \emph{Details} for information on how the characteristic scale of spatial autocorrelation is estimated. This function is related to \code{\link[enmSdm]{spatialCorrForPoints}} which calculates spatial autocorrelation for distances between points. However, this function calculates spatial autocorrelation for numeric-valued \emph{measurements} taken at points (or raster cell centers).
 }
 \details{
-The characteristic scale of spatial autocorrelation for a variable for a specific "focal" site relative to a set of "reference" sites is estimated through a multi-step process. The nature of the focal and reference sites depends on the values of \code{x} and \code{focal}. If \code{x} is supplied but \code{focal} is not, then all sites (or cells) in \code{x} will be assumed to be the reference and focal sites. If \code{x} and \code{focal} are supplied, then sites in \code{focal} are the focal sites and sites (or cells) in \code{x} are the reference sites.
+The characteristic scale of spatial autocorrelation for a variable for a specific "focals" site relative to a set of "reference" sites is estimated through a multi-step process. The nature of the focals and reference sites depends on the values of \code{x} and \code{focals}. If \code{x} is supplied but \code{focals} is not, then all sites (or cells) in \code{x} will be assumed to be the reference and focals sites. If \code{x} and \code{focals} are supplied, then sites in \code{focals} are the focals sites and sites (or cells) in \code{x} are the reference sites.
 \enumerate{
- \item For each distance bin, calculate the observed upper quantile of the distribution of absolute difference between the value of the variable at the the focal site and all other "reference" sites supplied in argument \code{x}. Here, the upper quantile is given by 100 - 0.5 * (100 - \code{perc}). So if \code{perc = 95} (default), this is the 97.5th quantile of the observed absolute difference for values associated with all reference points in each distance bin.
-\item Apply a permutation test by scrambling the absolute differences associated with each pairwise distance between the focal site at reference sites. For each distance bin generate a null expectation from the randomized absolute differences by calculating the value of the 100 - \code{perc}th quantile (so if \code{perc = 95} this is the 5th quantile of the distribution). Repeat \code{iters} times and for each bin calculate the mean of the 100 - \code{perc}th quantile.
+ \item For each distance bin, calculate the observed upper quantile of the distribution of absolute difference between the value of the variable at the the focals site and all other "reference" sites supplied in argument \code{x}. Here, the upper quantile is given by 100 - 0.5 * (100 - \code{perc}). So if \code{perc = 95} (default), this is the 97.5th quantile of the observed absolute difference for values associated with all reference points in each distance bin.
+\item Apply a permutation test by scrambling the absolute differences associated with each pairwise distance between the focals site at reference sites. For each distance bin generate a null expectation from the randomized absolute differences by calculating the value of the 100 - \code{perc}th quantile (so if \code{perc = 95} this is the 5th quantile of the distribution). Repeat \code{iters} times and for each bin calculate the mean of the 100 - \code{perc}th quantile.
 }
-Note that this measure of spatial autocorrelation assumes anisotropy, meaning that from a given focal site the characteristic distance of spatial autocorrelation is the same in all directions.
+Note that this measure of spatial autocorrelation assumes anisotropy, meaning that from a given focals site the characteristic distance of spatial autocorrelation is the same in all directions.
 }
 \examples{
 \donttest{
@@ -85,7 +85,7 @@ names(madClim) <- c('bio1', 'bio12')
 madClim[['bio1']] <- madClim[['bio1']] / 10 # to deg C
 
 ### spatial autocorrelation for raster (can take a long time!)
-sacRast <- localSpatialCorrForValues(x=madClim, focal=NULL)
+sacRast <- localSpatialCorrForValues(x=madClim, focals=NULL)
 sacRast <- sacRast / 1000 # convert to km
 
 # plot
@@ -147,7 +147,7 @@ lemurBio1 <- raster::extract(madClim[['bio1']], lemur)
 nas <- which(is.na(lemurBio1))
 lemur <- lemur[-nas, ]
 
-sacLemur <- localSpatialCorrForValues(x=madClim, focal=lemur, breaks=10)
+sacLemur <- localSpatialCorrForValues(x=madClim, focals=lemur, breaks=10)
 
 # plot: code point color by characteristic distance of spatial autocorrelation
 bio1SacScaled <- 
