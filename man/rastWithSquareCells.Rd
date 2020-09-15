@@ -4,7 +4,7 @@
 \alias{rastWithSquareCells}
 \title{Create a raster with square cells}
 \usage{
-rastWithSquareCells(x, numCells = NULL, res = NULL, vals = runif(100), ...)
+rastWithSquareCells(x, numCells = NULL, res = NULL, vals = runif(101), ...)
 }
 \arguments{
 \item{x}{An object with a spatial extent property (e.g., a raster, raster stack, raster brick, SpatialPoints*, SpatialLines*, or SpatialPolygons*).}
