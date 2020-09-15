@@ -11,8 +11,8 @@ trainByCrossValid(
   folds = dismo::kfold(data),
   trainFx = enmSdm::trainGlm,
   ...,
-  metrics = c("logLoss", "logLossEqualWeight", "cbi", "auc", "fpb", "tss", "msss",
-    "mdss", "orss", "sedi", "minTrainPres", "trainSe95", "trainSe90"),
+  metrics = c("logLoss", "cbi", "auc", "fpb", "tss", "msss", "mdss", "orss", "sedi",
+    "minTrainPres", "trainSe95", "trainSe90"),
   sensitivity = 0.9,
   weightEvalTrain = TRUE,
   weightEvalTest = TRUE,
@@ -34,18 +34,16 @@ trainByCrossValid(
 \item If a matrix or data frame, there must be one row per row in \code{data}. Each column corresponds to a different model to be trained. For a given column there should be only two unique values, plus possibly \code{NA}s. Of the two values, the lesser value will be used to identify the calibration data and the greater value the evaluation data. Rows with \code{NA}s will be ignored.  For example, a particular column could contain 1s, 2, and \code{NA}s. Data rows corresponding to 1s will be used as training data, data rows corresponding to 2s as test data, and rows with \code{NA} are dropped. The \code{NA} flag is useful for creating spatially-structured cross-validation folds where training and test sites are separated (spatially) by censored (ignored) data.
 }}
 
-\item{trainFx}{Function, name of the "trainXYZ" function to use. Currently the functions/algorithms supported are \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainBrt}}, and \code{\link[enmSdm]{trainMaxEnt}}.}
+\item{trainFx}{Function, name of the "trainXYZ" function to use. Currently the functions/algorithms supported are \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainMaxEnt}}, and \code{\link[enmSdm]{trainNs}}.}
 
-\item{...}{Arguments to pass to the "trainXYZ" function, as well as the \code{\link{predictEnmSdm}}, \code{\link{contBoyce}}, \code{\link{tssWeighted}}, and \code{\link{thresholdWeighted}} functions. See help for the appropriate function.}
+\item{...}{Arguments to pass to the "trainXYZ" function.}
 
-\item{metrics}{Character vector, names of evaluation metrics to calculate. The default is to calculate all of:
+\item{metrics}{Character vector, names of evaluation metrics to calculate. If \code{weightEvalTrain} and/or \code{weightEvalTest} is \code{TRUE}, then the "train" and "test" version of each metric will be weighted versions of each. The default is to calculate all of:
 \itemize{
     \item \code{'logLoss'}: Log loss. Higher (less negative) values connote better fit.
-    \item \code{'logLossEqualWeight'}: Log loss with the total weight of presences and contrast sites equalized before calculation (i.e., weight of training presences equalized to weight of training contrast sites and weight of test presences equalized to weight of test contrast sites). Higher (less negative) values connote better fit. This version is better for cases where the number of presences and contrast sites is unequal because it gives both equal total weight.
     \item \code{'cbi'}: Continuous Boyce Index (CBI). Calculated with \code{\link[enmSdm]{contBoyce}}.
     \item \code{'auc'}: Area under the receiver-operator characteristic curve (AUC). Calculated with \code{\link[enmSdm]{aucWeighted}}.
     \item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
-    \item \code{'fpb'}: Mean Fpb across thresholds from 0 to 1 in steps of 0.01. Calculated with \code{\link[enmSdm]{fpb}}. NOT USED AT PRESENT.
     \item \code{'msss'}: Sensitivity and specificity calculated at the threshold that maximizes sensitivity (true presence prediction rate) plus specificity (true absence prediction rate).
     \item \code{'mdss'}: Sensitivity (se) and specificity (sp) calculated at the threshold that minimizes the difference between sensitivity and specificity.
     \item \code{'orss'}: Maximum odds ratio skill score (Wunderlich et al. 2019).
