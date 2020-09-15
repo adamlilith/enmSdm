@@ -5,22 +5,22 @@
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param family Name of family for data error structure (see \code{\link[stats]{family}}).
-#' @param df Integer > 0 OR \code{NULL}. Sets flexibility of model fit. See documentation for \code{\link[splines]{ns}}.
+#' @param df Integer > 0 \emph{or} vector of integers > 0. Sets flexibility of model fit. See documentation for \code{\link[splines]{ns}}.  If \code{construct} is \code{TRUE}, then univariate models for each term will be evaluated using each value in \code{df}. Note that \code{NULL} is also valid, but it can create problems when used with other functions in this package (and usually defaults to \code{df=3} anyway).
 #' @param construct Logical. If TRUE then construct model by computing AICc for all univariate and bivariate models. Then add terms up to maximum set by \code{presPerTermInitial} and \code{initialTerms}.
 #' @param select Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).
 #' @param presPerTermInitial Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is \code{TRUE}.
 #' @param presPerTermFinal Positive integer. Minimum number of presence sites per term in initial starting model; used only if \code{select} is TRUE.
 #' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{\link[MuMIn]{dredge}} is 31, so if this number is >31 and \code{select} is \code{TRUE} then it is forced to 31 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.
 #' @param w Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign a weight of 1 to each datum.
-#' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{gam}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
+#' @param out Character or character vector. Indicates type of value returned. Values can be \code{'model'} (default; return model with lowest AICc), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with elements named "model", "models", and/or "tuning". If \code{'models'} is specified, they will only be produced if \code{select = TRUE}. The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{glm}, a list with objects of class \code{glm}, or a data frame.
 #' @param verbose Logical. If \code{TRUE} then display intermediate results on the display device. Default is \code{FALSE}.
 #' @param ... Arguments to send to \code{gam()} or \code{dredge()}.
 #' @return If \code{out = 'model'} this function returns an object of class \code{gam}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{gam} object and the data frame.
 #' @seealso \code{\link[splines]{ns}}, \code{\link[mgcv]{gam}}, \code{\link{trainGam}}
 #' @examples
 #' \donttest{
+#' library(brglm2)
 #'
-#' NB YOU WILL NEED TO DO library(brglm2) TO RUN trainNs()!
 #' ### model red-bellied lemurs
 #' data(mad0)
 #' data(lemurs)
@@ -79,10 +79,13 @@
 #'
 #' par(mfrow=c(1, 3))
 #' plot(mapGlm, main='GLM')
+#' plot(mad0, add=TRUE)
 #' points(occs[ , c('longitude', 'latitude')])
 #' plot(mapGam, main='GAM')
+#' plot(mad0, add=TRUE)
 #' points(occs[ , c('longitude', 'latitude')])
 #' plot(mapNs, main='NS')
+#' plot(mad0, add=TRUE)
 #' points(occs[ , c('longitude', 'latitude')])
 #' }
 #' @export
@@ -92,7 +95,7 @@ trainNs <- function(
 	resp = names(data)[1],
 	preds = names(data)[2:ncol(data)],
 	family = 'binomial',
-	df = NULL,
+	df = 1:3,
 	construct = TRUE,
 	select = TRUE,
 	presPerTermInitial = 10,
@@ -148,22 +151,26 @@ trainNs <- function(
 		### SINGLE-variable terms
 		for (thisPred in preds) { # for each predictor test single-variable terms
 
-			term <- if (class(data[ , thisPred]) != 'factor') {
-				paste0('splines::ns(', thisPred, ', df=', df, ')')
-			} else {
-				thisPred
-			}
+			for (thisDf in df) {
+			
+				term <- if (class(data[ , thisPred]) != 'factor') {
+					paste0('splines::ns(', thisPred, ', df=', thisDf, ')')
+				} else {
+					thisPred
+				}
 
-			thisThisForm <- paste0(form, ' + ', term)
+				thisThisForm <- paste0(form, ' + ', term)
 
-			thisModel <- stats::glm(stats::as.formula(thisThisForm), family=family, data=data, weights=w, method='brglmFit', ...)
-			thisAic <- AIC(thisModel)
+				thisModel <- stats::glm(stats::as.formula(thisThisForm), family=family, data=data, weights=w, method='brglmFit', ...)
+				thisAic <- AIC(thisModel)
 
-			# remember
-			tuning <- if (exists('tuning')) {
-				rbind(tuning, data.frame(term=term, AIC=thisAic))
-			} else {
-				data.frame(term=term, AIC=thisAic)
+				# remember
+				tuning <- if (exists('tuning', inherits=FALSE)) {
+					rbind(tuning, data.frame(term=term, AIC=thisAic, df=thisDf))
+				} else {
+					data.frame(term=term, AIC=thisAic, df=thisDf)
+				}
+				
 			}
 
 		} # next single-variable term
@@ -196,11 +203,13 @@ trainNs <- function(
 	# use all single-variable terms and two-variable terms
 	} else {
 
+		if (length(df) > 1) warning('Multiple values of "df" assigned. Using the first one.')
+	
 		# single terms
 		for (thisPred in preds) {
 
 			if (class(data[ , thisPred]) != 'factor') {
-				form <- paste0(form, ' + splines::ns(', thisPred, ', df=', df, ')')
+				form <- paste0(form, ' + splines::ns(', thisPred, ', df=', df[1], ')')
 			} else {
 				form <- paste0(form, ' + ', thisPred)
 			}
@@ -208,7 +217,6 @@ trainNs <- function(
 		}
 
 	} # if not doing automated model construction
-
 
 	###########################################################################
 	## train model ############################################################
@@ -232,12 +240,12 @@ trainNs <- function(
 
 	if (select) {
 
-		if (verbose) { omnibus::say('Calculating AICc across all possible models...') }
+		if (verbose) omnibus::say('Calculating AICc across all possible models...')
 
 		# calculate all possible models and rank by AIC
 		lims <- c(0, max(1, min(c(floor(sum(data[ , resp]) / presPerTermFinal), initialTerms, nrow(tuning)))))
 
-		tuning <- MuMIn::dredge(
+		tuningModels <- MuMIn::dredge(
 			global.model=model,
 			rank='AICc',
 			m.lim=lims,
@@ -246,20 +254,24 @@ trainNs <- function(
 		)
 
 		# get model with best AIC
-		model <- MuMIn::get.models(tuning, subset = 1)[[1]]
+		model <- MuMIn::get.models(tuningModels, subset = 1)[[1]]
+		if ('models' %in% out) models <- MuMIn::get.models(tuningModels, subset=TRUE)
 
 	} # if model selection
 
 	# return
-	if ('model' %in% out & 'tuning' %in% out) {
-		out <- list()
-		out$tuning <- tuning
-		out$model <- model
-		out
-	} else if ('tuning' %in% out) {
-		tuning
-	} else {
+	if (length(out) > 1) {
+		output <- list()
+		if ('models' %in% out) output$models <- models
+		if ('model' %in% out) output$model <- model
+		if ('tuning' %in% out) output$tuning <- tuningModels
+		output
+	} else if (out == 'models') {
+		models
+	} else if (out == 'model') {
 		model
+	} else if (out == 'tuning') {
+		tuningModels
 	}
-
+	
 }

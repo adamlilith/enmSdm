@@ -70,6 +70,8 @@ This function constructs a GLM piece-by-piece by first calculating AICc for all 
 }
 \examples{
 \donttest{
+library(brglm2)
+
 ### model red-bellied lemurs
 data(mad0)
 data(lemurs)
@@ -128,10 +130,13 @@ mapNs <- predict(clim, ga, type='response')
 
 par(mfrow=c(1, 3))
 plot(mapGlm, main='GLM')
+plot(mad0, add=TRUE)
 points(occs[ , c('longitude', 'latitude')])
 plot(mapGam, main='GAM')
+plot(mad0, add=TRUE)
 points(occs[ , c('longitude', 'latitude')])
 plot(mapNs, main='NS')
+plot(mad0, add=TRUE)
 points(occs[ , c('longitude', 'latitude')])
 }
 }

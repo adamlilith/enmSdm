@@ -282,6 +282,8 @@ LARS
 #' }
 
 GLMs, GAMs, NSs
+#' library(brglm2)
+#'
 #' \dontest{
 #' ### model red-bellied lemurs
 #' data(mad0)

@@ -1,8 +1,13 @@
-enmSdm 0.5.1.14
+enmSdm 0.5.2.0
+trainNs() can now return a list of all models
+trainNs() now cycles through degrees of freedom
+Can now use natural splines (trainNS()) with cross validation functions
+Fix issues with trainByCrossValid()
+
+enmSdm 0.5.1.9
+enmSdm 0.5.1.8
 Create rastWithSquareCells()
 Fix squareRasterCells(); rename to squareRastCells()
-
-enmSdm 0.5.1.8
 Remove export of localSpatialCorrForValues() because of instability issue
 
 enmSdm 0.5.1.7

@@ -20,6 +20,8 @@
 #' @seealso \code{\link[mgcv]{gam}}
 #' @examples
 #' \donttest{
+#' library(brglm2)
+#'
 #' ### model red-bellied lemurs
 #' data(mad0)
 #' data(lemurs)
@@ -78,10 +80,13 @@
 #'
 #' par(mfrow=c(1, 3))
 #' plot(mapGlm, main='GLM')
+#' plot(mad0, add=TRUE)
 #' points(occs[ , c('longitude', 'latitude')])
 #' plot(mapGam, main='GAM')
+#' plot(mad0, add=TRUE)
 #' points(occs[ , c('longitude', 'latitude')])
 #' plot(mapNs, main='NS')
+#' plot(mad0, add=TRUE)
 #' points(occs[ , c('longitude', 'latitude')])
 #' }
 #' @export
@@ -173,7 +178,7 @@ trainGam <- function(
 				)
 
 				# remember
-				gamFrame <- if (exists('gamFrame')) {
+				gamFrame <- if (exists('gamFrame', inherits=FALSE)) {
 					rbind(gamFrame, data.frame(term=term, AIC=thisAic))
 				} else {
 					data.frame(term=term, AIC=thisAic)
@@ -223,7 +228,7 @@ trainGam <- function(
 						)
 
 						# remember
-						gamFrame <- if (exists('gamFrame')) {
+						gamFrame <- if (exists('gamFrame', inherits=FALSE)) {
 							rbind(gamFrame, data.frame(term=term, AIC=thisAic))
 						} else {
 							data.frame(term=term, AIC=thisAic)

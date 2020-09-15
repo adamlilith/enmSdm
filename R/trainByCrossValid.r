@@ -9,16 +9,14 @@
 #' 	\item If a vector, there must be one value per row in \code{data}. If there are \emph{K} unique values in the vector, then \emph{K} unique models will be trained. Each model will use all of the data except for rows that match a particular value in the \code{folds} vector. For example, if \code{folds = c(1, 1, 1, 2, 2, 2, 3, 3, 3)}, then three models will be trained, one with all rows that match the 2s and 3s, one with all rows matching 1s and 2s, and one will all rows matching 1s and 3s. The models will be evaluated against the withheld data and against the training data. Use \code{NA} to exclude rows from all testing/training. The default is to construct 5 folds of roughly equal size.
 #' \item If a matrix or data frame, there must be one row per row in \code{data}. Each column corresponds to a different model to be trained. For a given column there should be only two unique values, plus possibly \code{NA}s. Of the two values, the lesser value will be used to identify the calibration data and the greater value the evaluation data. Rows with \code{NA}s will be ignored.  For example, a particular column could contain 1s, 2, and \code{NA}s. Data rows corresponding to 1s will be used as training data, data rows corresponding to 2s as test data, and rows with \code{NA} are dropped. The \code{NA} flag is useful for creating spatially-structured cross-validation folds where training and test sites are separated (spatially) by censored (ignored) data.
 #' }
-#' @param trainFx Function, name of the "trainXYZ" function to use. Currently the functions/algorithms supported are \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainBrt}}, and \code{\link[enmSdm]{trainMaxEnt}}.
-#' @param ... Arguments to pass to the "trainXYZ" function, as well as the \code{\link{predictEnmSdm}}, \code{\link{contBoyce}}, \code{\link{tssWeighted}}, and \code{\link{thresholdWeighted}} functions. See help for the appropriate function.
-#' @param metrics Character vector, names of evaluation metrics to calculate. The default is to calculate all of:
+#' @param trainFx Function, name of the "trainXYZ" function to use. Currently the functions/algorithms supported are \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainMaxEnt}}, and \code{\link[enmSdm]{trainNs}}.
+#' @param ... Arguments to pass to the "trainXYZ" function.
+#' @param metrics Character vector, names of evaluation metrics to calculate. If \code{weightEvalTrain} and/or \code{weightEvalTest} is \code{TRUE}, then the "train" and "test" version of each metric will be weighted versions of each. The default is to calculate all of:
 #' \itemize{
 #' 	\item \code{'logLoss'}: Log loss. Higher (less negative) values connote better fit.
-#' 	\item \code{'logLossEqualWeight'}: Log loss with the total weight of presences and contrast sites equalized before calculation (i.e., weight of training presences equalized to weight of training contrast sites and weight of test presences equalized to weight of test contrast sites). Higher (less negative) values connote better fit. This version is better for cases where the number of presences and contrast sites is unequal because it gives both equal total weight.
 #' 	\item \code{'cbi'}: Continuous Boyce Index (CBI). Calculated with \code{\link[enmSdm]{contBoyce}}.
 #' 	\item \code{'auc'}: Area under the receiver-operator characteristic curve (AUC). Calculated with \code{\link[enmSdm]{aucWeighted}}.
 #' 	\item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
-#' 	\item \code{'fpb'}: Mean Fpb across thresholds from 0 to 1 in steps of 0.01. Calculated with \code{\link[enmSdm]{fpb}}. NOT USED AT PRESENT.
 #' 	\item \code{'msss'}: Sensitivity and specificity calculated at the threshold that maximizes sensitivity (true presence prediction rate) plus specificity (true absence prediction rate).
 #' 	\item \code{'mdss'}: Sensitivity (se) and specificity (sp) calculated at the threshold that minimizes the difference between sensitivity and specificity.
 #' 	\item \code{'orss'}: Maximum odds ratio skill score (Wunderlich et al. 2019).
@@ -114,7 +112,7 @@ trainByCrossValid <- function(
 	folds = dismo::kfold(data),
 	trainFx = enmSdm::trainGlm,
 	...,
-	metrics = c('logLoss', 'logLossEqualWeight', 'cbi', 'auc', 'fpb', 'tss', 'msss', 'mdss', 'orss', 'sedi', 'minTrainPres', 'trainSe95', 'trainSe90'),
+	metrics = c('logLoss', 'cbi', 'auc', 'fpb', 'tss', 'msss', 'mdss', 'orss', 'sedi', 'minTrainPres', 'trainSe95', 'trainSe90'),
 	sensitivity = 0.9,
 	weightEvalTrain = TRUE,
 	weightEvalTest = TRUE,
@@ -123,13 +121,14 @@ trainByCrossValid <- function(
 	verbose = 1
 ) {
 
-	hasWeights <- ('w' %in% omnibus::ellipseNames(...))
+	ellipses <- list(...)
+	hasWeights <- ('w' %in% names(ellipses))
 
 	# response and predictors
 	if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
 	if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
 
-	# total number of models
+	# get info about folds
 	foldsClass <- class(folds)
 	if (any(c('matrix', 'data.frame') %in% foldsClass)) {
 	
@@ -173,6 +172,7 @@ trainByCrossValid <- function(
 		### get training/testing data according to type of folds being used
 		###################################################################
 
+			# SIMPLE folds
 			if (foldsType == 'simple') {
 
 				# copy data
@@ -197,26 +197,27 @@ trainByCrossValid <- function(
 					testWeights <- rep(1, nrow(testData))
 				}
 			
+			# CUSTOM folds
 			} else {
 			
 				# copy data and get folds codes
 				thisData <- data[ , c(resp, preds)]
 				thisFolds <- folds[ , k, drop=TRUE]
 			
-				if (hasWeights) thisWeights <- w
+				if (hasWeights) thisWeights <- ellipses$w
 			
 				# drop NAs
 				nas <- which(is.na(thisFolds))
 				if (length(nas) > 0) {
 					thisData <- thisData[-nas, , drop=FALSE]
 					if (hasWeights) thisWeights <- thisWeights[-nas]
+					thisFolds <- thisFolds[-nas]
 				}
 			
 				# train/test data
 				trainData <- thisData[which(thisFolds == trainCode), , drop=FALSE]
 				testData <- thisData[which(thisFolds == testCode), , drop=FALSE]
 				if (hasWeights) {
-				
 					trainWeights <- thisWeights[which(thisFolds == trainCode)]
 					testWeights <- thisWeights[which(thisFolds == testCode)]
 				} else {
@@ -226,19 +227,18 @@ trainByCrossValid <- function(
 			
 			}
 
-			dotArgs <- list(...)
-			dotArgs <- modifyList(dotArgs, list(w = trainWeights, resp=resp, preds=preds, data=trainData, verbose=verbose > 2, out=c('models', 'tuning')))
+			args <- modifyList(ellipses, list(data=trainData, resp=resp, preds=preds, w=trainWeights, verbose=verbose > 2, out=c('models', 'tuning')))
 			
 		### train model
 		###############
 
-			thisOut <- do.call(trainFx, args=dotArgs)
-			# thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2, ...)
-			# thisOut <- trainFx(data=trainData, resp=resp, preds=preds, out=c('models', 'tuning'), w=trainWeights, verbose=verbose > 2)
+			thisOut <- do.call(trainFx, args=args)
+			
 			kModels <- thisOut$models
 			kTuning <- thisOut$tuning
 
 			rm(thisOut)
+			gc()
 
 			kTuning <- omnibus::insertCol(data.frame(k = rep(k, nrow(kTuning))), kTuning, at=1)
 
@@ -250,7 +250,7 @@ trainByCrossValid <- function(
 			whichTrainContrast <- which(trainData[ , resp] == 0)
 
 			# "training" evaluation weights
-			if (hasWeights && weightEvalTrain) {
+			if (hasWeights & weightEvalTrain) {
 				trainPresWeights <- trainWeights[whichTrainPres]
 				trainContrastWeights <- trainWeights[whichTrainContrast]
 			} else {
@@ -263,7 +263,7 @@ trainByCrossValid <- function(
 			whichTestContrast <- which(testData[ , resp] == 0)
 
 			# "testing" evaluation weights
-			if (hasWeights && weightEvalTest) {
+			if (hasWeights & weightEvalTest) {
 				testPresWeights <- testWeights[whichTestPres]
 				testContrastWeights <- testWeights[whichTestContrast]
 			} else {
@@ -309,22 +309,22 @@ trainByCrossValid <- function(
 				} else {
 				
 					# predict to training data
-					predToTrain <- predictEnmSdm(model=kModel, newdata=trainData, ...)
-					# predToTrain <- predictEnmSdm(model=kModel, newdata=trainData)
+					# predToTrain <- predictEnmSdm(model=kModel, newdata=trainData, ...)
+					predToTrain <- predictEnmSdm(model=kModel, newdata=trainData)
 					predToTrainPres <- predToTrain[whichTrainPres]
 					predToTrainContrast <- predToTrain[whichTrainContrast]
 					
 					# predict to testing data
-					predToTest <- predictEnmSdm(model=kModel, newdata=testData, ...)
-					# predToTest <- predictEnmSdm(model=kModel, newdata=testData)
+					# predToTest <- predictEnmSdm(model=kModel, newdata=testData, ...)
+					predToTest <- predictEnmSdm(model=kModel, newdata=testData)
 					predToTestPres <- predToTest[whichTestPres]
 					predToTestContrast <- predToTest[whichTestContrast]
 					
 					# log loss
 					if ('logLoss' %in% metrics) {
 
-						metricTrain <- mean(c(trainPresWeights * log(predToTrainPres), trainContrastWeights * log(1 - predToTrainContrast)), na.rm=na.rm)
-						metricTest <- mean(c(testPresWeights * log(predToTestPres), testContrastWeights * log(1 - predToTestContrast)), na.rm=na.rm)
+						metricTrain <- -1 * mean(c(trainPresWeights * log(predToTrainPres), trainContrastWeights * log(1 - predToTrainContrast)), na.rm=na.rm)
+						metricTest <- -1 * mean(c(testPresWeights * log(predToTestPres), testContrastWeights * log(1 - predToTestContrast)), na.rm=na.rm)
 						
 						if (countModel == 1) kTuning$logLossDelta <- kTuning$logLossTest <- kTuning$logLossTrain <- NA
 						kTuning$logLossTrain[countModel] <- metricTrain
@@ -333,48 +333,48 @@ trainByCrossValid <- function(
 						
 					}
 					
-					# log loss, equal total weight
-					if ('logLossEqualWeight' %in% metrics) {
+					# # # # log loss, equal total weight
+					# # # if ('logLossEqualWeight' %in% metrics) {
 
-						# rescale weights
-						totalTrainPresWeight <- sum(trainPresWeights, na.rm=na.rm)
-						totalTestPresWeight <- sum(testPresWeights, na.rm=na.rm)
+						# # # # rescale weights
+						# # # totalTrainPresWeight <- sum(trainPresWeights, na.rm=na.rm)
+						# # # totalTestPresWeight <- sum(testPresWeights, na.rm=na.rm)
 
-						totalTrainContrastWeight <- sum(trainContrastWeights, na.rm=na.rm)
-						totalTestContrastWeight <- sum(testContrastWeights, na.rm=na.rm)
+						# # # totalTrainContrastWeight <- sum(trainContrastWeights, na.rm=na.rm)
+						# # # totalTestContrastWeight <- sum(testContrastWeights, na.rm=na.rm)
 
-						thisTrainPresWeights <- trainPresWeights
-						thisTrainContrastWeights <- trainContrastWeights
+						# # # thisTrainPresWeights <- trainPresWeights
+						# # # thisTrainContrastWeights <- trainContrastWeights
 
-						thisTestPresWeights <- testPresWeights
-						thisTestContrastWeights <- testContrastWeights
+						# # # thisTestPresWeights <- testPresWeights
+						# # # thisTestContrastWeights <- testContrastWeights
 
-						if (totalTrainPresWeight > totalTrainContrastWeight) {
-							thisTrainContrastWeights <- thisTrainContrastWeights * (totalTrainPresWeight / totalTrainContrastWeight)
-						} else {
-							thisTrainPresWeights <- thisTrainPresWeights * (totalTrainContrastWeight / totalTrainPresWeight)
-						}
+						# # # if (totalTrainPresWeight > totalTrainContrastWeight) {
+							# # # thisTrainContrastWeights <- thisTrainContrastWeights * (totalTrainPresWeight / totalTrainContrastWeight)
+						# # # } else {
+							# # # thisTrainPresWeights <- thisTrainPresWeights * (totalTrainContrastWeight / totalTrainPresWeight)
+						# # # }
 
-						if (totalTestPresWeight > totalTestContrastWeight) {
-							thisTestContrastWeights <- thisTestContrastWeights * (totalTestPresWeight / totalTestContrastWeight)
-						} else {
-							thisTestPresWeights <- thisTestPresWeights * (totalTestContrastWeight / totalTestPresWeight)
-						}
+						# # # if (totalTestPresWeight > totalTestContrastWeight) {
+							# # # thisTestContrastWeights <- thisTestContrastWeights * (totalTestPresWeight / totalTestContrastWeight)
+						# # # } else {
+							# # # thisTestPresWeights <- thisTestPresWeights * (totalTestContrastWeight / totalTestPresWeight)
+						# # # }
 
-						maxWeight <- max(c(thisTrainPresWeights, thisTrainContrastWeights))
-						thisTrainPresWeights <- thisTrainPresWeights / maxWeight
-						thisTrainContrastWeights <- thisTrainContrastWeights / maxWeight
+						# # # maxWeight <- max(c(thisTrainPresWeights, thisTrainContrastWeights))
+						# # # thisTrainPresWeights <- thisTrainPresWeights / maxWeight
+						# # # thisTrainContrastWeights <- thisTrainContrastWeights / maxWeight
 
-						# log loss
-						metricTrain <- mean(c(thisTrainPresWeights * log(predToTrainPres), trainContrastWeights * log(1 - predToTrainContrast)), na.rm=na.rm)
-						metricTest <- mean(c(thisTestPresWeights * log(predToTestPres), thisTestContrastWeights * log(1 - predToTestContrast)), na.rm=na.rm)
+						# # # # log loss
+						# # # metricTrain <- -1 * mean(c(thisTrainPresWeights * log(predToTrainPres), thisTrainContrastWeights * log(1 - predToTrainContrast)), na.rm=na.rm)
+						# # # metricTest <- -1 * mean(c(thisTestPresWeights * log(predToTestPres), thisTestContrastWeights * log(1 - predToTestContrast)), na.rm=na.rm)
 						
-						if (countModel == 1) kTuning$logLossDeltaEqualWeight <- kTuning$logLossTestEqualWeight <- kTuning$logLossTrainEqualWeight <- NA
-						kTuning$logLossTrainEqualWeight[countModel] <- metricTrain
-						kTuning$logLossTestEqualWeight[countModel] <- metricTest
-						kTuning$logLossDeltaEqualWeight[countModel] <- metricTrain - metricTest
+						# # # if (countModel == 1) kTuning$logLossDeltaEqualWeight <- kTuning$logLossTestEqualWeight <- kTuning$logLossTrainEqualWeight <- NA
+						# # # kTuning$logLossTrainEqualWeight[countModel] <- metricTrain
+						# # # kTuning$logLossTestEqualWeight[countModel] <- metricTest
+						# # # kTuning$logLossDeltaEqualWeight[countModel] <- metricTrain - metricTest
 						
-					}
+					# # # }
 					
 					# CBI
 					if ('cbi' %in% metrics) {
@@ -483,8 +483,6 @@ trainByCrossValid <- function(
 							# threshold
 							if (thisThreshType == 'minTrainPres') {
 								threshCode <- 'minPres'
-							} else if (thisThreshType == 'minTrainPres') {
-								threshCode <- 'minPres'
 								sensitivity <- 0
 							} else if (thisThreshType == 'trainSe95') {
 								threshCode <- 'sensitivity'
@@ -554,9 +552,7 @@ trainByCrossValid <- function(
 		nonConvergedModels = nonConvergedModels
 	)
 	
-	ellipses <- list(...)
 	if (length(ellipses) > 0) {
-		dotNames <- omnibus::ellipseNames(...)
 		for (i in seq_along(ellipses)) {
 			meta <- c(meta, ellipses[i])
 		}

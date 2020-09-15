@@ -30,7 +30,7 @@
 #'
 #' @export
 
-rastWithSquareCells <- function(x, numCells = NULL, res = NULL, vals = runif(100), ...) {
+rastWithSquareCells <- function(x, numCells = NULL, res = NULL, vals = runif(101), ...) {
 
 	if (is.null(numCells) & is.null(res)) stop('Either "numCells" or "res" must be specified.')
 	if (!is.null(numCells) & !is.null(res)) warning('Both "numCells" and "res" are specified. Ignoring argument "res".')
@@ -42,11 +42,7 @@ rastWithSquareCells <- function(x, numCells = NULL, res = NULL, vals = runif(100
 	latDist <- ext@ymax - ext@ymin
 
 	# create raster with approximate number of desired cells
-	if (!is.null(numCells)) {
-	
-		res <- sqrt((longDist * latDist) / numCells)
-
-	}
+	if (!is.null(numCells)) res <- sqrt((longDist * latDist) / numCells)
 
 	# number of rows/columns
 	numRows <- ceiling(latDist / res)

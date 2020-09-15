@@ -8,11 +8,11 @@ summaryByCrossValid(
   x,
   trainFxName = "trainGlm",
   metric = "cbiTest",
-  descending = TRUE
+  decreasing = TRUE
 )
 }
 \arguments{
-\item{x}{An object of class \code{crossValid} (which is also a list). Note that the object \emph{must} include a sublist named \code{tuning}. For some models it must also include the sublist names \code{models}.}
+\item{x}{An object of class \code{crossValid} (which is also a list). Note that the object \emph{must} include a sublist named \code{tuning}.}
 
 \item{trainFxName}{Character, name of function used to train the SDM (examples: \code{'trainGlm'}, \code{'trainMaxEnt'}, \code{'trainBrt'})}
 
@@ -22,7 +22,6 @@ summaryByCrossValid(
     \item \code{'cbi'}: Continuous Boyce Index (CBI). Calculated with \code{\link[enmSdm]{contBoyce}}.
     \item \code{'auc'}: Area under the receiver-operator characteristic curve (AUC). Calculated with \code{\link[enmSdm]{aucWeighted}}.
     \item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
-    \item \code{'fpb'}: Mean Fpb across thresholds from 0 to 1 in steps of 0.01. Calculated with \code{\link[enmSdm]{fpb}}. NOT USED AT PRESENT.
     \item \code{'msss'}: Sensitivity and specificity calculated at the threshold that maximizes sensitivity (true presence prediction rate) plus specificity (true absence prediction rate).
     \item \code{'mdss'}: Sensitivity (se) and specificity (sp) calculated at the threshold that minimizes the difference between sensitivity and specificity.
     \item \code{'orss'}: Maximum odds ratio skill score (Wunderlich et al. 2019).
@@ -31,14 +30,15 @@ summaryByCrossValid(
     \item \code{'trainSe95'} and/or \code{'trainSe90'}: Sensitivity at the threshold that ensures either 95% or 90% of all training presences are classified as "present" (training sensitivity = 0.95 or 0.9).
 }}
 
-\item{descending}{Logical, if \code{TRUE} (default), for each k-fold sort models by the value listed in \code{metric} in descending order (highest connotes "best", lowest "worst"). If \code{FALSE} use the lowest value of \code{metric}.}
+\item{decreasing}{Logical, if \code{TRUE} (default), for each k-fold sort models by the value listed in \code{metric} in decreasing order (highest connotes "best", lowest "worst"). If \code{FALSE} use the lowest value of \code{metric}.}
 }
 \value{
 Data frame with statistics on the best set of models across k-folds. Depending on the model algorithm, this could be:
 \itemize{
-	\item GLMs: Frequency of use of each term in the best models
-	\item Maxent: Mean regularization parameter and frequency of feature classes used in the best models (Maxent)
-	\item BRTs: Learning rate, tree complexity, and bag fraction (BRTs).
+	\item BRTs (boosted regression trees): Learning rate, tree complexity, and bag fraction.
+	\item GLMs (generalized linear models): Frequency of use of each term in the best models.
+	\item Maxent: Mean regularization parameter and frequency of feature classes used in the best models.
+	\item NSs (natural splines): Data frame, one row per fold and one column per predictor, with values representing the maximum degrees of freedom used for each variable in the best model of each fold.
 }
 }
 \description{
