@@ -1,8 +1,8 @@
 Package: enmSdm
 Type: Package
 Title: Tools for modeling niches and distributions of species
-Version: 0.5.1.8
-Date: 2020-09-14
+Version: 0.5.2.0
+Date: 2020-09-15
 Author: Adam B. Smith <adam.smith@mobot.org>
 Maintainer: Adam B. Smith <adam.smith@mobot.org>
 Description: Better modeling of niches and distributions.
@@ -12,6 +12,7 @@ Depends:
 	sp
 Imports:
 	boot,
+	brglm2,
 	cluster,
 	doParallel,
 	foreach,
@@ -33,7 +34,6 @@ Remotes:
 	github::adamlilith/omnibus,
 	github::adamlilith/statisfactory
 Suggests:
-	brglm2,
 	devtools,
 	grpreg,
 	grpregOverlap,
