@@ -9,7 +9,7 @@ trainNs(
   resp = names(data)[1],
   preds = names(data)[2:ncol(data)],
   family = "binomial",
-  df = NULL,
+  df = 1:3,
   construct = TRUE,
   select = TRUE,
   presPerTermInitial = 10,
@@ -30,7 +30,7 @@ trainNs(
 
 \item{family}{Name of family for data error structure (see \code{\link[stats]{family}}).}
 
-\item{df}{Integer > 0 OR \code{NULL}. Sets flexibility of model fit. See documentation for \code{\link[splines]{ns}}.}
+\item{df}{Integer > 0 \emph{or} vector of integers > 0. Sets flexibility of model fit. See documentation for \code{\link[splines]{ns}}.  If \code{construct} is \code{TRUE}, then univariate models for each term will be evaluated using each value in \code{df}. Note that \code{NULL} is also valid, but it can create problems when used with other functions in this package (and usually defaults to \code{df=3} anyway).}
 
 \item{construct}{Logical. If TRUE then construct model by computing AICc for all univariate and bivariate models. Then add terms up to maximum set by \code{presPerTermInitial} and \code{initialTerms}.}
 
@@ -44,7 +44,7 @@ trainNs(
 
 \item{w}{Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign a weight of 1 to each datum.}
 
-\item{out}{Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{gam}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
+\item{out}{Character or character vector. Indicates type of value returned. Values can be \code{'model'} (default; return model with lowest AICc), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with elements named "model", "models", and/or "tuning". If \code{'models'} is specified, they will only be produced if \code{select = TRUE}. The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{glm}, a list with objects of class \code{glm}, or a data frame.}
 
 \item{verbose}{Logical. If \code{TRUE} then display intermediate results on the display device. Default is \code{FALSE}.}
 
@@ -58,8 +58,8 @@ This function constructs a natural-spline model piece-by-piece by first calculat
 }
 \examples{
 \donttest{
+library(brglm2)
 
-NB YOU WILL NEED TO DO library(brglm2) TO RUN trainNs()!
 ### model red-bellied lemurs
 data(mad0)
 data(lemurs)
@@ -118,10 +118,13 @@ mapNs <- predict(clim, ga, type='response')
 
 par(mfrow=c(1, 3))
 plot(mapGlm, main='GLM')
+plot(mad0, add=TRUE)
 points(occs[ , c('longitude', 'latitude')])
 plot(mapGam, main='GAM')
+plot(mad0, add=TRUE)
 points(occs[ , c('longitude', 'latitude')])
 plot(mapNs, main='NS')
+plot(mad0, add=TRUE)
 points(occs[ , c('longitude', 'latitude')])
 }
 }
