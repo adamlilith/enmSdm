@@ -22,6 +22,8 @@
 #' @param ... Arguments to pass to \code{glm}.
 #' @examples
 #' \donttest{
+#' library(brglm2)
+#'
 #' ### model red-bellied lemurs
 #' data(mad0)
 #' data(lemurs)
@@ -80,10 +82,13 @@
 #'
 #' par(mfrow=c(1, 3))
 #' plot(mapGlm, main='GLM')
+#' plot(mad0, add=TRUE)
 #' points(occs[ , c('longitude', 'latitude')])
 #' plot(mapGam, main='GAM')
+#' plot(mad0, add=TRUE)
 #' points(occs[ , c('longitude', 'latitude')])
 #' plot(mapNs, main='NS')
+#' plot(mad0, add=TRUE)
 #' points(occs[ , c('longitude', 'latitude')])
 #' }
 #' @export
@@ -181,7 +186,7 @@ trainGlm <- function(
 
 		## QUADRATIC terms
 		# if there are more than desired number of presences per term and initial model can have more than 1 term
-		if (quadratic && ((sampleSize / 2 >= presPerTermInitial & initialTerms >= 2) | (sampleSize / 2 >= presPerTermInitial & initialTerms >= 2))) {
+		if (quadratic & ((sampleSize / 2 >= presPerTermInitial & initialTerms >= 2) | (sampleSize / 2 >= presPerTermInitial & initialTerms >= 2))) {
 
 			for (thisPred in preds) { # for each predictor test single-variable terms
 
@@ -215,7 +220,7 @@ trainGlm <- function(
 		# ## CUBIC TERMS
 		# # if there are more than desired number of presences per term and initial model can have more than 1 term
 
-		# if (cubic && ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
+		# if (cubic & ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
 
 			# for (thisPred in preds) { # for each predictor test cubic terms
 
@@ -247,7 +252,7 @@ trainGlm <- function(
 
 		## 2-WAY INTERACTION TERMS
 		# if there are more than desired number of presences per term and initial model can have more than 1 term
-		if (interaction && ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
+		if (interaction & ((sampleSize / 3 >= presPerTermInitial & initialTerms >= 3) | (sampleSize / 3 >= presPerTermInitial & initialTerms >= 3))) {
 
 			for (countPred1 in 1:(length(preds) - 1)) { # for each predictor test two-variable terms
 
@@ -283,7 +288,7 @@ trainGlm <- function(
 
 		# ## INTERACTION-QUADRATIC terms
 		# # if there are more than desired number of presences per term and initial model can have more than 1 term
-		# if (interQuad && ((sampleSize / 5 >= presPerTermInitial & initialTerms >= 5) | (sampleSize / 5 >= presPerTermInitial & initialTerms >= 5))) {
+		# if (interQuad & ((sampleSize / 5 >= presPerTermInitial & initialTerms >= 5) | (sampleSize / 5 >= presPerTermInitial & initialTerms >= 5))) {
 
 			# for (thisPred in preds) { # for each predictor
 
