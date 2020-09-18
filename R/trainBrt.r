@@ -18,6 +18,7 @@
 #' * \code{stepSize}: Increase step size (argument \code{n.trees} in \code{gbm.step()}) by 50%.
 #' If \code{tryBy} is NULL then the function attempts to train the model with the same parameters up to \code{tries} times.
 #' @param w Either logical in which case \code{TRUE} (default) causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) \emph{or} a numeric list of weights, one per row in \code{data} \emph{or} the name of the column in \code{data} that contains site weights. If \code{FALSE}, then each datum gets a weight of 1.
+#' @param anyway Logical. If \code{FALSE} (default), it is possible for no models to be returned if none converge and/or none had a number of trees is >= \code{minTrees}). If \code{TRUE} then all models are returned but with a warning.
 #' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{gbm}. If \code{models} then all models that were trained are returned in a list in the order they appear in the tuning table (this may take a lot of memory!). If \code{tuning} then just return a data frame with tuning parameters and deviance of each model sorted by deviance. If both then return a 2-item list with the best model and the tuning table.
 #' @param cores Integer >= 1. Number of cores to use when calculating multiple models. Default is 1.
 #' @param verbose Logical. If \code{TRUE} display progress.
@@ -92,6 +93,7 @@ trainBrt <- function(
 	tries = 5,
 	tryBy = c('learningRate', 'treeComplexity', 'maxTrees', 'stepSize'),
 	w = TRUE,
+	anyway = FALSE,
 	out = 'model',
 	cores = 1,
 	verbose = FALSE,
@@ -179,7 +181,12 @@ trainBrt <- function(
 		
 	### process models
 	##################
-
+	
+		if (anyway) {
+			origModels <- models
+			origTuning <- tuning
+		}
+	
 		# remove non-converged models
 		keeps <- which(tuning$converged)
 		tuning <- tuning[keeps, , drop=FALSE]
@@ -205,6 +212,12 @@ trainBrt <- function(
 				
 		}
 		
+		if (anyway & length(models) == 0) {
+			models <- origModels
+			tuning <- origTuning
+			warning('No models converged and/or had sufficient trees.')
+		}
+		
 	### return
 	##########
 		
@@ -217,13 +230,16 @@ trainBrt <- function(
 		if (length(out) > 1) {
 			output <- list()
 			if ('models' %in% out) output$models <- models
-			if ('model' %in% out) output$model <- models[[1]]
+			if ('model' %in% out) output$model <- if (length(models) > 0) { models[[1]] } else { NA }
 			if ('tuning' %in% out) output$tuning <- tuning
 			output
 		} else if (out == 'models') {
-			models
+			if (length(models) > 0) {
+				models
+			} else {
+				NULL
+			}
 		} else if (out == 'model') {
-			print(str(models, 2))
 			if (length(models) > 0) {
 				models[[1]]
 			} else {
