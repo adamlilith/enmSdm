@@ -37,7 +37,7 @@ Data frame with statistics on the best set of models across k-folds. Depending o
 \itemize{
 	\item BRTs (boosted regression trees): Learning rate, tree complexity, and bag fraction.
 	\item GLMs (generalized linear models): Frequency of use of each term in the best models.
-	\item Maxent: Mean regularization parameter and frequency of feature classes used in the best models.
+	\item Maxent: Frequency of times each specific combination of feature classes was used in the best models plus mean master regularization multiplier for each feature set.
 	\item NSs (natural splines): Data frame, one row per fold and one column per predictor, with values representing the maximum degrees of freedom used for each variable in the best model of each fold.
 }
 }
