@@ -1,6 +1,6 @@
 #' Movement of occupied cells in a given direction of a fixed point
 #' 
-#' This function calculates the movement of a set of occupied cells that are north, south, east, or west of a given point (i.e., typically the centroid of the starting population). Values >0 confer movement to the north, south, east, or west of this portion of a species' distribution. Values equal to 0 mean no occupied cells were north, south, east, or west of the reference point.
+#' This function calculates the weighted distance moved by a mass represented by set of cells which fall north, south, east, or west of a given location (i.e., typically the centroid of the starting population). Values >0 confer movement to the north, south, east, or west of this location. Values equal to 0 represent no cells with mass different from 0 were north, south, east, or west of the reference location.
 #' @param direction Any of: \code{'n'} (north), \code{'s'} (south), \code{'e'} (east), or \code{'w'} (west).
 #' @param x2 Matrix of weights (i.e., population size).
 #' @param x2weightedLongs Matrix of longitudes weighted (i.e., by population size, given by \code{x2}).
