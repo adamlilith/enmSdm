@@ -88,7 +88,7 @@ trainBrt <- function(
 	treeComplexity = c(5, 3, 1),
 	bagFraction = 0.6,
 	minTrees = 1000,
-	maxTrees = 4000,
+	maxTrees = 8000,
 	tries = 5,
 	tryBy = c('learningRate', 'treeComplexity', 'maxTrees', 'stepSize'),
 	w = TRUE,
