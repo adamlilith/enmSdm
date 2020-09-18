@@ -36,7 +36,7 @@
 #'  \item \code{quants}: \emph{x}th quantile values across all cells (this is not really a measure of "velocity"). Quantiles are given by \code{quants}.
 #'  \item \code{prevalence}: Number of cells with values > 0 (this is not really a measure of "velocity").
 #' }
-#' @param quants Numeric vector indicating the quantiles at which biotic velocity is calculated for the "quant" and "Quants" metrics. Default is \code{c(0.05, 0.10, 0.5, 0.9, 0.95)}.
+#' @param quants Numeric vector indicating the quantiles at which biotic velocity is calculated for the "\code{quant}" and "\code{Quants}" metrics. Default is \code{c(0.05, 0.10, 0.5, 0.9, 0.95)}.
 #' @param onlyInSharedCells Logical, if \code{TRUE}, calculate biotic velocity using only those cells that are not \code{NA} in the start and end of each time period. This is useful for controlling for shifting land mass due to sea level rise, for example, when calculating biotic velocty for an ecosystem or a species.  The default is \code{FALSE}.
 #' @param warn Logical, if \code{TRUE} then display function-specific warnings.
 #' @param ... Other arguments (not used).
@@ -46,18 +46,18 @@
 #' 	\item \code{timeTo}: End time of interval
 #' 	\item \code{timeSpan}: Duration of interval
 #' }
-#' Depending on \code{metrics} that are specified, additional fields are as follows:
+#' Depending on \code{metrics} that are specified, additional fields are as follows. All measurements of velocity are in distance units (typically meters) per time unit (which is the same as the units used for \code{times} and \code{atTimes}). For example, if the rasters are in an Albers equal-area projection and times are in years, then the output will be meters per year. Metrics \code{mean} and \code{quantile_quantX} are in the units represented by the cells (e.g., abundance, probability of occurrence, etc.) and \code{prevalence} is unit-less.
 #' \itemize{
-#' 	\item \code{centroidVelocity}, \code{centroidLong}, \code{centroidLat}: Velocity of weighted centroid and its longitude and latitude.
-#' 	\item \code{nsCentroid}, \code{nsCentroidLat}: Velocity of weighted centroid in north-south direction and its latitude.
-#' 	\item \code{ewCentroid}, \code{ewCentroidLong}: Velocity of weighted centroid in east-west direction and its longitude.
+#' 	\item \code{centroidVelocity}, \code{centroidLong}, \code{centroidLat}: Velocity of weighted centroid and its longitude and latitude (in the "to" time period of each time step).
+#' 	\item \code{nsCentroid}, \code{nsCentroidLat}: Velocity of weighted centroid in north-south direction and its latitude (in the "to" time period of each time step).
+#' 	\item \code{ewCentroid}, \code{ewCentroidLong}: Velocity of weighted centroid in east-west direction and its longitude (in the "to" time period of each time step).
 #' 	\item \code{nCentroid} and \code{nCentroidAbund}, \code{sCentroid} and \code{sCentroidAbund}, \code{eCentroid} and \code{eCentroidAbund}, or \code{wCentroid} and \code{wCentroidAbund}: Velocity of weighted centroid of all cells with weight >0 that fall north, south, east, or west of centroid of initial population (population in first time step), plus weight of all such populations.
-#' 	\item \code{nsCentroidVelocity_quantX} and \code{nsCentroidLat_quantX}, or \code{ewCentroidVelocity_quantX} and \code{ewCentroidLat_quantX}: Velocity of the \emph{x}th quantile weight in the north-south or east-west directions, plus the latitude or longitude thereof.
+#' 	\item \code{nsVelocity_quantX} and \code{nsLat_quantX}, or \code{ewVelocity_quantX} and \code{ewLat_quantX}: Velocity of the \emph{x}th quantile weight in the north-south or east-west directions, plus the latitude or longitude thereof (in the "to" time period of each time step).
 #' 	\item \code{mean}: Mean weight in "timeTo" time step.
 #' 	\item \code{quantile_quantX}: The \emph{X}th quantile(s) of weight in the "timeTo" time step.
 #' 	\item \code{prevalence}: Proportion of non-\code{NA} cells with weight >0 in the "timeTo" time step.
 #' }
-#' @details This function may yield erroneous velocities if the region of interest is near a pole and will yield erroneous results if the region spans the international date line. It converts rasters to arrays before doing calculations, so using very large rasters may yield slow performance and may not even work, depending on memory requirements.
+#' This function may yield erroneous velocities if the region of interest is near a pole and will yield erroneous results if the region spans the international date line. It converts rasters to arrays before doing calculations, so using very large rasters may yield slow performance and may not even work, depending on memory requirements.
 #' @examples
 #' ### setup for all examples
 #' ##########################
@@ -616,8 +616,8 @@ bioticVelocity <- function(
 					
 					# remember
 					thisQuantOut <- data.frame(
-						nsCentroidVelocity = metricRate,
-						nsCentroidLat = x2lat
+						nsQuantVelocity = metricRate,
+						nsQuantLat = x2lat
 					)
 					
 					quantCharacter <- gsub(quants[countQuant], pattern='[.]', replacement='p')
@@ -656,8 +656,8 @@ bioticVelocity <- function(
 					
 					# remember
 					thisQuantOut <- data.frame(
-						ewCentroidVelocity = metricRate,
-						ewCentroidLong = x2long
+						ewQuantVelocity = metricRate,
+						ewQuantLong = x2long
 					)
 					
 					quantCharacter <- gsub(quants[countQuant], pattern='[.]', replacement='p')
@@ -727,3 +727,4 @@ bioticVelocity <- function(
 	out
 	
 }
+
