@@ -33,6 +33,6 @@
 a list object with distance moved and abundance of all cells north/south/east/west of reference point.
 }
 \description{
-This function calculates the movement of a set of occupied cells that are north, south, east, or west of a given point (i.e., typically the centroid of the starting population). Values >0 confer movement to the north, south, east, or west of this portion of a species' distribution. Values equal to 0 mean no occupied cells were north, south, east, or west of the reference point.
+This function calculates the weighted distance moved by a mass represented by set of cells which fall north, south, east, or west of a given location (i.e., typically the centroid of the starting population). Values >0 confer movement to the north, south, east, or west of this location. Values equal to 0 represent no cells with mass different from 0 were north, south, east, or west of the reference location.
 }
 \keyword{internal}

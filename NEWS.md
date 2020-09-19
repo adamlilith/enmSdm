@@ -1,13 +1,21 @@
+enmSdm 0.5.2.2
+Graceful catch of non-converged/insufficient models in trainBrt()
+Sensical names in output of bioticVelocity()
+
+enmSdm 0.5.2.1
+Consistent output across models for summaryByCrossValid()
+Clarified help for bioticVelocity()
+
 enmSdm 0.5.2.0
 trainNs() can now return a list of all models
 trainNs() now cycles through degrees of freedom
 Can now use natural splines (trainNS()) with cross validation functions
-Fix issues with trainByCrossValid()
+Fixed issues with trainByCrossValid()
 
 enmSdm 0.5.1.9
 enmSdm 0.5.1.8
 Create rastWithSquareCells()
-Fix squareRasterCells(); rename to squareRastCells()
+Fix squareRasterCells(); renamed to squareRastCells()
 Remove export of localSpatialCorrForValues() because of instability issue
 
 enmSdm 0.5.1.7

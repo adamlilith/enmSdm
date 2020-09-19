@@ -21,7 +21,7 @@
 #' \itemize{
 #' 	\item BRTs (boosted regression trees): Learning rate, tree complexity, and bag fraction.
 #' 	\item GLMs (generalized linear models): Frequency of use of each term in the best models.
-#' 	\item Maxent: Mean regularization parameter and frequency of feature classes used in the best models.
+#' 	\item Maxent: Frequency of times each specific combination of feature classes was used in the best models plus mean master regularization multiplier for each feature set.
 #' 	\item NSs (natural splines): Data frame, one row per fold and one column per predictor, with values representing the maximum degrees of freedom used for each variable in the best model of each fold.
 #' }
 #' @seealso \code{\link[enmSdm]{trainByCrossValid}}
@@ -84,6 +84,8 @@ summaryByCrossValid <- function(
 	decreasing = TRUE
 ) {
 
+	trainFxName <- tolower(trainFxName)
+
 	tuning <- x$tuning
 
 	### order each tuning attempt by performance
@@ -96,14 +98,14 @@ summaryByCrossValid <- function(
 	
 	### BRT
 	#######
-	if (trainFxName == 'trainBrt') {
+	if (trainFxName == tolower('trainBrt')) {
 	
 		# get list of terms in best models
 		params <- data.frame()
 		for (k in seq_along(tuning)) {
 		
 			thisTuning <- tuning[[k]]
-			if (thisTuning$converged[1] & thisTuning$enoughTrees[1]) {
+			if (thisTuning$converged[1]) {
 				
 				params <- rbind(
 					params,
@@ -123,22 +125,27 @@ summaryByCrossValid <- function(
 		if (nrow(params) > 0) {
 		
 			out <- rbind(
+				apply(params, 2, min, na.rm=TRUE),
 				apply(params, 2, quantile, 0.25, na.rm=TRUE),
 				apply(params, 2, mean, na.rm=TRUE),
-				apply(params, 2, quantile, 0.75, na.rm=TRUE)
+				apply(params, 2, median, na.rm=TRUE),
+				apply(params, 2, quantile, 0.75, na.rm=TRUE),
+				apply(params, 2, max, na.rm=TRUE)
 			)
 			
 			out <- as.data.frame(out)
-			out$treeComplexity <- round(out$treeComplexity)
+			out$treeComplexity <- max(1, round(out$treeComplexity))
 			out$nTrees <- round(out$nTrees)
-			rownames(out) <- c('quant0pt25', 'mean', 'quant0pt75')
+			
+			value <- data.frame(value=c('min', '25th percent quantile', 'mean', 'median', '75th percent quantile', 'max'))
+			out <- omnibus::insertCol(value, out, 1)
 			
 		} else {
 			out <- data.frame()
 		}
 		
 
-	} else if (trainFxName == 'trainGlm') {
+	} else if (trainFxName == tolower('trainGlm')) {
 	
 		# get list of terms in best models
 		term <- character()
@@ -183,55 +190,62 @@ summaryByCrossValid <- function(
 		out <- out[order(out$frequency, decreasing = TRUE), ]
 		out$proportionOfModels <- out$frequency / length(x$tuning)
 
-		rownames(out) <- paste0('fold', 1:nrow(out))
-
 	### MAXENT
 	##########
 	
-	} else if (trainFxName == 'trainMaxEnt') {
+	} else if (trainFxName == tolower('trainMaxEnt')) {
 	
-		# tally frequency of feature classes across best models and regularization multipliers
-		feats <- data.frame()
-		regMult <- rep(NA, length(tuning))
-		for (k in seq_along(tuning)) {
+		## tally frequency of feature class combinations across best models and mean regularization associated with each set of features
 		
-			thisTuning <- tuning[[k]]
-			
-			thisTerm <- thisTuning[1 , c('linear', 'quadratic', 'product', 'hinge', 'threshold')]
-			feats <- rbind(feats, thisTerm)
-		
-			regMult[k] <- thisTuning$regMult[1]
-		
+		# make vector of all possible feature combinations
+		simpleFeats <- c('l', 'p', 'q', 'h')
+		featCombos <- vector('list', length(simpleFeats))
+		for (i in seq_along(simpleFeats)) {
+			featCombos[[i]] <- combn(simpleFeats, i, paste, collapse = '')
 		}
 		
-		feats <- colSums(feats)
+		featCombos <- unique(unlist(featCombos))
 		
+		featFreqs <- featRegMultSums <- rep(0, length(featCombos))
+		names(featFreqs) <- names(featRegMultSums) <- featCombos
+		
+		# tally number of times each feature combination used in top models
+		targetFeatLengths <- nchar(featCombos)
+		for (k in seq_along(tuning)) {
+		
+			thisModelFeats <- tuning[[k]]$classes[1]
+			thisModelFeats <- strsplit(thisModelFeats, '')[[1]]
+			modelFeatLength <- length(thisModelFeats)
+
+			modelFeatInTarget <- rep(TRUE, length(featCombos)) # flags if potential features are *all* used in model
+			names(modelFeatInTarget) <- featCombos
+			for (countModelFeat in seq_along(thisModelFeats)) {
+			
+				thisModelFeatInTarget <- grepl(pattern=thisModelFeats[countModelFeat], featCombos)
+				modelFeatInTarget <- (modelFeatInTarget & thisModelFeatInTarget)
+			
+			}
+			
+			modelFeatInTarget <- modelFeatInTarget & (modelFeatLength == targetFeatLengths)
+			
+			featFreqs[modelFeatInTarget] <- featFreqs[modelFeatInTarget] + 1
+			featRegMultSums[modelFeatInTarget] <- featRegMultSums[modelFeatInTarget] + tuning[[k]]$regMult[1]
+
+		}
+		
+		featRegMultMeans <- featRegMultSums / featFreqs
+		# featFreqs <- featFreqs / sum(featFreqs)
+
 		out <- data.frame(
-			term = names(feats),
-			value = c(feats)
-		)
-		
-		out <- rbind(
-			out,
-			data.frame(
-				term = c('regMult_25PercQuant', 'regMult_mean', 'regMult_75PercQuant'),
-				value = c(
-					quantile(regMult, 0.25, na.rm=TRUE),
-					mean(regMult, na.rm=TRUE),
-					quantile(regMult, 0.75, na.rm=TRUE)
-				)
-			)
+			featureSet = featCombos,
+			frequencyInBestModels = featFreqs,
+			meanRegMult = featRegMultMeans
 		)
 
-		out$proportionOfModels <- NA
-		featureRows <- out$term %in% c('linear', 'quadratic', 'hinge', 'product', 'threshold')
-		out$proportionOfModels[featureRows] <- out$value[featureRows] / length(x$tuning)
-		rownames(out) <- paste0('fold', 1:nrow(out))
-	
 	### NS
 	######
 	
-	} else if (trainFxName == 'trainNs') {
+	} else if (trainFxName == tolower('trainNs')) {
 		
 		# get predictor names
 		strings <- colnames(tuning[[1]])
@@ -247,16 +261,15 @@ summaryByCrossValid <- function(
 		preds <- sort(unique(preds))
 		
 		# create table to hold information on degrees of freedom for each top model
-		out <- data.frame(DUMMY=NA)
-		colnames(out) <- preds[1]
+		subOut <- data.frame(DUMMY=NA)
+		colnames(subOut) <- preds[1]
 		if (length(preds) > 1) {
 			for (i in 2:length(preds)) {
-				out$DUMMY <- NA
-				colnames(out)[ncol(out)] <- preds[i]
+				subOut$DUMMY <- NA
+				colnames(subOut)[ncol(subOut)] <- preds[i]
 			}
 		}
-		out <- out[rep(1, length(tuning)), ]
-		rownames(out) <- paste0('fold', 1:nrow(out))
+		subOut <- subOut[rep(1, length(tuning)), ]
 		
 		# find df for each predictor
 		for (k in seq_along(tuning)) {
@@ -287,15 +300,35 @@ summaryByCrossValid <- function(
 					max(dfs[bestDf])
 				}
 				
-				out[k, pred] <- bestDf
+				subOut[k, pred] <- bestDf
 				
 			} # next predictor	
 				
 		} # next model
-		
+	
+		for (pred in preds) {
+			thisPredOut <- data.frame(
+				term=pred,
+				frequencyInBestModels=sum(!is.na(subOut[ , pred])),
+				minDf=min(subOut[ , pred], na.rm=TRUE),
+				quantile25thDf=quantile(subOut[ , pred], 0.25, na.rm=TRUE),
+				meanDf=mean(subOut[ , pred], na.rm=TRUE),
+				medianDf=median(subOut[ , pred], na.rm=TRUE),
+				quantile7thDf=quantile(subOut[ , pred], 0.75, na.rm=TRUE),
+				maxDf=max(subOut[ , pred], na.rm=TRUE)
+			)
+			
+			out <- if (exists('out', inherits=FALSE)) {
+				out <- rbind(out, thisPredOut)
+			} else {
+				thisPredOut
+			}
+		}
+	
 		
 	} # NSs
 	
+	rownames(out) <- 1:nrow(out)
 	out
 	
 }

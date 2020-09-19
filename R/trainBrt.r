@@ -1,6 +1,6 @@
 #' Calibrate a boosted regression tree (generalized boosting machine) model
 #'
-#' This function is a wrapper for \code{gbm.step()}. It returns the model with best combination of learning rate, tree depth, and bag fraction based on cross-validated deviance. It can also return a table with deviance of different combinations of tuning parameters that were tested, and all of the models tested. See Elith, J., J.R. Leathwick, and T. Hastie. 2008. A working guide to boosted regression trees. \emph{Journal of Animal Ecology} 77:802-813.
+#' This function is a wrapper for \code{\link[dismo]{gbm.step}}. It returns the model with best combination of learning rate, tree depth, and bag fraction based on cross-validated deviance. It can also return a table with deviance of different combinations of tuning parameters that were tested, and all of the models tested. See Elith, J., J.R. Leathwick, and T. Hastie. 2008. A working guide to boosted regression trees. \emph{Journal of Animal Ecology} 77:802-813.
 #' @param data data frame with first column being response
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
@@ -9,7 +9,7 @@
 #' @param treeComplexity Positive integer. Tree complexity: depth of branches in a single tree (1 to 16).
 #' @param bagFraction Numeric in the range [0, 1]. Bag fraction: proportion of data used for training in cross-validation (Elith et al. 2008 recommend 0.5 to 0.7).
 #' @param minTrees Positive integer. Minimum number of trees to be scored as a "usable" model (Elith et al. 2008 recommend at least 1000). Default is 1000.
-#' @param maxTrees Positive integer. Maximum number of trees in model set (same as parameter \code{max.trees} in [dismo::gbm.step()]).
+#' @param maxTrees Positive integer. Maximum number of trees in model set (same as parameter \code{max.trees} in \code{\link[dismo]{gbm.step}}).
 #' @param tries Integer > 0. Number of times to try to train a model with a particular set of tuning parameters. The function will stop training the first time a model converges (usually on the first attempt). Non-convergence seems to be related to the number of trees tried in each step.  So if non-convergence occurs then the function automatically increases the number of trees in the step size until \code{tries} is reached.
 #' @param tryBy Character list. A list that contains one or more of \code{'learningRate'}, \code{'treeComplexity'}, \code{numTrees}, and/or \code{'stepSize'}. If a given combination of \code{learningRate}, \code{treeComplexity}, \code{numTrees}, \code{stepSize}, and \code{bagFraction} do not allow model convergence then then the function tries again but with alterations to any of the arguments named in \code{tryBy}:
 #' * \code{learningRate}: Decrease the learning rate by a factor of 10.
@@ -17,13 +17,14 @@
 #' * \code{maxTrees}: Increase number of trees by 20%.
 #' * \code{stepSize}: Increase step size (argument \code{n.trees} in \code{gbm.step()}) by 50%.
 #' If \code{tryBy} is NULL then the function attempts to train the model with the same parameters up to \code{tries} times.
-#' @param w Either logical in which case TRUE causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign a weight of 1 to each datum.
+#' @param w Either logical in which case \code{TRUE} (default) causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) \emph{or} a numeric list of weights, one per row in \code{data} \emph{or} the name of the column in \code{data} that contains site weights. If \code{FALSE}, then each datum gets a weight of 1.
+#' @param anyway Logical. If \code{FALSE} (default), it is possible for no models to be returned if none converge and/or none had a number of trees is >= \code{minTrees}). If \code{TRUE} then all models are returned but with a warning.
 #' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{gbm}. If \code{models} then all models that were trained are returned in a list in the order they appear in the tuning table (this may take a lot of memory!). If \code{tuning} then just return a data frame with tuning parameters and deviance of each model sorted by deviance. If both then return a 2-item list with the best model and the tuning table.
-#' @param cores Integer >= 1. Number of cores to use. Default is 1.
+#' @param cores Integer >= 1. Number of cores to use when calculating multiple models. Default is 1.
 #' @param verbose Logical. If \code{TRUE} display progress.
-#' @param ... Arguments to pass to `gbm.step`.
-#' @return If \code{out = 'model'} this function returns an object of class \code{gbm}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters and cross-validation deviance for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{gbm} object and the data frame.
-#' @seealso [dismo::gbm.step()]
+#' @param ... Arguments to pass to \code{\link[dismo]{gbm.step}}.
+#' @return If \code{out = 'model'} this function returns an object of class \code{gbm}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters and cross-validation deviance for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{gbm} object and the data frame. Note that if a model does not converge or does not meet sufficiency criteria (i.e., the number of optimal trees is < \code{minTrees}, then the model is not returned (a \code{NULL} value is returned for \code{'model'} and models are simply missing from the \code{tuning} and \code{models} output.
+#' @seealso \code{\link[dismo]{gbm.step}}
 #' @examples
 #' \donttest{
 #' ### model red-bellied lemurs
@@ -88,10 +89,11 @@ trainBrt <- function(
 	treeComplexity = c(5, 3, 1),
 	bagFraction = 0.6,
 	minTrees = 1000,
-	maxTrees = 4000,
+	maxTrees = 8000,
 	tries = 5,
 	tryBy = c('learningRate', 'treeComplexity', 'maxTrees', 'stepSize'),
 	w = TRUE,
+	anyway = FALSE,
 	out = 'model',
 	cores = 1,
 	verbose = FALSE,
@@ -113,7 +115,7 @@ trainBrt <- function(
 
 		# model weights
 		if (class(w)[1] == 'logical') {
-			w <- if (w & (family == 'binomial' | family == 'quasibinomial')) {
+			w <- if (w) {
 				c(rep(1, sum(data[ , resp])), rep(sum(data[ , resp]) / sum(data[ , resp] == 0), sum(data[ , resp] == 0)))
 			} else {
 				rep(1, nrow(data))
@@ -179,18 +181,23 @@ trainBrt <- function(
 		
 	### process models
 	##################
-
+	
+		if (anyway) {
+			origModels <- models
+			origTuning <- tuning
+		}
+	
 		# remove non-converged models
 		keeps <- which(tuning$converged)
 		tuning <- tuning[keeps, , drop=FALSE]
-		models <- models[keeps]
+		models <- models[keeps, drop=FALSE]
 
 		if (length(models) > 0) {
 		
 			# remove models with fewer trees than required
 			keeps <- which(omnibus::naCompare('>=', tuning$nTrees, minTrees))
 			tuning <- tuning[keeps, , drop=FALSE]
-			models <- models[keeps]
+			models <- models[keeps, drop=FALSE]
 			
 			if (length(models) > 0) {
 			
@@ -205,6 +212,12 @@ trainBrt <- function(
 				
 		}
 		
+		if (anyway & length(models) == 0) {
+			models <- origModels
+			tuning <- origTuning
+			warning('No models converged and/or had sufficient trees.')
+		}
+		
 	### return
 	##########
 		
@@ -213,17 +226,25 @@ trainBrt <- function(
 			print(tuning, digits=4)
 			omnibus::say('')
 		}
-		
+
 		if (length(out) > 1) {
 			output <- list()
 			if ('models' %in% out) output$models <- models
-			if ('model' %in% out) output$model <- models[[1]]
+			if ('model' %in% out) output$model <- if (length(models) > 0) { models[[1]] } else { NA }
 			if ('tuning' %in% out) output$tuning <- tuning
 			output
 		} else if (out == 'models') {
-			models
+			if (length(models) > 0) {
+				models
+			} else {
+				NULL
+			}
 		} else if (out == 'model') {
-			models[[1]]
+			if (length(models) > 0) {
+				models[[1]]
+			} else {
+				NULL
+			}
 		} else if (out == 'tuning') {
 			tuning
 		}
