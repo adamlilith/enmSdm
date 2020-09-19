@@ -1,3 +1,7 @@
+enmSdm 0.5.2.2
+Graceful catch of non-converged/insufficient models in trainBrt()
+Sensical names in output of bioticVelocity()
+
 enmSdm 0.5.2.1
 Consistent output across models for summaryByCrossValid()
 Clarified help for bioticVelocity()
