@@ -307,7 +307,7 @@ bioticVelocity <- function(
 			
 			if (is.null(x$pophist$longitude)) {
 				longitude <- matrix(x$pophist$col, nrow=nRows, ncol=nCols, byrow=TRUE)
-				if (warn) warning('The population history object does not contain a field named ".$pophist$longitude". Velocities will be in arbitrary spatial units.')
+				if (warn) warning('The population history object does not contain a field named ".$pophist$longitude". Velocities will be in cell-length/width units.')
 			} else if (is.null(longitude)) {
 				longitude <- matrix(x$pophist$longitude, nrow=nRows, ncol=nCols, byrow=TRUE)
 			}
@@ -315,7 +315,7 @@ bioticVelocity <- function(
 			if (is.null(x$pophist$latitude)) {
 				# note: reversing row numbers for latitude so high values occur in the "north" and low in the "south" so they match trends in latitude
 				latitude <- matrix(rev(x$pophist$row), nrow=nRows, ncol=nCols, byrow=TRUE)
-				if (warn) warning('The population history object does not contain a field named ".$pophist$latitude". Velocities will be in arbitrary spatial units.')
+				if (warn) warning('The population history object does not contain a field named ".$pophist$latitude". Velocities will be in cell-length/width units.')
 			} else if (is.null(latitude)) {
 				latitude <- matrix(x$pophist$latitude, nrow=nRows, ncol=nCols, byrow=TRUE)
 			}
