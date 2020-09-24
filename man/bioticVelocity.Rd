@@ -11,8 +11,8 @@ bioticVelocity(
   longitude = NULL,
   latitude = NULL,
   metrics = c("centroid", "nsCentroid", "ewCentroid", "nCentroid", "sCentroid",
-    "eCentroid", "wCentroid", "nsQuants", "ewQuants", "mean", "quants", "prevalence",
-    "similarity"),
+    "eCentroid", "wCentroid", "nsQuants", "ewQuants", "mean", "sum", "quants",
+    "prevalence", "similarity"),
   quants = c(0.05, 0.1, 0.5, 0.9, 0.95),
   onlyInSharedCells = FALSE,
   warn = TRUE,
@@ -49,6 +49,7 @@ bioticVelocity(
  \item \code{nCentroid}, \code{sCentroid}, \code{eCentroid}, and \code{wCentroid}: Movement of mass-weighted centroid of the portion of the raster north/south/east/west of the landscape-wide weighted centroid of the starting time period.
  \item \code{nsQuants} or \code{ewQuants}: Movement of the location of the \emph{n}th quantile of mass in the north-south or east-west directions. The quantiles can be specified in \code{quants}. For example, this could be the movement of the 5th, 50th, and 95th quantiles of population size going from south to north. The 0th quantile would measure the velocity of the southernmost or easternmost cell(s) with values >0, and the 100th quantile the northernmost or westernmost cell(s) with non-zero values.
  \item \code{mean}: Mean value across all cells (this is not really a measure of "velocity").
+ \item \code{sum}: Total across all cells (this is not really a measure of "velocity").
  \item \code{quants}: \emph{N}th quantile values across all cells (this is not really a measure of "velocity"). Quantiles are given by \code{quants}.
  \item \code{prevalence}: Number of cells with values > 0 (this is not really a measure of "velocity").
  \item \code{similarity}: Several metrics of similarity between each time period. Some of these make sense for cases where values in \code{x} are in the range [0, 1], but not if some values are outside this range. The metrics are the simple mean difference, mean absolute difference, the Expected Fraction of Shared Presences or ESP (Godsoe 2014), the D statistic (Schoener 1968), and I (Warren et al. 2008). The last three metrics have been modified from their original versions by dividing the values by the total number of cells (see \emph{Details}) so they fall in the range [0, 1] provided that cell values are in the range [0, 1] or \code{NA}.
@@ -445,7 +446,7 @@ onlyInSharedCells=TRUE))
 
 }
 \references{
-Schoener, T. W. 1968. \emph{Anolis} lizards of Bimini: Resource partitioning in a complex fauna. \emph{Ecology} 49:704–726.
-Godsoe, W. 2014. Inferring the similarity of species distributions using Species’ Distribution Models. \emph{Ecography} 37:130-136.
+Schoener, T. W. 1968. \emph{Anolis} lizards of Bimini: Resource partitioning in a complex fauna. \emph{Ecology} 49:704–726.  
+Godsoe, W. 2014. Inferring the similarity of species distributions using Species’ Distribution Models. \emph{Ecography} 37:130-136.  
 Warren, D.L., Glor, R.E., and Turelli, M. 2008. Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution. \emph{Evolution} 62:2868-2883.
 }
