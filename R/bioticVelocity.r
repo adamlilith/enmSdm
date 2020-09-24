@@ -1,66 +1,275 @@
-#' Shifts in densities across rasters
+#' Velocity of shifts in densities across a series of rasters
 #'
-#' This function calculates several metrics of biotic velocity for a stack of rasters, an array representing a gridded landscape, or a "pops" (list) object.
-#' @param x Either a \code{RasterStack}, a 3-dimensional array, or list representing colonization histories (a "pops" object). Regardless of the class of \code{x}, it is assumed values representing the entity for which to calculate velocities are either \code{NA} or >= 0 (i.e., no negative population size).
+#' This function calculates several metrics of biotic velocity for a stack of rasters or an array representing a gridded landscape.
+#' @param x Either a \code{RasterStack}, \code{RasterBrick}, or 3-dimensional array. Values should be either \code{NA} or >= 0.
 #' \itemize{
-#' 	\item If \code{x} is a \code{RasterStack} then each raster is assumed to represent a time slice and the rasters \emph{must} be in an equal-area projection.
-#' 	\item If \code{x} is an array then each matrix in the third dimension is assumed to represent a map at a particular time slice in an equal-area projection. Note that if this is an array you can also specify the arguments \code{longitude} and \code{latitude}.
-#'  \item If \code{x} is a list (a "pops" object), then it is assumed to have at minimum the field \code{x$Nvecs}. To ensure velocities are in spatial units (usually meters--as opposed to arbitrary units), it must have the fields \code{x$pophist$longitude} and \code{x$pophist$latitude} (if not, then it must have It must also have \code{x$pophist$row} and \code{x$pophist$col}). To ensure velocities are in units of time (vs arbitrary units) it also needs \code{x$pophist$time}.
+#' 	\item If \code{x} is a \code{RasterStack} or \code{RasterBrick} then each layer is assumed to represent a time slice and the rasters \emph{must} be in an equal-area projection.
+#' 	\item If \code{x} is an array then each "layer" in the third dimension is assumed to represent a map at a particular time slice in an equal-area projection. Note that if this is an array you should probably also specify the arguments \code{longitude} and \code{latitude}.
 #' }
-#' @param times Numeric vector \emph{or} \code{NULL} (default). This specifies the time period represented by each layer in \code{x}. Times \emph{must} appear in sequential order. For example, if time periods are 24 kybp, 23 kybp, 22 kybp, use \code{c(-24, -23, -22)}, \emph{not} \code{c(24, 23, 22)}. If \code{NULL} (default), default values are assigned:
+#' @param times Numeric vector \emph{or} with the same number of layers in \code{x} or \code{NULL} (default). This specifies the time period represented by each layer in \code{x} from oldest (top layer) to most recent (bottom layer). Times \emph{must} appear in sequential order. For example, if time periods are 24 kybp, 23 kybp, 22 kybp, use \code{c(-24, -23, -22)}, \emph{not} \code{c(24, 23, 22)}. If \code{NULL} (default), values are assigned starting at 1 and ending at the total number of rasters in \code{x}.
+#' @param atTimes Numeric, values of \code{times} across which to calculate biotic velocity. You can use this to calculate biotic velocities across selected time periods (e.g., just the first and last time periods). Note that \code{atTimes} \emph{must} be the same as or a subset of \code{times}. The default is \code{NULL}, in which case velocity is calculated across all time slices (i.e., between period 1 and 2, 2 and 3, 3 and 4, etc.).
+#' @param longitude Numeric matrix or \code{NULL} (default):
 #' \itemize{
-#'	\item If \code{x} is a \code{RasterStack} and \code{times} is \code{NULL}, then \code{times} will be assigned values starting at 1 and ending at the total number of rasters in \code{x}. Alternatively, you can supply a numeric vector with the same number of values as layers in \code{x}.
-#'	\item If \code{x} is an array and \code{times} is \code{NULL}, then \code{times} will be assigned values starting at 1 and ending at \code{dim(x)[3]}. Alternatively, you can supply a numeric vector with the same number of values as layers in the third dimension of \code{x}.
-#'	\item If \code{x} is a list (a "pops" object) and contains a field named \code{x$pophist$time} and \code{times} is \code{NULL}, then \code{.$pophist$time} will be used to assign times to each period. Alternatively, you can supply a numeric vector with the same number of values as columns in \code{x$Nvecs}.
+#'	\item If \code{x} is a \code{RasterStack} or \code{RasterBrick} then this is ignored (longitude is ascertained directly from the rasters, which \emph{must} be in equal-area projection for velocities to be valid).
+#'	\item If \code{x} is an array and \code{longitude} is \code{NULL} (default), then longitude will be ascertained from column numbers in \code{x} and velocities will be in arbitrary spatial units (versus, for example, meters). Alternatively, this can be a two-dimensional matrix whose elements represent the longitude coordinates of the centers of cells of \code{x}. The matrix must have the same number of rows and columns as \code{x}. Coordinates must be from an equal-area projection for results to be valid.
 #' }
-#' @param atTimes Numeric, values of \code{times} across which to calculate biotic velocity. You can use this to calculate biotic velocities across selected time periods (e.g., just the first and last time periods). Note that \code{atTimes} \emph{must} be the same as or a subset of \code{times}. The default is \code{NULL}, in which case biotic velocity is calculated across all time slices (i.e., between period 1 and 2, 2 and 3, 3 and 4, etc.).
-#' @param longitude Numeric matrix or \code{NULL} (default).
+#' @param latitude Numeric matrix or \code{NULL} (default):
 #' \itemize{
-#'	\item If \code{x} is \code{RasterStack} then this is ignored (longitude is ascertained directly from the rasters, which \emph{must} be in equal-area projection for velocities to be valid!).
-#'	\item If \code{x} is an array and \code{longitude} is \code{NULL} (default), then longitude will be ascertained from column numbers in \code{x} and velocities will be in arbitrary spatial units (versus, for example, meters). Alternatively, this can be a two-dimensional matrix whose elements represent the longitude coordinates of the centers of cells of \code{x}. The matrix must have the same number of rows and columns as \code{x}. Note that the coordinates must be from an equal-area projection for results to be valid!
-#' 	\item If \code{x} is a list (a "pops" object), the function uses values in \code{x$pophist$longitude}. If \code{x$pophist$longitude} does not exist, then the \code{x$pophist$col} is used as longitude (with a warning). Alternatively, you can supply a two-dimensional matrix with longitude values for each cell. Note that the coordinates must be from an equal-area projection for results to be valid!
+#'	\item If \code{x} is a \code{RasterStack} or \code{RasterBrick} then this is ignored (latitude is obtained directly from the rasters, which \emph{must} be in equal-area projection for velocities to be valid).
+#'	\item If \code{x} is an array and \code{latitude} is \code{NULL} (default), then latitude will be obtained from row numbers in \code{x} and velocities will be in arbitrary spatial units (versus, for example, meters). Alternatively, this can be a two-dimensional matrix whose elements represent the latitude coordinates of the centers of cells of \code{x}. The matrix must have the same number of rows and columns as \code{x}. Coordinates must be from an equal-area projection for results to be valid.
 #' }
-#' @param latitude Numeric matrix or \code{NULL} (default).
-#' \itemize{
-#'	\item If \code{x} is \code{RasterStack} then this is ignored (latitude is ascertained directly from the rasters, which \emph{must} be in equal-area projection for velocities to be valid!).
-#'	\item If \code{x} is an array and \code{latitude} is \code{NULL} (default), then latitude will be ascertained from row numbers in \code{x} and velocities will be in arbitrary spatial units (versus, for example, meters). Alternatively, this can be a two-dimensional matrix whose elements represent the latitude coordinates of the centers of cells of \code{x}. The matrix must have the same number of rows and columns as \code{x}. Note that the coordinates must be from an equal-area projection for results to be valid!
-#' 	\item If \code{x} is a list (a "pops" object), the function uses values in \code{x$pophist$latitude}. If \code{x$pophist$latitude} does not exist, then the \code{x$pophist$row} is used as latitude (with a warning). Alternatively, you can supply a two-dimensional matrix with latitude values for each cell. Note that the coordinates must be from an equal-area projection for results to be valid!
-#' }
-#' @param metrics Biotic velocity metrics to calculate (default is to calculate them all). The units for all metrics will be the spatial units of the map (usually meters) divided by the temporal units (same units used for \code{times}---most often years). All metrics ignore \code{NA} cells in \code{x}.
+#' @param metrics Biotic velocity metrics to calculate (default is to calculate them all). All metrics ignore \code{NA} cells in \code{x}. Here "starting time period" represents one layer in \code{x} and "end time period" the next layer.
 #' \itemize{
 #' 	\item \code{centroid}: Movement of mass-weighted centroid.
-#'  \item \code{nsCentroid} or \code{ewCentroid}: Movement of mass-weighted centroid in the north-south or east-west directions. For north-south cardinality, positive values represent movement northward and negative southward. For east-west cardinality, positive values represent movement eastward and negative westward.
-#'  \item \code{nCentroid}, \code{sCentroid}, \code{eCentroid}, and \code{wCentroid}: Movement of mass-weighted centroid in of the portion of the range that is north, south, east, or west of the mass-weighted centroid of the previous time period.
-#'  \item \code{nsQuants} or \code{ewQuants}: Movement of the location of the \emph{x}th quantile of mass in the north-south or east-west directions. For example, this could be the movement of the 5th, 50th, and 95th quantiles of population size from south to north. The quantiles can be specified in \code{quants}.
+#'  \item \code{nsCentroid} or \code{ewCentroid}: Movement in the north-south or east-west directions of the mass-weighted centroid. For north-south cardinality, positive values represent movement northward and negative southward. For east-west cardinality, positive values represent movement eastward and negative westward.
+#'  \item \code{nCentroid}, \code{sCentroid}, \code{eCentroid}, and \code{wCentroid}: Movement of mass-weighted centroid of the portion of the raster north/south/east/west of the landscape-wide weighted centroid of the starting time period.
+#'  \item \code{nsQuants} or \code{ewQuants}: Movement of the location of the \emph{n}th quantile of mass in the north-south or east-west directions. The quantiles can be specified in \code{quants}. For example, this could be the movement of the 5th, 50th, and 95th quantiles of population size going from south to north. The 0th quantile would measure the velocity of the southernmost or easternmost cell(s) with values >0, and the 100th quantile the northernmost or westernmost cell(s) with non-zero values.
 #'  \item \code{mean}: Mean value across all cells (this is not really a measure of "velocity").
-#'  \item \code{quants}: \emph{x}th quantile values across all cells (this is not really a measure of "velocity"). Quantiles are given by \code{quants}.
+#'  \item \code{quants}: \emph{N}th quantile values across all cells (this is not really a measure of "velocity"). Quantiles are given by \code{quants}.
 #'  \item \code{prevalence}: Number of cells with values > 0 (this is not really a measure of "velocity").
+#'  \item \code{similarity}: Several metrics of similarity between each time period. Some of these make sense for cases where values in \code{x} are in the range [0, 1], but not if some values are outside this range. The metrics are the simple mean difference, mean absolute difference, the Expected Fraction of Shared Presences or ESP (Godsoe 2014), the D statistic (Schoener 1968), and I (Warren et al. 2008). The last three metrics have been modified from their original versions by dividing the values by the total number of cells (see \emph{Details}) so they fall in the range [0, 1] provided that cell values are in the range [0, 1] or \code{NA}.
 #' }
 #' @param quants Numeric vector indicating the quantiles at which biotic velocity is calculated for the "\code{quant}" and "\code{Quants}" metrics. Default is \code{c(0.05, 0.10, 0.5, 0.9, 0.95)}.
-#' @param onlyInSharedCells Logical, if \code{TRUE}, calculate biotic velocity using only those cells that are not \code{NA} in the start and end of each time period. This is useful for controlling for shifting land mass due to sea level rise, for example, when calculating biotic velocty for an ecosystem or a species.  The default is \code{FALSE}.
-#' @param warn Logical, if \code{TRUE} then display function-specific warnings.
+#' @param onlyInSharedCells Logical, if \code{TRUE}, calculate biotic velocity using only those cells that are not \code{NA} in the start and end of each time period. This is useful for controlling for shifting land mass due to sea level rise, for example, when calculating biotic velocity for an ecosystem or a species. The default is \code{FALSE}.
+#' @param warn Logical, if \code{TRUE} (default) then display function-specific warnings.
 #' @param ... Other arguments (not used).
-#' @return A data frame with biotic velocities. Fields are as follows:
+#' @return A data frame with biotic velocities and related values. Fields are as follows:
 #' \itemize{
 #' 	\item \code{timeFrom}: Start time of interval
 #' 	\item \code{timeTo}: End time of interval
 #' 	\item \code{timeSpan}: Duration of interval
+#' 	\item \code{propSharedCellsNotNA}: Proportion of cells that were not \code{NA} in both starting and ending time periods
+#' 	\item \code{timeFromPropNotNA} and \code{timeToPropNotNA}: Proportion of cells that were not \code{NA} in the starting and ending time periods
 #' }
-#' Depending on \code{metrics} that are specified, additional fields are as follows. All measurements of velocity are in distance units (typically meters) per time unit (which is the same as the units used for \code{times} and \code{atTimes}). For example, if the rasters are in an Albers equal-area projection and times are in years, then the output will be meters per year. Metrics \code{mean} and \code{quantile_quantX} are in the units represented by the cells (e.g., abundance, probability of occurrence, etc.) and \code{prevalence} is unit-less.
+#' Depending on \code{metrics} that are specified, additional fields are as follows. All measurements of velocity are in distance units (typically meters) per time unit (which is the same as the units used for \code{times} and \code{atTimes}). For example, if the rasters are in an Albers equal-area projection and times are in years, then the output will be meters per year.
 #' \itemize{
-#' 	\item \code{centroidVelocity}, \code{centroidLong}, \code{centroidLat}: Velocity of weighted centroid and its longitude and latitude (in the "to" time period of each time step).
-#' 	\item \code{nsCentroid}, \code{nsCentroidLat}: Velocity of weighted centroid in north-south direction and its latitude (in the "to" time period of each time step).
-#' 	\item \code{ewCentroid}, \code{ewCentroidLong}: Velocity of weighted centroid in east-west direction and its longitude (in the "to" time period of each time step).
-#' 	\item \code{nCentroid} and \code{nCentroidAbund}, \code{sCentroid} and \code{sCentroidAbund}, \code{eCentroid} and \code{eCentroidAbund}, or \code{wCentroid} and \code{wCentroidAbund}: Velocity of weighted centroid of all cells with weight >0 that fall north, south, east, or west of centroid of initial population (population in first time step), plus weight of all such populations.
-#' 	\item \code{nsVelocity_quantX} and \code{nsLat_quantX}, or \code{ewVelocity_quantX} and \code{ewLat_quantX}: Velocity of the \emph{x}th quantile weight in the north-south or east-west directions, plus the latitude or longitude thereof (in the "to" time period of each time step).
-#' 	\item \code{mean}: Mean weight in "timeTo" time step.
-#' 	\item \code{quantile_quantX}: The \emph{X}th quantile(s) of weight in the "timeTo" time step.
-#' 	\item \code{prevalence}: Proportion of non-\code{NA} cells with weight >0 in the "timeTo" time step.
+#' 	\item If \code{metrics} has \code{'centroid'}: Columns named \code{centroidVelocity}, \code{centroidLong}, \code{centroidLat} -- Velocity of weighted centroid, plus its longitude and latitude (in the "to" time period of each time step).
+#' 	\item If \code{metrics} has \code{'nsCentroid'}: Columns named \code{nsCentroid}, \code{nsCentroidLat} -- Velocity of weighted centroid in north-south direction, plus its latitude (in the "to" time period of each time step).
+#' 	\item If \code{metrics} has \code{'ewControid'}: \code{ewCentroid}, \code{ewCentroidLong} -- Velocity of weighted centroid in east-west direction, plus its longitude (in the "to" time period of each time step).
+#' 	\item If \code{metrics} has \code{'nCentroid'}, \code{'sCentroid'}, \code{'eCentroid'}, and/or \code{'wCentroid'}: Columns named \code{nCentroidVelocity} and \code{nCentroidAbund}, \code{sCentroid} and \code{sCentroidAbund}, \code{eCentroid} and \code{eCentroidAbund}, and/or \code{wCentroid} and \code{wCentroidAbund}: Velocity of weighted centroid of all cells that fall north, south, east, or west of the landscape-wide centroid, plus a column indicating the weight (abundance) of all such populations.
+#' 	\item if \code{metrics} contains any of \code{nsQuants} or \code{ewQuants}: Columns named \code{nsQuantVelocity_quantN} and \code{nsQuantLat_quantN}, or \code{ewQuantVelocity_quantN} and \code{ewQuantLat_quantN}: Velocity of the \emph{N}th quantile weight in the north-south or east-west directions, plus the latitude or longitude thereof (in the "to" time period of each time step). Quantiles are cumulated starting from the south or the east, so the 0.05th quantile, for example, is in the south or east of the range and the 0.95th in the north or west.
+#' 	\item If \code{metrics} contains \code{mean}: A column named \code{mean} -- Mean weight in "timeTo" time step. In the same units as the values of the cells.
+#' 	\item If \code{metrics} contains \code{quants}: A column named \code{quantile_quantN} -- The \emph{N}th quantile(s) of weight in the "timeTo" time step. In the same units as the values of the cells.
+#' 	\item If \code{metrics} contains \code{prevalence}: A column named \code{prevalence} -- Proportion of non-\code{NA} cells with weight >0 in the "timeTo" time step. Unitless.
+#' 	\item If \code{metrics} contains \code{similarity}: Columns named \code{simpleMeanDiff}, \code{meanAbsDiff}, \code{godsoeEsp}, \code{schoenersD}, and \code{warrensI} -- Measures of similarity (see \emph{Details}).
 #' }
-#' This function may yield erroneous velocities if the region of interest is near a pole and will yield erroneous results if the region spans the international date line. It converts rasters to arrays before doing calculations, so using very large rasters may yield slow performance and may not even work, depending on memory requirements.
+#' @details
+#' \emph{Attention:}  
+#' This function may yield erroneous velocities if the region of interest is near or spans a pole or the international date line. It converts rasters to arrays before doing calculations, so using very large rasters may yield slow performance and may not even work, depending on memory requirements. Results using the "Quant" and "quant" metrics may be somewhat counterintuitive if just one cell >0, or one row or column all with the same values with all other values equal to 0 or NA because defining quantiles in these situations is not intuitive. Results may also be counterintuitive if some cells have negative values because they can "push" a centroid away from what would seem to be the center of mass as assessed by visual examination of a map.  
+#' \emph{Similarity metrics:}  
+#' The similarity metrics are defined for two rasters or matrices \code{x1} and \code{x2} and the mean number of non-\code{NA} cells between them (\code{n}):
+#' \itemize{
+#' 	\item \code{simpleMeanDiff}: \code{sum(x2 - x1, na.rm=TRUE) / n}
+#' 	\item \code{absMeanDiff}: \code{sum(abs(x2 - x1), na.rm=TRUE) / n}
+#' 	\item \code{godsoeEsp}: \code{1 - sum(2 * (x1 * x1), na.rm=TRUE) / sum(x1 + x2, na.rm=TRUE)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
+#' 	\item \code{schoenerD}: \code{1 - (sum(abs(x1 - x2), na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
+#' 	\item \code{warrenI}: \code{1 - sqrt(sum((sqrt(x1) - sqrt(x2))^2, na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
+#' }
+#' @references
+#' Schoener, T. W. 1968. \emph{Anolis} lizards of Bimini: Resource partitioning in a complex fauna. \emph{Ecology} 49:704–726.
+#' Godsoe, W. 2014. Inferring the similarity of species distributions using Species’ Distribution Models. \emph{Ecography} 37:130-136.
+#' Warren, D.L., Glor, R.E., and Turelli, M. 2008. Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution. \emph{Evolution} 62:2868-2883.
 #' @examples
-#' ### setup for all examples
-#' ##########################
+#'
+#' ### SIMPLE EXAMPLES ###
+#' #######################
+#'
+#' library(raster)
+#' 
+#' ### movement in north-south directions
+#' mat <- matrix(0, nrow=5, ncol=5)
+#' mat1 <- mat2 <- mat
+#' mat1[3, 3] <- 1
+#' mat2[2, 3] <- 1
+#' 
+#' mats <- array(c(mat1, mat2), dim=c(nrow(mat1), ncol(mat1), 2))
+#' rownames(mats) <- paste0('lat', nrow(mats):1)
+#' colnames(mats) <- paste0('long', 1:ncol(mats))
+#' lats <- matrix(nrow(mats):1, nrow=nrow(mats), ncol=ncol(mats))
+#' longs <- matrix(1:nrow(mats), nrow=nrow(mats), ncol=ncol(mats), byrow=TRUE)
+#' 
+#' mat1rast <- raster(mat1)
+#' mat2rast <- raster(mat2)
+#' matsRast <- stack(mat1rast, mat2rast)
+#' plot(matsRast, col=c('gray', 'darkgreen'))
+#' 
+#' # note that nCentroidVelocity is NaN because just one cell is occupied
+#' (bioticVelocity(mats, times=1:2,
+#' latitude=lats, longitude=longs)) # north movement
+#' (bioticVelocity(mats[ , , 2:1], times=1:2,
+#' latitude=lats, longitude=longs)) # south movement
+#' 
+#' 
+#' ### movement in east-west directions
+#' mat <- matrix(0, nrow=5, ncol=5)
+#' mat1 <- mat2 <- mat
+#' mat1[3, 3] <- 1
+#' mat2[3, 2] <- 1
+#' 
+#' mats <- array(c(mat1, mat2), dim=c(nrow(mat1), ncol(mat1), 2))
+#' rownames(mats) <- paste0('lat', nrow(mats):1)
+#' colnames(mats) <- paste0('long', 1:ncol(mats))
+#' lats <- matrix(nrow(mats):1, nrow=nrow(mats), ncol=ncol(mats))
+#' longs <- matrix(1:nrow(mats), nrow=nrow(mats), ncol=ncol(mats), byrow=TRUE)
+#' 
+#' mat1rast <- raster(mat1)
+#' mat2rast <- raster(mat2)
+#' matsRast <- stack(mat1rast, mat2rast)
+#' plot(matsRast, col=c('gray', 'darkgreen'))
+#' 
+#' # movement east
+#' (bioticVelocity(mats, times=1:2,
+#' latitude=lats, longitude=longs))
+#' 
+#' # movement west
+#' (bioticVelocity(mats[ , , 2:1], times=1:2,
+#' latitude=lats, longitude=longs))
+#' 
+#' 
+#' ### movement of portions of range northward/southward
+#' mat <- matrix(0, nrow=11, ncol=11)
+#' mat1 <- mat2 <- mat
+#' mat1[6, 5] <- 1 # bottom
+#' mat1[5, 5] <- 1 # center
+#' mat1[5, 4] <- 1 # west
+#' mat1[5, 6] <- 1 # east
+#' mat1[4, 5] <- 1 # north
+#' 
+#' mat2[6, 5] <- 1 # bottom
+#' mat2[5, 5] <- 1 # center
+#' mat2[5, 4] <- 1 # west
+#' mat2[5, 6] <- 1 # east
+#' mat2[3, 5] <- 1 # north
+#' 
+#' mats <- array(c(mat1, mat2), dim=c(nrow(mat1), ncol(mat1), 2))
+#' rownames(mats) <- paste0('lat', nrow(mats):1)
+#' colnames(mats) <- paste0('long', 1:ncol(mats))
+#' lats <- matrix(nrow(mats):1, nrow=nrow(mats), ncol=ncol(mats))
+#' longs <- matrix(1:nrow(mats), nrow=nrow(mats), ncol=ncol(mats), byrow=TRUE)
+#' 
+#' mat1rast <- raster(mat1)
+#' mat2rast <- raster(mat2)
+#' matsRast <- stack(mat1rast, mat2rast)
+#' plot(matsRast, col=c('gray', 'darkgreen'))
+#' 
+#' # northern section moves north
+#' (bioticVelocity(mats, times=1:2,
+#' latitude=lats, longitude=longs))
+#' # northern section moves south
+#' (bioticVelocity(mats[ , , 2:1], times=1:2,
+#' latitude=lats, longitude=longs))
+#' 
+#' ### quantile velocities: north/south movement
+#' mat <- matrix(0, nrow=11, ncol=11)
+#' mat1 <- mat2 <- mat
+#' 
+#' mat1[2:10, 6] <- 1
+#' mat2[1:9, 6] <- 1
+#' 
+#' mats <- array(c(mat1, mat2), dim=c(nrow(mat1), ncol(mat1), 2))
+#' rownames(mats) <- paste0('lat', nrow(mats):1)
+#' colnames(mats) <- paste0('long', 1:ncol(mats))
+#' lats <- matrix(nrow(mats):1, nrow=nrow(mats), ncol=ncol(mats))
+#' longs <- matrix(1:nrow(mats), nrow=nrow(mats), ncol=ncol(mats), byrow=TRUE)
+#' 
+#' mat1rast <- raster(mat1)
+#' mat2rast <- raster(mat2)
+#' matsRast <- stack(mat1rast, mat2rast)
+#' plot(matsRast, col=c('gray', 'darkgreen'))
+#' 
+#' # shift north
+#' (bioticVelocity(mats, times=1:2,
+#' latitude=lats, longitude=longs))
+#' # shift south
+#' (bioticVelocity(mats[ , , 2:1], times=1:2,
+#' latitude=lats, longitude=longs))
+#' 
+#' 
+#' ### quantile velocities: east/west movement
+#' mat <- matrix(0, nrow=11, ncol=11)
+#' mat1 <- mat2 <- mat
+#' 
+#' mat1[6, 2:10] <- 1
+#' mat2[6, 3:11] <- 1
+#' 
+#' mats <- array(c(mat1, mat2), dim=c(nrow(mat1), ncol(mat1), 2))
+#' rownames(mats) <- paste0('lat', nrow(mats):1)
+#' colnames(mats) <- paste0('long', 1:ncol(mats))
+#' lats <- matrix(nrow(mats):1, nrow=nrow(mats), ncol=ncol(mats))
+#' longs <- matrix(1:nrow(mats), nrow=nrow(mats), ncol=ncol(mats), byrow=TRUE)
+#' 
+#' mat1rast <- raster(mat1)
+#' mat2rast <- raster(mat2)
+#' matsRast <- stack(mat1rast, mat2rast)
+#' plot(matsRast, col=c('gray', 'darkgreen'))
+#' 
+#' # eastward shift
+#' (bioticVelocity(mats, times=1:2,
+#' latitude=lats, longitude=longs))
+#' # westward shift
+#' (bioticVelocity(mats[ , , 2:1], times=1:2,
+#' latitude=lats, longitude=longs))
+#' 
+#' ### big block test
+#' mat <- matrix(0, nrow=7, ncol=7)
+#' mat1 <- mat2 <- mat
+#' 
+#' mat1[3:5, 3:5] <- 1
+#' mat2[1:3, 1:3] <- 1
+#' 
+#' mats <- array(c(mat1, mat2), dim=c(nrow(mat1), ncol(mat1), 2))
+#' rownames(mats) <- paste0('lat', nrow(mats):1)
+#' colnames(mats) <- paste0('long', 1:ncol(mats))
+#' lats <- matrix(nrow(mats):1, nrow=nrow(mats), ncol=ncol(mats))
+#' longs <- matrix(1:nrow(mats), nrow=nrow(mats), ncol=ncol(mats), byrow=TRUE)
+#' 
+#' mat1rast <- raster(mat1)
+#' mat2rast <- raster(mat2)
+#' matsRast <- stack(mat1rast, mat2rast)
+#' plot(matsRast, col=c('gray', 'darkgreen'))
+#' 
+#' # shift northwest
+#' (bioticVelocity(mats, times=1:2,
+#' latitude=lats, longitude=longs))
+#' # shift southeast
+#' (bioticVelocity(mats[ , , 2:1], times=1:2,
+#' latitude=lats, longitude=longs))
+#' 
+#' 
+#' ### big block test: common frame
+#' mat <- matrix(0, nrow=7, ncol=7)
+#' mat1 <- mat2 <- mat
+#' 
+#' mat1[3:5, 3:5] <- 1
+#' mat1[1, ] <- NA
+#' mat1[ , 1] <- NA
+#' mat2[1:3, 1:3] <- 1
+#' 
+#' mats <- array(c(mat1, mat2), dim=c(nrow(mat1), ncol(mat1), 2))
+#' rownames(mats) <- paste0('lat', nrow(mats):1)
+#' colnames(mats) <- paste0('long', 1:ncol(mats))
+#' lats <- matrix(nrow(mats):1, nrow=nrow(mats), ncol=ncol(mats))
+#' longs <- matrix(1:nrow(mats), nrow=nrow(mats), ncol=ncol(mats), byrow=TRUE)
+#' 
+#' mat1rast <- raster(mat1)
+#' mat2rast <- raster(mat2)
+#' matsRast <- stack(mat1rast, mat2rast)
+#' plot(matsRast, col=c('gray', 'darkgreen'))
+#' 
+#' v1 <- bioticVelocity(mats, times=1:2,
+#' latitude=lats, longitude=longs)
+#' v2 <- bioticVelocity(mats, times=1:2,
+#' latitude=lats, longitude=longs, onlyInSharedCells=TRUE)
+#' (rbind(v1, v2))
+#'
+#' \donttest{ 
+#' ### COMPLEX EXAMPLES ###
+#' ########################
+#'
+#' ### setup for all complex examples
+#' ##################################
+#'
+#' library(raster)
 #' 
 #' # simulate species starting at center of map
 #' # will be using a spatially Gaussian distribution
@@ -186,9 +395,9 @@
 #' species_t1s <- mask(species_t0, longMask, inverse=TRUE) # lose eastward
 #' species_t2s <- mask(species_t1s, latMask) # lose southward
 #' species_t3s <- species_t1s # gain southward
-#' species_t4s <- species_t0s # gain eastward
+#' species_t4s <- species_t0 # gain eastward
 #' 
-#' rasts <- stack(species_t0s, species_t1s, species_t2s, species_t3s,
+#' rasts <- stack(species_t0, species_t1s, species_t2s, species_t3s,
 #' species_t4s)
 #' 
 #' plot(rasts)
@@ -201,6 +410,8 @@
 #' # in each time step
 #' (vels <- bioticVelocity(x=rasts, times=0:4, metrics=c('centroid', 'mean'),
 #' onlyInSharedCells=TRUE))
+#' }
+#'
 #' @export
 bioticVelocity <- function(
 	x,
@@ -208,7 +419,7 @@ bioticVelocity <- function(
 	atTimes = NULL,
 	longitude = NULL,
 	latitude = NULL,
-	metrics = c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentroid', 'eCentroid', 'wCentroid', 'nsQuants', 'ewQuants', 'mean', 'quants', 'prevalence'),
+	metrics = c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentroid', 'eCentroid', 'wCentroid', 'nsQuants', 'ewQuants', 'mean', 'quants', 'prevalence', 'similarity'),
 	quants = c(0.05, 0.10, 0.5, 0.9, 0.95),
 	onlyInSharedCells = FALSE,
 	warn = TRUE,
@@ -225,31 +436,13 @@ bioticVelocity <- function(
 			dim(x)[3]
 		} else if (xClass %in% c('RasterStack', 'RasterBrick')) {
 			raster::nlayers(x)
-		} else if ('list' %in% xClass) {
-			ncol(x$Nvecs)
 		}
 
 		# time of each period
-		if (is.null(times)) {
-		
-			# get from "pops" object
-			if ('list' %in% xClass) {
-				if (!is.null(x$pophist$time)) {
-					times <- x$pophist$time
-				} else {
-					if (warn) warning('The population history object does not contain a field named ".$pophist$time". Velocities will be in arbitrary time units.')
-					times <- 1:totalTimes
-				}
-			} else {
-				times <- 1:totalTimes
-			}
-			
-		} else {
-			totalTimes <- length(times)
-		}
+		if (is.null(times)) times <- 1:totalTimes
 	
-		if (!all(order(times) == 1:totalTimes) & warn) {
-			warning('Times assigned to each period are not sequential (e.g., {1, 2, 3} versus {3, 2, 1}). Velocities may have incorrect signs.')
+		if (!all(order(times) == seq_along(times)) & warn) {
+			warning('Times assigned to each period are not sequential (e.g., {1, 2, 3}\nversus {3, 2, 1}). Velocities may have incorrect signs.')
 		}
 	
 		# times across which to calculate velocity
@@ -295,34 +488,6 @@ bioticVelocity <- function(
 			x <- raster::subset(x, atIndices)
 			x <- raster::as.array(x)
 
-		}
-
-		# convert from list ("pops" object)
-		if ('list' %in% xClass) {
-			
-			nRows <- max(x$pophist$row)
-			nCols <- max(x$pophist$col)
-			xNew <- array(NA, dim=c(nRows, nCols, totalTimes))
-			for (i in 1:totalTimes) xNew[, , i] <- matrix(x[['Nvecs']][ , i], nrow=nRows, ncol=nCols, byrow=TRUE)
-			
-			if (is.null(x$pophist$longitude)) {
-				longitude <- matrix(x$pophist$col, nrow=nRows, ncol=nCols, byrow=TRUE)
-				if (warn) warning('The population history object does not contain a field named ".$pophist$longitude". Velocities will be in arbitrary spatial units.')
-			} else if (is.null(longitude)) {
-				longitude <- matrix(x$pophist$longitude, nrow=nRows, ncol=nCols, byrow=TRUE)
-			}
-			
-			if (is.null(x$pophist$latitude)) {
-				# note: reversing row numbers for latitude so high values occur in the "north" and low in the "south" so they match trends in latitude
-				latitude <- matrix(rev(x$pophist$row), nrow=nRows, ncol=nCols, byrow=TRUE)
-				if (warn) warning('The population history object does not contain a field named ".$pophist$latitude". Velocities will be in arbitrary spatial units.')
-			} else if (is.null(latitude)) {
-				latitude <- matrix(x$pophist$latitude, nrow=nRows, ncol=nCols, byrow=TRUE)
-			}
-			
-			# subset to time periods of interest
-			x <- xNew[ , , atIndices]
-			
 		}
 
 		if (any(x < 0, na.rm=TRUE) & warn) warning('Negative values appear in "x". Output may be unreliable or undesirable.')
@@ -381,7 +546,7 @@ bioticVelocity <- function(
 				timeTo = timeTo,
 				timeSpan = timeSpan
 			)
-				
+
 			### get start time/end period layers and correct for shared non-NA cells
 			x1 <- x[ , , indexFrom]
 			x2 <- x[ , , indexFrom + 1]
@@ -399,6 +564,22 @@ bioticVelocity <- function(
 						
 			}
 			
+			# statistics about cells
+			size <- nrow(x1) * ncol(x1)
+			propSharedCellsNotNA <- sum(!is.na(x1 + x2)) / size
+			timeFromPropNotNA <- sum(!is.na(x1)) / size
+			timeToPropNotNA <- sum(!is.na(x2)) / size
+
+			thisOut <- cbind(
+				thisOut,
+				data.frame(
+					propSharedCellsNotNA = propSharedCellsNotNA,
+					timeFromPropNotNA = timeFromPropNotNA,
+					timeToPropNotNA = timeToPropNotNA
+				),
+				row.names=NULL
+			)
+				
 			### weighted longitude/latitude... used for centroid calculations for velocities
 			if (any(c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentriod', 'eCentroid', 'wCentroid') %in% metrics)) {
 
@@ -441,13 +622,16 @@ bioticVelocity <- function(
 			### velocity of occupied cells NORTH of start
 			if ('nCentroid' %in% metrics) {
 
-				cardOut <- .cardinalVelocity(
+				cardOut <- .cardinalDistance(
 					direction='n',
+					x1=x1,
 					x2=x2,
-					x2weightedLongs=x2weightedLongs,
-					x2weightedLats=x2weightedLats,
 					refLong=x1centroidLong,
 					refLat=x1centroidLat,
+					x1weightedLongs=x1weightedLongs,
+					x1weightedLats=x1weightedLats,
+					x2weightedLongs=x2weightedLongs,
+					x2weightedLats=x2weightedLats,
 					longOrLat=latitude
 				)
 
@@ -470,13 +654,16 @@ bioticVelocity <- function(
 			### velocity of occupied cells SOUTH of start
 			if ('sCentroid' %in% metrics) {
 
-				cardOut <- .cardinalVelocity(
+				cardOut <- .cardinalDistance(
 					direction='s',
+					x1=x1,
 					x2=x2,
-					x2weightedLongs=x2weightedLongs,
-					x2weightedLats=x2weightedLats,
 					refLong=x1centroidLong,
 					refLat=x1centroidLat,
+					x1weightedLongs=x1weightedLongs,
+					x1weightedLats=x1weightedLats,
+					x2weightedLongs=x2weightedLongs,
+					x2weightedLats=x2weightedLats,
 					longOrLat=latitude
 				)
 
@@ -499,13 +686,16 @@ bioticVelocity <- function(
 			### velocity of occupied cells EAST of start
 			if ('eCentroid' %in% metrics) {
 
-				cardOut <- .cardinalVelocity(
+				cardOut <- .cardinalDistance(
 					direction='e',
+					x1=x1,
 					x2=x2,
-					x2weightedLongs=x2weightedLongs,
-					x2weightedLats=x2weightedLats,
 					refLong=x1centroidLong,
 					refLat=x1centroidLat,
+					x1weightedLongs=x1weightedLongs,
+					x1weightedLats=x1weightedLats,
+					x2weightedLongs=x2weightedLongs,
+					x2weightedLats=x2weightedLats,
 					longOrLat=longitude
 				)
 
@@ -528,13 +718,16 @@ bioticVelocity <- function(
 			### velocity of occupied cells WEST of start
 			if ('wCentroid' %in% metrics) {
 
-				cardOut <- .cardinalVelocity(
+				cardOut <- .cardinalDistance(
 					direction='w',
+					x1=x1,
 					x2=x2,
-					x2weightedLongs=x2weightedLongs,
-					x2weightedLats=x2weightedLats,
 					refLong=x1centroidLong,
 					refLat=x1centroidLat,
+					x1weightedLongs=x1weightedLongs,
+					x1weightedLats=x1weightedLats,
+					x2weightedLongs=x2weightedLongs,
+					x2weightedLats=x2weightedLats,
 					longOrLat=longitude
 				)
 
@@ -558,7 +751,7 @@ bioticVelocity <- function(
 			if ('nsCentroid' %in% metrics) {
 			
 				metric <- .euclid(x2centroidLat, x1centroidLat)
-				metricRate <- -1 * metric / timeSpan
+				metricRate <- metric / timeSpan ### metricRate <- -1 * metric / timeSpan
 				
 				thisOut <- cbind(
 					thisOut,
@@ -591,16 +784,6 @@ bioticVelocity <- function(
 			### north/south quantile velocities (entire range)
 			if ('nsQuants' %in% metrics) {
 
-				# standardized, cumulative sums of rows starting at bottom of matrix
-				x1rowSum <- apply(x1, 1, sum, na.rm=TRUE)
-				x2rowSum <- apply(x2, 1, sum, na.rm=TRUE)
-
-				x1rowCumSum <- cumsum(rev(x1rowSum))
-				x2rowCumSum <- cumsum(rev(x2rowSum))
-				
-				x1rowCumSumStd <- x1rowCumSum / max(x1rowCumSum)
-				x2rowCumSumStd <- x2rowCumSum / max(x2rowCumSum)
-							
 				# match location of quantiles
 				# if quantile falls between rows then linearly extrapolate latitude
 				for (countQuant in seq_along(quants)) {
@@ -608,8 +791,8 @@ bioticVelocity <- function(
 					thisQuant <- quants[countQuant]
 				
 					# latitude of this quantile
-					x1lat <- .interpolateLatFromMatrix(prob=thisQuant, rowsCumSumStd=x1rowSum, latitude=latitude)
-					x2lat <- .interpolateLatFromMatrix(prob=thisQuant, rowsCumSumStd=x2rowSum, latitude=latitude)
+					x1lat <- .interpolateLatFromMatrix(prob=thisQuant, x=x1, latitude=latitude)
+					x2lat <- .interpolateLatFromMatrix(prob=thisQuant, x=x2, latitude=latitude)
 
 					metric <- .euclid(x2lat, x1lat)
 					metricRate <- metric / timeSpan
@@ -632,24 +815,14 @@ bioticVelocity <- function(
 			### east/west quantile velocities (entire range)
 			if ('ewQuants' %in% metrics) {
 			
-				# standardized, cumulative sums of cols starting at bottom of matrix
-				x1colSum <- apply(x1, 2, sum, na.rm=TRUE)
-				x2colSum <- apply(x2, 2, sum, na.rm=TRUE)
-
-				x1colCumSum <- cumsum(x1colSum)
-				x2colCumSum <- cumsum(x2colSum)
-				
-				x1colCumSumStd <- x1colCumSum / max(x1colCumSum)
-				x2colCumSumStd <- x2colCumSum / max(x2colCumSum)
-				
 				# match location of quantiles
 				for (countQuant in seq_along(quants)) {
 
 					thisQuant <- quants[countQuant]
 					
 					# longitudes of this quantile
-					x1long <- .interpolateLongFromMatrix(prob=thisQuant, colsCumSumStd=x1colSum, longitude=longitude)
-					x2long <- .interpolateLongFromMatrix(prob=thisQuant, colsCumSumStd=x2colSum, longitude=longitude)
+					x1long <- .interpolateLongFromMatrix(prob=thisQuant, x=x1, longitude=longitude)
+					x2long <- .interpolateLongFromMatrix(prob=thisQuant, x=x2, longitude=longitude)
 					
 					metric <- .euclid(x2long, x1long)
 					metricRate <- metric / timeSpan
@@ -719,6 +892,32 @@ bioticVelocity <- function(
 				
 			}
 
+			### similarities
+			if ('similarity' %in% metrics) {
+				
+				x1sizeNotNa <- sum(!is.na(x1))
+				x2sizeNotNa <- sum(!is.na(x2))
+				n <- mean(c(x1sizeNotNa, x2sizeNotNa))
+				simpleMeanDiff <- sum(x2 - x1, na.rm=TRUE) / n
+				absMeanDiff <- sum(abs(x2 - x1), na.rm=TRUE) / n
+				godsoeEsp <- 1 - sum(2 * (x1 * x1), na.rm=TRUE) / sum(x1 + x2, na.rm=TRUE)
+				schoenersD <- 1 - (sum(abs(x1 - x2), na.rm=TRUE) / n)
+				warrenI <- 1 - sqrt(sum((sqrt(x1) - sqrt(x2))^2, na.rm=TRUE) / n)
+
+				thisOut <- cbind(
+					thisOut,
+					data.frame(
+						simpleMeanDiff = simpleMeanDiff,
+						absMeanDiff = absMeanDiff,
+						godsoeEsp = godsoeEsp,
+						schoenerD = schoenersD,
+						warrenI = warrenI
+					),
+					row.names=NULL
+				)
+				
+			}
+			
 			### remember
 			out <- rbind(out, thisOut)
 				
@@ -728,3 +927,223 @@ bioticVelocity <- function(
 	
 }
 
+#' Euclidean distance between a pair of points
+#'
+#' Euclidean distance between a pair of points or two points. Note that the output is unsigned if \code{x2} and \code{y2} are provided, but signed if not.
+#' @param x1 Numeric
+#' @param y1 Numeric
+#' @param x2 Numeric
+#' @param y2 Numeric
+#' @details If \code{x2} and \code{y2} are \code{NULL} then the output is simply \code{x1 - y2}.
+#' @keywords internal
+.euclid <- compiler::cmpfun(function(x1, y1, x2=NULL, y2=NULL) {
+
+	if (is.null(x2) & is.null(y2)) {
+		x1 - y1
+	} else if (!is.null(x2) & !is.null(y2)) {
+		sqrt((x1 - x2)^2 + (y1 - y2)^2)
+	} else {
+		stop('Please specify arguments "x1" and "x2" OR "x1", "x2", "y1", and "y2".')
+	}
+	
+})
+
+#' Movement of occupied cells in a given direction of a fixed point
+#' 
+#' This function calculates the weighted distance moved by a mass represented by set of cells which fall north, south, east, or west of a given location (i.e., typically the centroid of the starting population). Values >0 confer movement to the north, south, east, or west of this location. #' @param direction Any of: \code{'n'} (north), \code{'s'} (south), \code{'e'} (east), or \code{'w'} (west).
+#' @param refLong Numeric, longitude of reference point from which to partition the weights into a northern, southern, eastern, or western portion.
+#' @param refLat Numeric, latitude of reference point.
+#' @param x1 Matrix of weights in time 1 (i.e., population size).
+#' @param x2 Matrix of weights in time 2 (i.e., population size).
+#' @param x1weightedLongs Matrix of longitudes weighted (i.e., by population size, given by \code{x1}).
+#' @param x1weightedLats Matrix of latitudes weighted (i.e., by population size, given by \code{x1}).
+#' @param x2weightedLongs Matrix of longitudes weighted (i.e., by population size, given by \code{x2}).
+#' @param x2weightedLats Matrix of latitudes weighted (i.e., by population size, given by \code{x2}).
+#' @param longOrLat Numeric matrix, latitude or longitudes. If \code{direction} is \code{'n'} or \code{'s'} this must be latitudes. If \code{direction} is \code{'e'} or \code{'w'} this must be longitudes.
+#' @return a list object with distance moved and abundance of all cells north/south/east/west of reference point.
+#' @keywords internal
+.cardinalDistance <- function(
+	direction,
+	refLong,
+	refLat,
+	x1,
+	x2,
+	x1weightedLongs,
+	x1weightedLats,
+	x2weightedLongs,
+	x2weightedLats,
+	longOrLat
+) {
+
+	# mask out cells north/south/east/west of or at starting centroid
+	maskCells <- if (direction == 'n') {
+		longOrLat > refLat
+	} else if (direction == 's') {
+		longOrLat < refLat
+	} else if (direction == 'e') {
+		longOrLat > refLong
+	} else if (direction == 'w') {
+		longOrLat < refLong
+	}
+	
+	x1censored <- x1 * maskCells
+	x1weightedLongsCensored <- x1weightedLongs * maskCells
+	x1weightedLatsCensored <- x1weightedLats * maskCells
+
+	x2censored <- x2 * maskCells
+	x2weightedLongsCensored <- x2weightedLongs * maskCells
+	x2weightedLatsCensored <- x2weightedLats * maskCells
+
+	# centroid of uncensored part of distribution
+	if (sum(x2censored, na.rm=TRUE) == 0) {
+		distance <- 0
+	} else {
+
+		x1centroidLongCensored <- sum(x1weightedLongsCensored, na.rm=TRUE) / sum(x1censored, na.rm=TRUE)
+		x1centroidLatCensored <- sum(x1weightedLatsCensored, na.rm=TRUE) / sum(x1censored, na.rm=TRUE)
+
+		x2centroidLongCensored <- sum(x2weightedLongsCensored, na.rm=TRUE) / sum(x2censored, na.rm=TRUE)
+		x2centroidLatCensored <- sum(x2weightedLatsCensored, na.rm=TRUE) / sum(x2censored, na.rm=TRUE)
+		
+		distance <- .euclid(x1=x2centroidLongCensored, y1=x2centroidLatCensored, x2=x1centroidLongCensored, y2=x1centroidLatCensored)
+	
+	}
+
+	abundance <- sum(x2censored, na.rm=TRUE)
+	list(distance=distance, abundance=abundance)
+	
+}
+
+#' Latitude of of a quantile of the geographic abundance distribution-
+#'
+#' This function returns the latitude of a quantile of the geographic abundance distribution. The input is derived from a rasterized map of the species abundance distribution. If a quantile would occur somewhere between two rows, the latitude is linearly interpolated between the latitudes of the two rows bracketing its value. It will probably return \code{NA} if the quantile falls outside the range of the values.
+#' @param prob Quantile value (i.e., in the range [0, 1])
+#' @param x Matrix of abundances.
+#' @param latitude Matrix of latitudes.
+#' @keywords internal
+.interpolateLatFromMatrix <- compiler::cmpfun(
+	function(prob, x, latitude) {
+
+	# standardized, cumulative sums of rows starting at bottom of matrix
+	xRowSum <- rowSums(x, na.rm=TRUE)
+	xRowCumSum <- cumsum(rev(xRowSum))
+	xRowCumSumStd <- xRowCumSum / max(xRowCumSum)
+	
+	rowIndex <- which(prob == xRowCumSumStd)
+
+	# exact latitude
+	if (length(rowIndex) != 0) {
+	
+		lat <- rev(latitude[ , 1])[rowIndex]
+		
+	# interpolate latitude
+	} else {
+	
+		latVect <- rev(latitude[ , 1])
+		
+		# if all values are equally distant from the desired quantile
+		diffs1 <- abs(prob - xRowCumSumStd)
+		row1 <- if (sd(diffs1) == 0) {
+			round(median(seq_along(diffs1)))
+		} else {
+			if (prob > 0.5) {
+				which.min(diffs1)
+			} else {
+				length(diffs1) - which.min(rev(diffs1)) + 1
+			}
+		}
+		if (is.na(row1)) return(NA)
+		lat1 <- latVect[row1]
+		rowsCumSumStd_row1NA <- xRowCumSumStd
+		rowsCumSumStd_row1NA[row1] <- NA
+		
+		# if all values are equally distant from the desired quantile
+		diffs2 <- abs(prob - rowsCumSumStd_row1NA)
+		row2 <- if (sd(diffs2, na.rm=TRUE) == 0) {
+			round(median(seq_along(diffs2)[-is.na(diffs2)]))
+		} else {
+			if (prob > 0.5) {
+				which.min(diffs2)
+			} else {
+				length(diffs2) - which.min(rev(diffs2)) + 1
+			}
+		}
+		if (is.na(row2)) return(NA)
+		lat2 <- latVect[row2]
+	
+		lats <- sort(c(lat1, lat2))
+		# note: could calculate location weighted by abundance, but this creates problems if abundance is 0 in both latitudes or if it is negative in one cell
+		lat <- lats[1] + prob * (lats[2] - lats[1])
+		
+	}
+	
+	lat
+	
+})
+
+#' Longitude of of a quantile of the geographic abundance distribution-
+#'
+#' This function returns the longitude of a quantile of the geographic abundance distribution. The input is derived from a rasterized map of the species abundance distribution. If a quantile would occur somewhere between two columns, the longitude is linearly interpolated between the latitudes of the two columns bracketing its value. It will probably return \code{NA} if the quantile falls outside the range of the values.
+#' @param prob Quantile value (i.e., in the range [0, 1])
+#' @param x Matrix of abundances.
+#' @param longitude Matrix of latitudes.
+#' @keywords internal
+.interpolateLongFromMatrix <- compiler::cmpfun(
+	function(prob, x, longitude) {
+
+	# standardized, cumulative sums of rows starting at bottom of matrix
+	xColSum <- colSums(x, na.rm=TRUE)
+	xColCumSum <- cumsum(xColSum)
+	xColCumSumStd <- xColCumSum / max(xColCumSum)
+
+	colIndex <- which(prob == xColCumSumStd)
+
+	# exact longitude
+	if (length(colIndex) != 0) {
+	
+		long <- longitude[colIndex, 1]
+		
+	# interpolate longitude
+	} else {
+	
+		longVect <- longitude[1, ]
+		
+		# if all values are equally distant from the desired quantile
+		diffs1 <- abs(prob - xColCumSumStd)
+		col1 <- if (sd(diffs1) == 0) {
+			round(median(seq_along(diffs1)))
+		} else {
+			if (prob > 0.5) {
+				which.min(diffs1)
+			} else {
+				length(diffs1) - which.min(rev(diffs1)) + 1
+			}
+		}
+		if (is.na(col1)) return(NA)
+		long1 <- longVect[col1]
+		colsCumSumStd_row1NA <- xColCumSumStd
+		colsCumSumStd_row1NA[col1] <- NA
+		
+		# if all values are equally distant from the desired quantile
+		diffs2 <- abs(prob - colsCumSumStd_row1NA)
+		col2 <- if (sd(diffs2, na.rm=TRUE) == 0) {
+			round(median(seq_along(diffs2)[-is.na(diffs2)]))
+		} else {
+			if (prob > 0.5) {
+				which.min(diffs2)
+			} else {
+				length(diffs2) - which.min(rev(diffs2)) + 1
+			}
+		}
+		if (is.na(col2)) return(NA)
+		long2 <- longVect[col2]
+	
+		longs <- sort(c(long1, long2))
+		# note: could calculate location weighted by abundance, but this creates problems if abundance is 0 in both latitudes or if it is negative in one cell
+		long <- longs[1] + prob * (longs[2] - longs[1])
+		
+	}
+	
+	long
+	
+})

@@ -102,3 +102,4 @@ Create an issue on \href{https://github.com/adamlilith/enmSdm/issues}{GitHub}.
 \author{
 Adam B. Smith
 }
+\keyword{internal}

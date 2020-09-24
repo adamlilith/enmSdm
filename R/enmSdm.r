@@ -75,4 +75,5 @@
 #' @docType package
 #' @author Adam B. Smith
 #' @name enmSdm
+#' @keywords internal
 NULL
