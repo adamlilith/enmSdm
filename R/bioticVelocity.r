@@ -497,7 +497,7 @@ bioticVelocity <- function(
 			x <- raster::as.array(x)
 
 		}
-
+		
 		if (any(x < 0, na.rm=TRUE) & warn) warning('Negative values appear in "x". Output may be unreliable or undesirable.')
 			
 	### calculate weighted longitude and latitudes for starting time period
@@ -1048,10 +1048,10 @@ bioticVelocity <- function(
 
 	# standardized, cumulative sums of rows starting at bottom of matrix
 	xRowSum <- rowSums(x, na.rm=TRUE)
-	xRowCumSum <- cumsum(rev(xRowSum))
+	xRowSum <- c(xRowSum, 0)
+	xRowSum <- rev(xRowSum)
+	xRowCumSum <- cumsum(xRowSum)
 	xRowCumSumStd <- xRowCumSum / max(xRowCumSum)
-	
-	xRowCumSumStd <- c(0, xRowCumSumStd)
 	
 	rowIndex <- which(prob == xRowCumSumStd)
 	lats <- rev(latitude[ , 1])
@@ -1095,9 +1095,17 @@ bioticVelocity <- function(
 		if (is.na(row2)) return(NA)
 		lat2 <- lats[row2]
 	
-		lats <- sort(c(lat1, lat2))
-		# note: could calculate location weighted by abundance, but this creates problems if abundance is 0 in both latitudes or if it is negative in one cell
-		lat <- lats[1] + prob * (lats[2] - lats[1])
+		lats <- c(lat1, lat2)
+		latsOrder <- order(lats)
+		lats <- lats[latsOrder]
+		xRowSum <- xRowSum[c(row1, row2)]
+		xRowSum <- xRowSum[latsOrder]
+		# note: creates problems if abundance is 0 in both latitudes
+		lat <- if (all(xColSum == 0)) {
+			NA
+		} else {
+			((1 - prob) * xRowSum[1] * lats[1] + prob * xRowSum[2] * lats[2]) / sum(xRowSum * c(1 - prob, prob))
+		}
 		
 	}
 	
@@ -1117,6 +1125,7 @@ bioticVelocity <- function(
 
 	# standardized, cumulative sums of cols starting at right side of matrix
 	xColSum <- colSums(x, na.rm=TRUE)
+	xColSum <- c(xColSum, 0)
 	xColCumSum <- cumsum(xColSum)
 	xColCumSumStd <- xColCumSum / max(xColCumSum)
 	
@@ -1164,9 +1173,17 @@ bioticVelocity <- function(
 		if (is.na(col2)) return(NA)
 		long2 <- longs[col2]
 	
-		longs <- sort(c(long1, long2))
-		# note: could calculate location weighted by abundance, but this creates problems if abundance is 0 in both longitudes or if it is negative in one cell
-		long <- longs[1] + prob * (longs[2] - longs[1])
+		longs <- c(long1, long2)
+		longsOrder <- order(longs)
+		longs <- longs[longsOrder]
+		xColSum <- xColSum[c(col1, col2)]
+		xColSum <- xColSum[longsOrder]
+		# note: creates problems if abundance is 0 in both longitudes
+		long <- if (all(xColSum == 0)) {
+			NA
+		} else {
+			((1 - prob) * xColSum[1] * longs[1] + prob * xColSum[2] * longs[2]) / sum(xColSum * c(1 - prob, prob))
+		}
 		
 	}
 	
