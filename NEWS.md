@@ -1,3 +1,6 @@
+enmSdm 0.5.2.3 2020-09-27
+More accurate calculation of lat/long in bioticVelocity()
+
 enmSdm 0.5.2.3 2020-09-23
 Remove ability bioticVelocity() to use "pophist" objects
 New, straightforward examples in bioticVelocity()

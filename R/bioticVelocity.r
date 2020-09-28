@@ -72,7 +72,7 @@
 #'   
 #' \emph{Note:}  
 #'   
-#' For the \code{nsQuant} and \code{ewQuant} metrics the it is assumed that the latitude/longitude assigned to as cell is at its exact center. If a desired quantile does not fall exactly on the cell center, it is interpolated linearly between the two cells that bracket the given quantile.
+#' For the \code{nsQuant} and \code{ewQuant} metrics it is assumed that the latitude/longitude assigned to a cell is at its exact center. If a desired quantile does not fall exactly on the cell center, it is interpolated linearly between the rows/columns of cells that bracket the given quantile. For quantiles that fall south/eastward of the first row/column of cells, the cell border is assumed to be at 0.5 * cell length south/west of the cell center.
 #' @references
 #' Schoener, T. W. 1968. \emph{Anolis} lizards of Bimini: Resource partitioning in a complex fauna. \emph{Ecology} 49:704–726.  
 #' Godsoe, W. 2014. Inferring the similarity of species distributions using Species’ Distribution Models. \emph{Ecography} 37:130-136.  
@@ -1063,7 +1063,7 @@ bioticVelocity <- function(
 	} else {
 		
 		cellLength <- mean(lats[2:length(lats)] - lats[1:(length(lats) - 1)])
-		lats <- c(lats[1] - cellLengths, 0.5 * cellLength + lats)
+		lats <- c(lats[1] - cellLength, 0.5 * cellLength + lats)
 		
 		# if all values are equally distant from the desired quantile
 		diffs1 <- abs(prob - xRowCumSumStd)
@@ -1132,7 +1132,7 @@ bioticVelocity <- function(
 	} else {
 		
 		cellLength <- mean(longs[2:length(longs)] - longs[1:(length(longs) - 1)])
-		longs <- c(longs[1] - 0.5 * cellLengths, longs + 0.5 * cellLength)
+		longs <- c(longs[1] - 0.5 * cellLength, longs + 0.5 * cellLength)
 		
 		# if all values are equally distant from the desired quantile
 		diffs1 <- abs(prob - xColCumSumStd)
