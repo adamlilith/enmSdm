@@ -56,8 +56,11 @@
 #' }
 #' @details
 #' \emph{Attention:}  
+#'   
 #' This function may yield erroneous velocities if the region of interest is near or spans a pole or the international date line. It converts rasters to arrays before doing calculations, so using very large rasters may yield slow performance and may not even work, depending on memory requirements. Results using the "Quant" and "quant" metrics may be somewhat counterintuitive if just one cell >0, or one row or column all with the same values with all other values equal to 0 or NA because defining quantiles in these situations is not intuitive. Results may also be counterintuitive if some cells have negative values because they can "push" a centroid away from what would seem to be the center of mass as assessed by visual examination of a map.  
+#'  
 #' \emph{Similarity metrics:}  
+#'   
 #' The similarity metrics are defined for two rasters or matrices \code{x1} and \code{x2} and the mean number of non-\code{NA} cells between them (\code{n}):
 #' \itemize{
 #' 	\item \code{simpleMeanDiff}: \code{sum(x2 - x1, na.rm=TRUE) / n}
@@ -66,6 +69,10 @@
 #' 	\item \code{schoenerD}: \code{1 - (sum(abs(x1 - x2), na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
 #' 	\item \code{warrenI}: \code{1 - sqrt(sum((sqrt(x1) - sqrt(x2))^2, na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
 #' }
+#'   
+#' \emph{Note:}  
+#'   
+#' For the \code{nsQuant} and \code{ewQuant} metrics it is assumed that the latitude/longitude assigned to a cell is at its exact center. If a desired quantile does not fall exactly on the cell center, it is interpolated linearly between the rows/columns of cells that bracket the given quantile. For quantiles that fall south/eastward of the first row/column of cells, the cell border is assumed to be at 0.5 * cell length south/west of the cell center.
 #' @references
 #' Schoener, T. W. 1968. \emph{Anolis} lizards of Bimini: Resource partitioning in a complex fauna. \emph{Ecology} 49:704–726.  
 #' Godsoe, W. 2014. Inferring the similarity of species distributions using Species’ Distribution Models. \emph{Ecography} 37:130-136.  
@@ -1044,17 +1051,19 @@ bioticVelocity <- function(
 	xRowCumSum <- cumsum(rev(xRowSum))
 	xRowCumSumStd <- xRowCumSum / max(xRowCumSum)
 	
+	xRowCumSumStd <- c(0, xRowCumSumStd)
+	
 	rowIndex <- which(prob == xRowCumSumStd)
-
+	lats <- rev(latitude[ , 1])
+	
 	# exact latitude
 	if (length(rowIndex) != 0) {
-	
-		lat <- rev(latitude[ , 1])[rowIndex]
-		
+		lat <- lats[rowIndex]
 	# interpolate latitude
 	} else {
-	
-		latVect <- rev(latitude[ , 1])
+		
+		cellLength <- mean(lats[2:length(lats)] - lats[1:(length(lats) - 1)])
+		lats <- c(lats[1] - cellLength, 0.5 * cellLength + lats)
 		
 		# if all values are equally distant from the desired quantile
 		diffs1 <- abs(prob - xRowCumSumStd)
@@ -1068,7 +1077,7 @@ bioticVelocity <- function(
 			}
 		}
 		if (is.na(row1)) return(NA)
-		lat1 <- latVect[row1]
+		lat1 <- lats[row1]
 		rowsCumSumStd_row1NA <- xRowCumSumStd
 		rowsCumSumStd_row1NA[row1] <- NA
 		
@@ -1084,7 +1093,7 @@ bioticVelocity <- function(
 			}
 		}
 		if (is.na(row2)) return(NA)
-		lat2 <- latVect[row2]
+		lat2 <- lats[row2]
 	
 		lats <- sort(c(lat1, lat2))
 		# note: could calculate location weighted by abundance, but this creates problems if abundance is 0 in both latitudes or if it is negative in one cell
@@ -1106,55 +1115,57 @@ bioticVelocity <- function(
 .interpolateLongFromMatrix <- compiler::cmpfun(
 	function(prob, x, longitude) {
 
-	# standardized, cumulative sums of rows starting at bottom of matrix
+	# standardized, cumulative sums of cols starting at right side of matrix
 	xColSum <- colSums(x, na.rm=TRUE)
 	xColCumSum <- cumsum(xColSum)
 	xColCumSumStd <- xColCumSum / max(xColCumSum)
-
+	
+	xColCumSumStd <- c(0, xColCumSumStd)
+	
 	colIndex <- which(prob == xColCumSumStd)
-
+	longs <- longitude[1, ]
+	
 	# exact longitude
 	if (length(colIndex) != 0) {
-	
-		long <- longitude[colIndex, 1]
-		
+		long <- longs[colIndex]
 	# interpolate longitude
 	} else {
-	
-		longVect <- longitude[1, ]
+		
+		cellLength <- mean(longs[2:length(longs)] - longs[1:(length(longs) - 1)])
+		longs <- c(longs[1] - 0.5 * cellLength, longs + 0.5 * cellLength)
 		
 		# if all values are equally distant from the desired quantile
 		diffs1 <- abs(prob - xColCumSumStd)
 		col1 <- if (sd(diffs1) == 0) {
 			round(median(seq_along(diffs1)))
 		} else {
-			if (prob > 0.5) {
+			if (prob < 0.5) {
 				which.min(diffs1)
 			} else {
 				length(diffs1) - which.min(rev(diffs1)) + 1
 			}
 		}
 		if (is.na(col1)) return(NA)
-		long1 <- longVect[col1]
-		colsCumSumStd_row1NA <- xColCumSumStd
-		colsCumSumStd_row1NA[col1] <- NA
+		long1 <- longs[col1]
+		colsCumSumStd_col1NA <- xColCumSumStd
+		colsCumSumStd_col1NA[col1] <- NA
 		
 		# if all values are equally distant from the desired quantile
-		diffs2 <- abs(prob - colsCumSumStd_row1NA)
+		diffs2 <- abs(prob - colsCumSumStd_col1NA)
 		col2 <- if (sd(diffs2, na.rm=TRUE) == 0) {
 			round(median(seq_along(diffs2)[-is.na(diffs2)]))
 		} else {
-			if (prob > 0.5) {
+			if (prob < 0.5) {
 				which.min(diffs2)
 			} else {
 				length(diffs2) - which.min(rev(diffs2)) + 1
 			}
 		}
 		if (is.na(col2)) return(NA)
-		long2 <- longVect[col2]
+		long2 <- longs[col2]
 	
 		longs <- sort(c(long1, long2))
-		# note: could calculate location weighted by abundance, but this creates problems if abundance is 0 in both latitudes or if it is negative in one cell
+		# note: could calculate location weighted by abundance, but this creates problems if abundance is 0 in both longitudes or if it is negative in one cell
 		long <- longs[1] + prob * (longs[2] - longs[1])
 		
 	}
