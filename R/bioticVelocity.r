@@ -1101,7 +1101,7 @@ bioticVelocity <- function(
 		xRowSum <- xRowSum[c(row1, row2)]
 		xRowSum <- xRowSum[latsOrder]
 		# note: creates problems if abundance is 0 in both latitudes
-		lat <- if (all(xColSum == 0)) {
+		lat <- if (all(xRowSum == 0)) {
 			NA
 		} else {
 			((1 - prob) * xRowSum[1] * lats[1] + prob * xRowSum[2] * lats[2]) / sum(xRowSum * c(1 - prob, prob))
