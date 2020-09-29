@@ -44,7 +44,7 @@ interpolateRasters <- function(
 	####################
 		
 		if (!any(c('linear', 'spline') %in% type)) stop('Argument "type" must be "linear" or "spline".')
-		if (nlayers(rasts) < 2) stop('Argument "rasts" must have >1 raster layer.')
+		if (raster::nlayers(rasts) < 2) stop('Argument "rasts" must have >1 raster layer.')
 		if (length(interpFrom) != raster::nlayers(rasts)) stop('Argument "interpFrom" must have same length as number of rasters in argument "rasts".')
 		
 	### reserve blank array for output
@@ -74,8 +74,8 @@ interpolateRasters <- function(
 				cellInterpol <- if (sum(!is.na(y)) < 2) {
 					rep(NA, numInterps)
 				} else if (type == 'linear') {
-					stats::approx(x=interpFrom, y=y, xout=interpTo, ...)$y
-					# stats::approx(x=interpFrom, y=y, xout=interpTo)$y
+					# stats::approx(x=interpFrom, y=y, xout=interpTo, ...)$y
+					stats::approx(x=interpFrom, y=y, xout=interpTo)$y
 				} else if (type == 'spline') {
 					stats::spline(x=interpFrom, y=y, xout=interpTo, ...)$y
 					# stats::spline(x=interpFrom, y=y, xout=interpTo)$y
@@ -97,11 +97,15 @@ interpolateRasters <- function(
 	
 		out <- raster::raster(outArray[ , , 1], template=template)
 		
-		for (countInterpTo in 2:length(interpTo)) {
-		
-			thisOut <- raster::raster(outArray[ , , countInterpTo], template=template)
-			out <- raster::stack(out, thisOut)
-		
+		if (length(countInterpTo) > 1) {
+			
+			for (countInterpTo in 2:length(interpTo)) {
+			
+				thisOut <- raster::raster(outArray[ , , countInterpTo], template=template)
+				out <- raster::stack(out, thisOut)
+			
+			}
+			
 		}
 
 		interpToNames <- gsub(interpTo, pattern='-', replacement='Neg')
