@@ -97,7 +97,7 @@ interpolateRasters <- function(
 	
 		out <- raster::raster(outArray[ , , 1], template=template)
 		
-		if (length(countInterpTo) > 1) {
+		if (length(interpTo) > 1) {
 			
 			for (countInterpTo in 2:length(interpTo)) {
 			
