@@ -65,7 +65,7 @@
 #' \itemize{
 #' 	\item \code{simpleMeanDiff}: \code{sum(x2 - x1, na.rm=TRUE) / n}
 #' 	\item \code{absMeanDiff}: \code{sum(abs(x2 - x1), na.rm=TRUE) / n}
-#' 	\item \code{godsoeEsp}: \code{1 - sum(2 * (x1 * x1), na.rm=TRUE) / sum(x1 + x2, na.rm=TRUE)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
+#' 	\item \code{godsoeEsp}: \code{1 - sum(2 * (x1 * x2), na.rm=TRUE) / sum(x1 + x2, na.rm=TRUE)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
 #' 	\item \code{schoenerD}: \code{1 - (sum(abs(x1 - x2), na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
 #' 	\item \code{warrenI}: \code{1 - sqrt(sum((sqrt(x1) - sqrt(x2))^2, na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
 #' }
@@ -469,6 +469,16 @@ bioticVelocity <- function(
 	### convert input to array and get geographic information
 	#########################################################
 
+		# if rasters
+		if (xClass %in% c('RasterStack', 'RasterBrick')) {
+
+			ll <- enmSdm::longLatRasters(x)
+			longitude <- ll[['longitude']]
+			latitude <- ll[['latitude']]
+			x <- raster::subset(x, atIndices)
+
+		}
+		
 		# if input is an array and extent/CRS are specified
 		# then get longitude and latitude and convert to array
 		if ('array' %in% xClass) {
@@ -476,6 +486,7 @@ bioticVelocity <- function(
 			x <- x[ , , atIndices]
 			nRows <- dim(x)[1]
 			nCols <- dim(x)[2]
+			
 			if (is.null(longitude)) {
 				longitude <- matrix(1:nCols, nrow=nRows, ncol=nCols, byrow=TRUE)
 				if (warn) warning('Argument "longitude" is not specified so using column number instead of longitude. Velocities will be in arbitrary spatial units.')
@@ -484,36 +495,38 @@ bioticVelocity <- function(
 				latitude <- matrix(nRows:1, nrow=nRows, ncol=nCols, byrow=FALSE)
 				if (warn) warning('Argument "latitude" is not specified so using row number instead of latitude. Velocities will be in arbitrary spatial units.')
 			}
+			
+			xmin <- longitude[1, 1] - 0.5 * (longitude[1, 2] - longitude[1, 1])
+			xmax <- longitude[1, ncol(longitude)] + 0.5 * (longitude[1, 2] - longitude[1, 1])
+			ymax <- latitude[1, 1] + 0.5 * (latitude[1, 1] - latitude[2, 1])
+			ymin <- latitude[nrow(latitude), 1] - 0.5 * (latitude[1, 1] - latitude[2, 1])
+		
+			xArray <- x
+			x <- raster(x[ , , 1], xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
+		
+			for (i in 2:dim(xArray)[3]) {
+			
+				thisRast <- raster(xArray[ , , i], xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
+				x <- stack(x, thisRast)
+			
+			}
 				
 		}
 		
-		# convert from raster stack
-		if (xClass %in% c('RasterStack', 'RasterBrick')) {
-
-			ll <- enmSdm::longLatRasters(x)
-			longitude <- raster::as.matrix(ll[['longitude']])
-			latitude <- raster::as.matrix(ll[['latitude']])
-			x <- raster::subset(x, atIndices)
-			x <- raster::as.array(x)
-
-		}
-		
-		if (any(x < 0, na.rm=TRUE) & warn) warning('Negative values appear in "x". Output may be unreliable or undesirable.')
+		if (any(minValue(x) < 0, na.rm=TRUE) & warn) warning('Negative values appear in "x". Output may be unreliable or undesirable.')
 			
 	### calculate weighted longitude and latitudes for starting time period
 	#######################################################################
 
-		x1 <- x[ , , 1]
+		x1 <- x[[1]]
 
 		# correction for shared non-NA cells with next time period
 		if (onlyInSharedCells) {
 
-			x2 <- x[ , , 2]
-			x1x2mask <- matrix(NA, nrow=nrow(x), ncol=ncol(x))
-			for (i in seq_along(x1x2mask)) {
-				x1x2mask[i] <- ifelse(is.na(x1[i]) | is.na(x2[i]), NA, 1)
-			}
-		
+			x2 <- x[[2]]
+			x1mask <- x1 * 0 + 1
+			x2mask <- x2 * 0 + 1
+			x1x2mask <- x1mask * x2mask
 			x1 <- x1 * x1x2mask
 			
 		}
@@ -526,9 +539,9 @@ bioticVelocity <- function(
 			x1weightedLats <- latitude * x1
 
 			# centroid
-			x1sum <- sum(x1, na.rm=TRUE)
-			x1centroidLong <- sum(x1weightedLongs, na.rm=TRUE) / x1sum
-			x1centroidLat <- sum(x1weightedLats, na.rm=TRUE) / x1sum
+			x1sum <- cellStats(x1, 'sum')
+			x1centroidLong <- cellStats(x1weightedLongs, 'sum') / x1sum
+			x1centroidLat <- cellStats(x1weightedLats, 'sum') / x1sum
 			
 		}
 
@@ -556,16 +569,15 @@ bioticVelocity <- function(
 			)
 
 			### get start time/end period layers and correct for shared non-NA cells
-			x1 <- x[ , , indexFrom]
-			x2 <- x[ , , indexFrom + 1]
+			x1 <- x[[indexFrom]]
+			x2 <- x[[indexFrom + 1]]
 
 			# correction for shared non-NA cells with next time period
 			if (onlyInSharedCells) {
 			
-				x1x2mask <- matrix(NA, nrow=nrow(x), ncol=ncol(x))
-				for (i in seq_along(x1x2mask)) {
-					x1x2mask[i] <- ifelse(is.na(x1[i]) | is.na(x2[i]), NA, 1)
-				}
+				x1mask <- x1 * 0 + 1
+				x2mask <- x2 * 0 + 1
+				x1x2mask <- x1mask * x2mask
 
 				x1 <- x1 * x1x2mask
 				x2 <- x2 * x1x2mask
@@ -574,9 +586,11 @@ bioticVelocity <- function(
 			
 			# statistics about cells
 			size <- nrow(x1) * ncol(x1)
-			propSharedCellsNotNA <- sum(!is.na(x1 + x2)) / size
-			timeFromPropNotNA <- sum(!is.na(x1)) / size
-			timeToPropNotNA <- sum(!is.na(x2)) / size
+			x1ones <- x1 * 0 + 1
+			x2ones <- x2 * 0 + 1
+			propSharedCellsNotNA <- cellStats(x1ones * x2ones, 'sum') / size
+			timeFromPropNotNA <- cellStats(x1ones, 'sum')  / size
+			timeToPropNotNA <- cellStats(x2ones, 'sum')  / size
 
 			thisOut <- cbind(
 				thisOut,
@@ -599,13 +613,13 @@ bioticVelocity <- function(
 				x2weightedLats <- latitude * x2
 
 				# centroid
-				x1sum <- sum(x1, na.rm=TRUE)
-				x1centroidLong <- sum(x1weightedLongs, na.rm=TRUE) / x1sum
-				x1centroidLat <- sum(x1weightedLats, na.rm=TRUE) / x1sum
+				x1sum <- cellStats(x1, 'sum')
+				x1centroidLong <- cellStats(x1weightedLongs, 'sum') / x1sum
+				x1centroidLat <- cellStats(x1weightedLats, 'sum') / x1sum
 				
-				x2sum <- sum(x2, na.rm=TRUE)
-				x2centroidLong <- sum(x2weightedLongs, na.rm=TRUE) / x2sum
-				x2centroidLat <- sum(x2weightedLats, na.rm=TRUE) / x2sum
+				x2sum <- cellStats(x2, 'sum')
+				x2centroidLong <- cellStats(x2weightedLongs, 'sum') / x2sum
+				x2centroidLat <- cellStats(x2weightedLats, 'sum') / x2sum
 				
 			}
 
@@ -853,7 +867,7 @@ bioticVelocity <- function(
 			### mean abundance
 			if ('mean' %in% metrics) {
 			
-				metric <- mean(x2, na.rm=TRUE)
+				metric <- cellStats(x2, 'mean')
 				thisOut <- cbind(
 					thisOut,
 					data.frame(
@@ -867,7 +881,7 @@ bioticVelocity <- function(
 			### total abundance
 			if ('sum' %in% metrics) {
 			
-				metric <- sum(x2, na.rm=TRUE)
+				metric <- cellStats(x2, 'sum')
 				thisOut <- cbind(
 					thisOut,
 					data.frame(
@@ -881,7 +895,7 @@ bioticVelocity <- function(
 			### abundance quantiles
 			if ('quants' %in% metrics) {
 			
-				metric <- quantile(x2, quants, na.rm=TRUE)
+				metric <- raster::quantile(x2, quants, na.rm=TRUE)
 				
 				# remember
 				for (countQuant in seq_along(metric)) {
@@ -902,7 +916,7 @@ bioticVelocity <- function(
 			### prevalence
 			if ('prevalence' %in% metrics) {
 			
-				metric <- sum(x2 > 0, na.rm=TRUE) / sum(!is.na(x2))
+				metric <- cellStats(x2 > 0, 'sum') / cellStats(x2ones, 'sum')
 				
 				thisOut <- cbind(
 					thisOut,
@@ -917,14 +931,20 @@ bioticVelocity <- function(
 			### similarities
 			if ('similarity' %in% metrics) {
 				
-				x1sizeNotNa <- sum(!is.na(x1))
-				x2sizeNotNa <- sum(!is.na(x2))
+				x1sizeNotNa <- cellStats(x1ones, 'sum')
+				x2sizeNotNa <- cellStats(x1ones, 'sum')
 				n <- mean(c(x1sizeNotNa, x2sizeNotNa))
-				simpleMeanDiff <- sum(x2 - x1, na.rm=TRUE) / n
-				absMeanDiff <- sum(abs(x2 - x1), na.rm=TRUE) / n
-				godsoeEsp <- 1 - sum(2 * (x1 * x1), na.rm=TRUE) / sum(x1 + x2, na.rm=TRUE)
-				schoenersD <- 1 - (sum(abs(x1 - x2), na.rm=TRUE) / n)
-				warrenI <- 1 - sqrt(sum((sqrt(x1) - sqrt(x2))^2, na.rm=TRUE) / n)
+				
+				x1x2sum <- x1 + x2
+				x1x2diff <- x2 - x1
+				x1x2absDiff <- abs(x1x2diff)
+				x1x2prod <- x1 * x2
+				
+				simpleMeanDiff <- cellStats(x1x2diff, 'sum') / n
+				absMeanDiff <- cellStats(x1x2absDiff, 'sum') / n
+				godsoeEsp <- 1 - cellStats(2 * x1x2prod, 'sum') / cellStats(x1x2sum, 'sum')
+				schoenersD <- 1 - cellStats(x1x2absDiff, 'sum') / n
+				warrenI <- 1 - sqrt(cellStats((sqrt(x1) - sqrt(x2))^2, 'sum') / n)
 
 				thisOut <- cbind(
 					thisOut,
@@ -999,11 +1019,11 @@ bioticVelocity <- function(
 
 	# mask out cells north/south/east/west of or at starting centroid
 	maskCells <- if (direction == 'n') {
-		longOrLat > refLat
+		longOrLat >= refLat
 	} else if (direction == 's') {
 		longOrLat < refLat
 	} else if (direction == 'e') {
-		longOrLat > refLong
+		longOrLat >= refLong
 	} else if (direction == 'w') {
 		longOrLat < refLong
 	}
@@ -1016,22 +1036,23 @@ bioticVelocity <- function(
 	x2weightedLongsCensored <- x2weightedLongs * maskCells
 	x2weightedLatsCensored <- x2weightedLats * maskCells
 
+	abundance <- cellStats(x2censored, 'sum')
+	
 	# centroid of uncensored part of distribution
-	if (sum(x2censored, na.rm=TRUE) == 0) {
+	if (abundance == 0) {
 		distance <- 0
 	} else {
 
-		x1centroidLongCensored <- sum(x1weightedLongsCensored, na.rm=TRUE) / sum(x1censored, na.rm=TRUE)
-		x1centroidLatCensored <- sum(x1weightedLatsCensored, na.rm=TRUE) / sum(x1censored, na.rm=TRUE)
+		x1centroidLongCensored <- cellStats(x1weightedLongsCensored, 'sum') / cellStats(x1censored, 'sum')
+		x1centroidLatCensored <- cellStats(x1weightedLatsCensored, 'sum') / cellStats(x1censored, 'sum')
 
-		x2centroidLongCensored <- sum(x2weightedLongsCensored, na.rm=TRUE) / sum(x2censored, na.rm=TRUE)
-		x2centroidLatCensored <- sum(x2weightedLatsCensored, na.rm=TRUE) / sum(x2censored, na.rm=TRUE)
+		x2centroidLongCensored <- cellStats(x2weightedLongsCensored, 'sum') / cellStats(x2censored, 'sum')
+		x2centroidLatCensored <- cellStats(x2weightedLatsCensored, 'sum') / cellStats(x2censored, 'sum')
 		
 		distance <- .euclid(x1=x2centroidLongCensored, y1=x2centroidLatCensored, x2=x1centroidLongCensored, y2=x1centroidLatCensored)
 	
 	}
 
-	abundance <- sum(x2censored, na.rm=TRUE)
 	list(distance=distance, abundance=abundance)
 	
 }
@@ -1047,7 +1068,7 @@ bioticVelocity <- function(
 	function(prob, x, latitude) {
 
 	# standardized, cumulative sums of rows starting at bottom of matrix
-	xRowSum <- rowSums(x, na.rm=TRUE)
+	xRowSum <- raster::rowSums(x, na.rm=TRUE)
 	xRowSum <- c(xRowSum, 0)
 	xRowSum <- rev(xRowSum)
 	xRowCumSum <- cumsum(xRowSum)
@@ -1124,7 +1145,7 @@ bioticVelocity <- function(
 	function(prob, x, longitude) {
 
 	# standardized, cumulative sums of cols starting at right side of matrix
-	xColSum <- colSums(x, na.rm=TRUE)
+	xColSum <- raster::colSums(x, na.rm=TRUE)
 	xColSum <- c(xColSum, 0)
 	xColCumSum <- cumsum(xColSum)
 	xColCumSumStd <- xColCumSum / max(xColCumSum)
