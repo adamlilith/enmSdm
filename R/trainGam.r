@@ -6,8 +6,8 @@
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param family Name of family for data error structure (see \code{?family}).
 #' @param gamma Initial penalty to degrees of freedom to use (larger ==> smoother fits).
-#' @param construct Logical. If TRUE then construct model by computing AICc for all univariate and bivariate models. Then add terms up to maximum set by \code{presPerTermInitial} and \code{initialTerms}.
-#' @param select Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).
+#' @param construct Logical. If \code{TRUE} then construct model by computing AICc for all univariate and bivariate models. Then add terms up to maximum set by \code{presPerTermInitial} and \code{initialTerms}.
+#' @param select Logical. If \code{TRUE} then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).
 #' @param presPerTermInitial Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only if \code{construct} is \code{TRUE}.
 #' @param presPerTermFinal Positive integer. Minimum number of presence sites per term in initial starting model; used only if \code{select} is TRUE.
 #' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 31, so if this number is >31 and \code{select} is \code{TRUE} then it is forced to 31 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.
@@ -130,16 +130,17 @@ trainGam <- function(
 	#############
 
 		# model weights
-		if (class(w)[1] == 'logical') {
-			w <- if (w && (family %in% c('binomial', 'quasibinomial'))) {
-				c(rep(1, sum(data[ , resp])), rep(sum(data[ , resp]) / sum(data[ , resp] == 0), sum(data[ , resp] == 0)))
+		if (is.logical(w)) {
+			if (w && (family %in% c('binomial', 'quasibinomial'))) {
+				posCases <- sum(data[ , resp, drop=TRUE] == 1)
+				negCases <- sum(data[ , resp, drop=TRUE] == 0)
+				w <- c(rep(1, posCases), rep(posCases / (posCases + negCases), negCases))
 			} else {
-				rep(1, nrow(data))
+				w <- rep(1, nrow(data))
 			}
 		} else if (class(w) == 'character') {
-			w <- data[ , w]
+			w <- data[ , w, drop=TRUE]
 		}
-
 		w <<- w / max(w) # declare to global because dredge() and pdredge() have problems if it is not
 
 	################################
@@ -173,6 +174,7 @@ trainGam <- function(
 						select=TRUE,
 						gamma=gamma,
 						weights=w,
+						na.action='na.fail',
 						...
 					)
 				)
@@ -223,6 +225,7 @@ trainGam <- function(
 								select=TRUE,
 								gamma=gamma,
 								weights=w,
+								na.action='na.fail',
 								...
 							)
 						)
@@ -266,7 +269,7 @@ trainGam <- function(
 
 		# NO AUTOMATED MODEL CONSTRUCTION
 		# use all single-variable terms and two-variable terms
-		} else {
+		} else if (!construct) {
 
 			# single terms
 			for (thisPred in preds) {
@@ -309,7 +312,7 @@ trainGam <- function(
 				
 			}
 
-		} # if not doing automated model construction
+		} # if NOT doing automated model construction
 
 
 	###########################################################################
@@ -441,7 +444,7 @@ trainGam <- function(
 				# )
 
 				# # if model hasn't converged yet, then try increasing gamma
-				# if (class(model)[1]=='logical' ){
+				# if (is.logical(model)){
 					# thisGamma <- thisGamma + 0.4
 				# # if model worked and converged, trip flag to say so
 				# } else {
