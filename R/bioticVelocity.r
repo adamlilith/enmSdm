@@ -472,9 +472,13 @@ bioticVelocity <- function(
 		# if rasters
 		if (xClass %in% c('RasterStack', 'RasterBrick')) {
 
-			ll <- enmSdm::longLatRasters(x)
-			longitude <- ll[['longitude']]
-			latitude <- ll[['latitude']]
+			if (is.null(longitude) | is.null(latitude)) {
+		
+				ll <- enmSdm::longLatRasters(x)
+				longitude <- ll[['longitude']]
+				latitude <- ll[['latitude']]
+				
+			}
 			x <- raster::subset(x, atIndices)
 
 		}
@@ -496,24 +500,25 @@ bioticVelocity <- function(
 				if (warn) warning('Argument "latitude" is not specified so using row number instead of latitude. Velocities will be in arbitrary spatial units.')
 			}
 			
+			# convert array to raster stack
 			xmin <- longitude[1, 1] - 0.5 * (longitude[1, 2] - longitude[1, 1])
 			xmax <- longitude[1, ncol(longitude)] + 0.5 * (longitude[1, 2] - longitude[1, 1])
 			ymax <- latitude[1, 1] + 0.5 * (latitude[1, 1] - latitude[2, 1])
 			ymin <- latitude[nrow(latitude), 1] - 0.5 * (latitude[1, 1] - latitude[2, 1])
 		
 			xArray <- x
-			x <- raster(x[ , , 1], xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
+			x <- raster::raster(x[ , , 1], xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
 		
 			for (i in 2:dim(xArray)[3]) {
 			
-				thisRast <- raster(xArray[ , , i], xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
+				thisRast <- raster::raster(xArray[ , , i], xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
 				x <- stack(x, thisRast)
 			
 			}
 				
 		}
 		
-		if (any(minValue(x) < 0, na.rm=TRUE) & warn) warning('Negative values appear in "x". Output may be unreliable or undesirable.')
+		if (any(raster::minValue(x) < 0, na.rm=TRUE) & warn) warning('Negative values appear in "x". Output may be unreliable or undesirable.')
 			
 	### calculate weighted longitude and latitudes for starting time period
 	#######################################################################
@@ -544,7 +549,14 @@ bioticVelocity <- function(
 			x1centroidLat <- cellStats(x1weightedLats, 'sum') / x1sum
 			
 		}
-
+		
+		if (any(c('nsQuants') %in% metrics)) {
+			longVect <- longitude[1, ]
+		}
+		if (any(c('ewQuants') %in% metrics)) {
+			latVect <- rev(latitude[ , 1])
+		}
+		
 	### calculate velocities
 	########################
 	
@@ -813,8 +825,8 @@ bioticVelocity <- function(
 					thisQuant <- quants[countQuant]
 				
 					# latitude of this quantile
-					x1lat <- .interpolateLatFromMatrix(prob=thisQuant, x=x1, latitude=latitude)
-					x2lat <- .interpolateLatFromMatrix(prob=thisQuant, x=x2, latitude=latitude)
+					x1lat <- .interpolateLatFromMatrix(prob=thisQuant, x=x1, latVect=latVect)
+					x2lat <- .interpolateLatFromMatrix(prob=thisQuant, x=x2, latVect=latVect)
 
 					metric <- .euclid(x2lat, x1lat)
 					metricRate <- metric / timeSpan
@@ -843,8 +855,8 @@ bioticVelocity <- function(
 					thisQuant <- quants[countQuant]
 					
 					# longitudes of this quantile
-					x1long <- .interpolateLongFromMatrix(prob=thisQuant, x=x1, longitude=longitude)
-					x2long <- .interpolateLongFromMatrix(prob=thisQuant, x=x2, longitude=longitude)
+					x1long <- .interpolateLongFromMatrix(prob=thisQuant, x=x1, lonVect=longVect)
+					x2long <- .interpolateLongFromMatrix(prob=thisQuant, x=x2, longVect=longVect)
 					
 					metric <- .euclid(x2long, x1long)
 					metricRate <- metric / timeSpan
@@ -1062,10 +1074,10 @@ bioticVelocity <- function(
 #' This function returns the latitude of a quantile of the geographic abundance distribution. The input is derived from a rasterized map of the species abundance distribution. If a quantile would occur somewhere between two rows, the latitude is linearly interpolated between the latitudes of the two rows bracketing its value. It will probably return \code{NA} if the quantile falls outside the range of the values.
 #' @param prob Quantile value (i.e., in the range [0, 1])
 #' @param x Matrix of abundances.
-#' @param latitude Matrix of latitudes.
+#' @param latVect Vector of latitudes, one per row in \code{x}... it is assumed these are in "reverse" order so correspond to the bottom-most row, second-bottom row, etc.
 #' @keywords internal
 .interpolateLatFromMatrix <- compiler::cmpfun(
-	function(prob, x, latitude) {
+	function(prob, x, latVect) {
 
 	# standardized, cumulative sums of rows starting at bottom of matrix
 	xRowSum <- raster::rowSums(x, na.rm=TRUE)
@@ -1075,16 +1087,16 @@ bioticVelocity <- function(
 	xRowCumSumStd <- xRowCumSum / max(xRowCumSum)
 	
 	rowIndex <- which(prob == xRowCumSumStd)
-	lats <- rev(latitude[ , 1])
+	# latVect <- rev(latitude[ , 1])
 	
 	# exact latitude
 	if (length(rowIndex) != 0) {
-		lat <- lats[rowIndex]
+		lat <- latVect[rowIndex]
 	# interpolate latitude
 	} else {
 		
-		cellLength <- mean(lats[2:length(lats)] - lats[1:(length(lats) - 1)])
-		lats <- c(lats[1] - cellLength, 0.5 * cellLength + lats)
+		cellLength <- mean(latVect[2:length(latVect)] - latVect[1:(length(latVect) - 1)])
+		latVect <- c(latVect[1] - cellLength, 0.5 * cellLength + latVect)
 		
 		# if all values are equally distant from the desired quantile
 		diffs1 <- abs(prob - xRowCumSumStd)
@@ -1098,7 +1110,7 @@ bioticVelocity <- function(
 			}
 		}
 		if (is.na(row1)) return(NA)
-		lat1 <- lats[row1]
+		lat1 <- latVect[row1]
 		rowsCumSumStd_row1NA <- xRowCumSumStd
 		rowsCumSumStd_row1NA[row1] <- NA
 		
@@ -1114,18 +1126,18 @@ bioticVelocity <- function(
 			}
 		}
 		if (is.na(row2)) return(NA)
-		lat2 <- lats[row2]
+		lat2 <- latVect[row2]
 	
-		lats <- c(lat1, lat2)
-		latsOrder <- order(lats)
-		lats <- lats[latsOrder]
+		latVect <- c(lat1, lat2)
+		latVectOrder <- order(latVect)
+		latVect <- latVect[latVectOrder]
 		xRowSum <- xRowSum[c(row1, row2)]
-		xRowSum <- xRowSum[latsOrder]
+		xRowSum <- xRowSum[latVectOrder]
 		# note: creates problems if abundance is 0 in both latitudes
 		lat <- if (all(xRowSum == 0)) {
 			NA
 		} else {
-			((1 - prob) * xRowSum[1] * lats[1] + prob * xRowSum[2] * lats[2]) / sum(xRowSum * c(1 - prob, prob))
+			((1 - prob) * xRowSum[1] * latVect[1] + prob * xRowSum[2] * latVect[2]) / sum(xRowSum * c(1 - prob, prob))
 		}
 		
 	}
@@ -1139,10 +1151,10 @@ bioticVelocity <- function(
 #' This function returns the longitude of a quantile of the geographic abundance distribution. The input is derived from a rasterized map of the species abundance distribution. If a quantile would occur somewhere between two columns, the longitude is linearly interpolated between the latitudes of the two columns bracketing its value. It will probably return \code{NA} if the quantile falls outside the range of the values.
 #' @param prob Quantile value (i.e., in the range [0, 1])
 #' @param x Matrix of abundances.
-#' @param longitude Matrix of latitudes.
+#' @param longVect Vector of longitudes, one per column in \code{x}.
 #' @keywords internal
 .interpolateLongFromMatrix <- compiler::cmpfun(
-	function(prob, x, longitude) {
+	function(prob, x, longVect) {
 
 	# standardized, cumulative sums of cols starting at right side of matrix
 	xColSum <- raster::colSums(x, na.rm=TRUE)
@@ -1153,16 +1165,16 @@ bioticVelocity <- function(
 	xColCumSumStd <- c(0, xColCumSumStd)
 	
 	colIndex <- which(prob == xColCumSumStd)
-	longs <- longitude[1, ]
+	# longVect <- longitude[1, ]
 	
 	# exact longitude
 	if (length(colIndex) != 0) {
-		long <- longs[colIndex]
+		long <- longVect[colIndex]
 	# interpolate longitude
 	} else {
 		
-		cellLength <- mean(longs[2:length(longs)] - longs[1:(length(longs) - 1)])
-		longs <- c(longs[1] - 0.5 * cellLength, longs + 0.5 * cellLength)
+		cellLength <- mean(longVect[2:length(longVect)] - longVect[1:(length(longVect) - 1)])
+		longVect <- c(longVect[1] - 0.5 * cellLength, longVect + 0.5 * cellLength)
 		
 		# if all values are equally distant from the desired quantile
 		diffs1 <- abs(prob - xColCumSumStd)
@@ -1176,7 +1188,7 @@ bioticVelocity <- function(
 			}
 		}
 		if (is.na(col1)) return(NA)
-		long1 <- longs[col1]
+		long1 <- longVect[col1]
 		colsCumSumStd_col1NA <- xColCumSumStd
 		colsCumSumStd_col1NA[col1] <- NA
 		
@@ -1192,18 +1204,18 @@ bioticVelocity <- function(
 			}
 		}
 		if (is.na(col2)) return(NA)
-		long2 <- longs[col2]
+		long2 <- longVect[col2]
 	
-		longs <- c(long1, long2)
-		longsOrder <- order(longs)
-		longs <- longs[longsOrder]
+		longVect <- c(long1, long2)
+		longVectOrder <- order(longVect)
+		longVect <- longVect[longVectOrder]
 		xColSum <- xColSum[c(col1, col2)]
-		xColSum <- xColSum[longsOrder]
+		xColSum <- xColSum[longVectOrder]
 		# note: creates problems if abundance is 0 in both longitudes
 		long <- if (all(xColSum == 0)) {
 			NA
 		} else {
-			((1 - prob) * xColSum[1] * longs[1] + prob * xColSum[2] * longs[2]) / sum(xColSum * c(1 - prob, prob))
+			((1 - prob) * xColSum[1] * longVect[1] + prob * xColSum[2] * longVect[2]) / sum(xColSum * c(1 - prob, prob))
 		}
 		
 	}
