@@ -127,7 +127,7 @@ trainNs <- function(
 	#############
 
 	# model weights
-	if (class(w)[1] == 'logical') {
+	if (is.logical(w)) {
 		w <- if (w & (family %in% c('binomial', 'quasibinomial'))) {
 			c(rep(1, sum(data[ , resp])), rep(sum(data[ , resp]) / sum(data[ , resp] == 0), sum(data[ , resp] == 0)))
 		} else {
@@ -136,7 +136,7 @@ trainNs <- function(
 	} else if (class(w) == 'character') {
 		w <- data[ , w]
 	}
-
+	
 	w <<- w / max(w) # declare to global because dredge() and pdredge() have problems if it is not
 
 	################################
