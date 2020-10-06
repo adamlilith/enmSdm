@@ -128,15 +128,16 @@ trainNs <- function(
 
 	# model weights
 	if (is.logical(w)) {
-		w <- if (w & (family %in% c('binomial', 'quasibinomial'))) {
-			c(rep(1, sum(data[ , resp])), rep(sum(data[ , resp]) / sum(data[ , resp] == 0), sum(data[ , resp] == 0)))
+		if (w[1L] & (family %in% c('binomial', 'quasibinomial'))) {
+			posCases <- sum(data[ , resp, drop=TRUE] == 1)
+			negCases <- sum(data[ , resp, drop=TRUE] == 0)
+			w <- c(rep(1, posCases), rep(posCases / (posCases + negCases), negCases))
 		} else {
-			rep(1, nrow(data))
+			w <- rep(1, nrow(data))
 		}
 	} else if (class(w) == 'character') {
-		w <- data[ , w]
+		w <- data[ , w, drop=TRUE]
 	}
-	
 	w <<- w / max(w) # declare to global because dredge() and pdredge() have problems if it is not
 
 	################################
