@@ -500,21 +500,15 @@ bioticVelocity <- function(
 				if (warn) warning('Argument "latitude" is not specified so using row number instead of latitude. Velocities will be in arbitrary spatial units.')
 			}
 			
-			# convert array to raster stack
+			# convert array to raster stack... assuming cell sizes from longitude/latitude
 			xmin <- longitude[1, 1] - 0.5 * (longitude[1, 2] - longitude[1, 1])
 			xmax <- longitude[1, ncol(longitude)] + 0.5 * (longitude[1, 2] - longitude[1, 1])
 			ymax <- latitude[1, 1] + 0.5 * (latitude[1, 1] - latitude[2, 1])
 			ymin <- latitude[nrow(latitude), 1] - 0.5 * (latitude[1, 1] - latitude[2, 1])
 		
-			xArray <- x
-			x <- raster::raster(x[ , , 1], xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
-		
-			for (i in 2:dim(xArray)[3]) {
-			
-				thisRast <- raster::raster(xArray[ , , i], xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
-				x <- stack(x, thisRast)
-			
-			}
+			x <- raster::brick(x, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
+			longitude <- raster::raster(longitude, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
+			latitude <- raster::raster(latitude, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
 				
 		}
 		
@@ -550,11 +544,12 @@ bioticVelocity <- function(
 			
 		}
 		
+		# for faster reference in the ."interpolateLongFromMatrix" and ".interpolateLatFromMatrix" functions
 		if (any(c('nsQuants') %in% metrics)) {
-			longVect <- longitude[1, ]
+			latVect <- rev(latitude[ , 1])
 		}
 		if (any(c('ewQuants') %in% metrics)) {
-			latVect <- rev(latitude[ , 1])
+			longVect <- longitude[1, ]
 		}
 		
 	### calculate velocities
@@ -855,7 +850,7 @@ bioticVelocity <- function(
 					thisQuant <- quants[countQuant]
 					
 					# longitudes of this quantile
-					x1long <- .interpolateLongFromMatrix(prob=thisQuant, x=x1, lonVect=longVect)
+					x1long <- .interpolateLongFromMatrix(prob=thisQuant, x=x1, longVect=longVect)
 					x2long <- .interpolateLongFromMatrix(prob=thisQuant, x=x2, longVect=longVect)
 					
 					metric <- .euclid(x2long, x1long)
