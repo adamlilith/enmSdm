@@ -1,9 +1,11 @@
+enmSdm 0.5.2.7 2020-10-05
+Added new methods and a fail-safe to interpolateRasters()
+
 enmSdm 0.5.2.6 2020-10-03
-Update bioticVelocity() to use rasters, rather than arrays
+Updated bioticVelocity() to use rasters, rather than arrays
 
 enmSdm 0.5.2.4 2020-09-29
-Fix bug in interpolateRasters() when only one output raster is being
-interpolated
+Fixed bug in interpolateRasters() when only one output raster is being interpolated
 
 enmSdm 0.5.2.3 2020-09-24
 Cell-weighted calculation of quantile lat/long in bioticVelocity()

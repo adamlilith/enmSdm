@@ -4,14 +4,14 @@
 \alias{.interpolateLongFromMatrix}
 \title{Longitude of of a quantile of the geographic abundance distribution-}
 \usage{
-.interpolateLongFromMatrix(prob, x, longitude)
+.interpolateLongFromMatrix(prob, x, longVect)
 }
 \arguments{
 \item{prob}{Quantile value (i.e., in the range [0, 1])}
 
 \item{x}{Matrix of abundances.}
 
-\item{longitude}{Matrix of latitudes.}
+\item{longVect}{Vector of longitudes, one per column in \code{x}.}
 }
 \description{
 This function returns the longitude of a quantile of the geographic abundance distribution. The input is derived from a rasterized map of the species abundance distribution. If a quantile would occur somewhere between two columns, the longitude is linearly interpolated between the latitudes of the two columns bracketing its value. It will probably return \code{NA} if the quantile falls outside the range of the values.

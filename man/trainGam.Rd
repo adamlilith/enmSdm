@@ -33,9 +33,9 @@ trainGam(
 
 \item{gamma}{Initial penalty to degrees of freedom to use (larger ==> smoother fits).}
 
-\item{construct}{Logical. If TRUE then construct model by computing AICc for all univariate and bivariate models. Then add terms up to maximum set by \code{presPerTermInitial} and \code{initialTerms}.}
+\item{construct}{Logical. If \code{TRUE} then construct model by computing AICc for all univariate and bivariate models. Then add terms up to maximum set by \code{presPerTermInitial} and \code{initialTerms}.}
 
-\item{select}{Logical. If TRUE then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).}
+\item{select}{Logical. If \code{TRUE} then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).}
 
 \item{presPerTermInitial}{Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only if \code{construct} is \code{TRUE}.}
 

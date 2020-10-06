@@ -9,52 +9,104 @@ interpolateRasters(
   interpFrom,
   interpTo,
   type = "linear",
+  onFail = NA,
+  useRasts = FALSE,
   na.rm = TRUE,
+  verbose = TRUE,
   ...
 )
 }
 \arguments{
-\item{rasts}{Raster stack.}
+\item{rasts}{Raster stack or brick.}
 
 \item{interpFrom}{Numeric vector, one value per raster in \code{rasts}. Values represent "distance" along the set of rasters rasters (e.g., time).}
 
 \item{interpTo}{Numeric vector, values of "distances" at which to interpolate the rasters.}
 
-\item{type}{Either \code{'linear'} or \code{'spline'}. The \code{approx} function is used for linear interpolation and \code{spline} for spline-based interpolation.}
+\item{type}{Character. The type of model used to do the interpolation. Note that some of these (the first few) are guaranteed to go through every point being interpolated from. The second set, however, are effectively regressions so are not guaranteed to do through \emph{any} of the points. Note that some methods cannot handle cases where at least some series of cells have < a given number of non-\code{NA} values (e.g., smooth splines will not work if there are < 4 cells with non-\code{NA} values).
+\itemize{
+\item \code{linear}: A model based on linear segments "fastened" at each value of \code{interpFrom}. The segments will intersect each value being interpolated from.
+\item \code{spline}: A natural splines-based model. Splines will intersect each value being interpolated from.
+\item \code{gam}: A generalized additive model. Note that the GAM is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link[mgcv]{gam}} can be supplied via \code{...}. Especially note the \code{family} argument! You can use the \code{onFail} argument with this method since in some cases \code{\link[mgcv]{gam}} if there are too few data points.
+\item \code{ns}: A natural splines model. Note that the NS is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link{trainNs}} can be supplied via \code{...}. Especially note the \code{family} argument and the \code{df} argument! If \code{df} is not supplied, then the number of splines attempted will be equal to \code{1:(length(interpFrom) - 1)}. You can use the \code{onFail} argument with this method.
+\item \code{poly}: A polynomial model. This method constructs an \emph{n}-degree polynomial where \emph{n} = \code{length(interpFrom) - 1}. The most parsimonious model is then selected from all possible subsets of models (including an intercept-only model) using AICc. This method is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link{glm}} can be supplied via \code{...}. Especially note the \code{family} argument! If \code{family} is not supplied, then the response is assumed to have a Gaussian distribution. You can use the \code{onFail} argument with this method.
+\item \code{bs}: A basis-spline model. This method constructs a series of models with \emph{n}-degree basis-spline model where \emph{n} ranges from 3 to \code{length(interpFrom) - 1}. The most parsimonious model is then selected from all possible subsets of models (including an intercept-only model) using AICc. This method is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link{glm}} can be supplied via \code{...}. Especially note the \code{family} argument! If \code{family} is not supplied, then the response is assumed to have a Gaussian distribution. You can use the \code{onFail} argument with this method.
+\item \code{smooth.spline}: A smooth-spline model (see \code{\link{smooth.spline}}). This method is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link{smooth.spline}} can be supplied via \code{...}. Unlike some other methods, a \code{family} cannot be specified (Gaussian is assumed)! You can use the \code{onFail} argument with this method.
+}}
+
+\item{onFail}{Either \code{NA} (default) or any one of \code{'linear'}, \code{'spline'}, or \code{'poly'}. If a method specified by \code{type} fails (i.e., because there are fewer than the required number of values to interpolate from), this method is used in its place. If this is \code{NA} and the method fails, then an error occurs.}
+
+\item{useRasts}{Logical. If \code{FALSE} (default), then the calculations are done using arrays. This can be substantially faster than using rasters (when \code{useRasts = TRUE}), but also run into memory issues.}
 
 \item{na.rm}{Logical, if \code{TRUE} (default) then ignore cases where all values in the same cells across rasters from which interpolations are made are \code{NA} (i.e., do not throw an error). If \code{FALSE}, then throw an error when this occurs.}
 
-\item{...}{Other arguments passed to \code{approx} or \code{spline}. \emph{Do not} include any of these arguments: \code{x}, \code{y}, or \code{xout}.}
+\item{verbose}{Logical. If \code{TRUE} (default), display progress.}
+
+\item{...}{Other arguments passed to \code{approx} or \code{spline} (\emph{do not} include any of these arguments: \code{x}, \code{y}, or \code{xout}), or to \code{\link{glm}}, \code{\link[mgcv]{gam}}, or \code{\link{smooth.spline}}.}
 }
 \value{
-A raster stack, one per element in \code{interpTo}.
+A raster stack with one layer per element in \code{interpTo}.
 }
 \description{
-This function returns a stack of rasters interpolated from a stack of rasters. For example, the input might represent rasters of a process measured at times t, t + 1, and t + 4. The rasters at t + 2 and t + 3 could be interpolated based on the values in the other rasters.
+This function returns a stack of rasters interpolated from a stack of rasters. For example, the input might represent rasters of a process measured at times t, t + 1, and t + 4. The rasters at t + 2 and t + 3 could be interpolated based on the values in the other rasters. Note that this function can take a lot of time and memory, even for relatively small rasters.
 }
 \details{
 This function can be very memory-intensive for large rasters.  It may speed things up (and make them possible) to do interpolations piece by piece (e.g., instead of interpolating between times t0, t1, t2, t3, ..., interpolate between t0 and t1, then t1 and t2, etc. This may give results that differ from using the entire set, however. Note that using linear and splines will often yield very similar results except that in a small number of cases splines may produce very extreme interpolated values.
 }
 \examples{
-interpFrom <- c(1, 3, 4, 8)
-interpTo <- c(2, 5, 6, 7, 8, 9)
+\donttest{
+interpFrom <- c(1, 3, 4, 8, 10, 11, 15)
+interpTo <- 1:15
 rx <- raster(nrows=10, ncols=10)
-r1 <- setValues(rx, 1:100)
-r3 <- setValues(rx, 100:1)
-r4 <- setValues(rx, 100:1 - 30)
-r8 <- setValues(rx, c(runif(95), rep(NA, 5)))
-rasts <- stack(r1, r3, r4, r8)
+r1 <- setValues(rx, rnorm(100, 1))
+r3 <- setValues(rx, rnorm(100, 3))
+r4 <- setValues(rx, rnorm(100, 5))
+r8 <- setValues(rx, rnorm(100, 11))
+r10 <- setValues(rx, rnorm(100, 3))
+r11 <- setValues(rx, rnorm(100, 5))
+r15 <- setValues(rx, rnorm(100, 13))
+rasts <- stack(r1, r3, r4, r8, r10, r11, r15)
 names(rasts) <- paste0('rasts', interpFrom)
 
 linear <- interpolateRasters(rasts, interpFrom, interpTo)
-linear <- interpolateRasters(rasts, interpFrom, interpTo, rule=2)
-splines <- interpolateRasters(rasts, interpFrom, interpTo, type='spline')
-plot(rasts)
-x11()
-plot(linear)
-x11()
-plot(spline)
+spline <- interpolateRasters(rasts, interpFrom, interpTo, type='spline')
+gam <- interpolateRasters(rasts, interpFrom, interpTo, type='gam', onFail='linear')
+ns <- interpolateRasters(rasts, interpFrom, interpTo, type='ns', onFail='linear', verbose=FALSE)
+poly <- interpolateRasters(rasts, interpFrom, interpTo, type='poly', onFail='linear')
+bs <- interpolateRasters(rasts, interpFrom, interpTo, type='bs', onFail='linear')
+ss <- interpolateRasters(rasts, interpFrom, interpTo, type='smooth.spline', onFail='linear', verbose=FALSE)
+
+# examine trends for a particular point on the landscape
+pts <- rbind(c(-9, 13))
+linearExt <- c(extract(linear, pts))
+splineExt <- c(extract(spline, pts))
+gamExt <- c(extract(gam, pts))
+nsExt <- c(extract(ns, pts))
+polyExt <- c(extract(poly, pts))
+bsExt <- c(extract(bs, pts))
+ssExt <- c(extract(ss, pts))
+
+mins <- min(linearExt, splineExt, gamExt, nsExt, polyExt, bsExt, ssExt)
+maxs <- max(linearExt, splineExt, gamExt, nsExt, polyExt, bsExt, ssExt)
+
+plot(interpTo, linearExt, type='l', lwd=2, ylim=c(mins, maxs), ylab='Value')
+lines(interpTo, splineExt, col='blue')
+lines(interpTo, gamExt, col='green')
+lines(interpTo, nsExt, col='orange')
+lines(interpTo, polyExt, col='gray')
+lines(interpTo, bsExt, col='magenta')
+lines(interpTo, ssExt, col='cyan')
+
+ext <- c(extract(rasts, pts))
+points(interpFrom, ext)
+
+legend('topleft', inset=0.01, lty=c(rep(1, 7), NA),
+legend=c('linear', 'spline', 'GAM', 'NS', 'polynomial', 'B-spline',
+'Smooth spline', 'Observed'), col=c('black', 'blue', 'green',
+'orange', 'gray', 'magenta', 'cyan'), pch=c(rep(NA, 7), 1))
+
+}
 }
 \seealso{
-\code{\link[raster]{approxNA}}, \code{\link[stats]{approxfun}}, \code{\link[stats]{splinefun}}
+\code{\link[raster]{approxNA}}, \code{\link[stats]{approxfun}}, \code{\link[stats]{splinefun}}, \code{\link{trainNs}}, \code{\link{glm}}, , \code{\link[splines]{bs}}, \code{\link{smooth.spline}}.
 }
