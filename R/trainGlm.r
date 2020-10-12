@@ -6,6 +6,7 @@
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param family Name of family for data error structure (see \code{\link[stats]{family}}). Default is to use the 'binomial' family.
 #' @param tooBig Numeric. Used to catch errors when fitting a model fit with the \code{brglmFit} function in the \pkg{brglm2} package. In some cases fitted coefficients are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.
+#' @param anyway Logical. If \code{FALSE} (default), then during model construction, if no univariate models have valid coefficients (< \code{tooBog}), then do not proceed and return \code{NULL}. If \code{TRUE}, then proceed with instable models (with a warning), but if teh final "best" model has unstable coefficients, then return \code{NULL} for the best model.
 #' @param construct Logical. If \code{TRUE} (default) then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic} and \code{interaction}.
 #' @param select Logical. If \code{TRUE} (default) then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).
 #' @param quadratic Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} (default) then include quadratic terms in model construction stage for non-factor predictors.
@@ -98,6 +99,7 @@ trainGlm <- function(
 	preds = names(data)[2:ncol(data)],
 	family = 'binomial',
 	tooBig = 10E6,
+	anyway = FALSE,
 	construct = TRUE,
 	select = TRUE,
 	quadratic = TRUE,
@@ -156,6 +158,8 @@ trainGlm <- function(
 
 	if (construct) {
 
+		tuning <- data.frame()
+
 		## UNIVARIATE terms
 		for (thisPred in preds) { # for each predictor test single-variable terms
 
@@ -167,22 +171,23 @@ trainGlm <- function(
 			thisAic <- AIC(thisModel)
 			k <- length(thisModel$coefficients)
 
-			thisAic <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
+			aicc <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 			# remember if coefficients were stable
 			if (all(!is.na(stats::coef(thisModel)))) {
 				if (all(abs(stats::coef(thisModel)) < tooBig)) {
 
-					tuning <- if (exists('tuning', inherits=FALSE)) {
-						rbind(tuning, data.frame(type='linear', term=thisPred, AICc=thisAic, terms=1))
-					} else {
-						data.frame(type='linear', term=thisPred, AICc=thisAic, terms=1)
-					}
-
+					tuning <- rbind(tuning, data.frame(type='linear', term=thisPred, aicc=aicc, terms=1))
+					
 				}
 			}
 
 		} # next single-variable term
+		
+		if (nrow(tuning) == 0 & !anyway) {
+			warning('No univariate models were stable (at least one covariate > "tooBig").')
+			return(NULL)
+		}
 
 		## QUADRATIC terms
 		# if there are more than desired number of presences per term and initial model can have more than 1 term
@@ -202,12 +207,12 @@ trainGlm <- function(
 					thisAic <- AIC(thisModel)
 					k <- length(thisModel$coefficients)
 
-					thisAic <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
+					aicc <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 					# remember if coefficients were stable
 					if (all(!is.na(coef(thisModel)))) {
-						if (all(abs(coef(thisModel)) < tooBig)) {
-							tuning <- rbind(tuning, data.frame(type='quadratic', term=term, AICc=thisAic, terms=2))
+						if (all(abs(coef(thisModel)) < tooBig | anyway)) {
+							tuning <- rbind(tuning, data.frame(type='quadratic', term=term, aicc=aicc, terms=2))
 						}
 					}
 
@@ -235,12 +240,12 @@ trainGlm <- function(
 					# thisAic <- AIC(thisModel)
 					# k <- length(thisModel$coefficients)
 
-					# thisAic <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
+					# aicc <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 					# # remember if coefficients were stable
 					# if (all(!is.na(coef(thisModel)))) {
-						# if (all(abs(coef(thisModel)) < tooBig)) {
-							# tuning <- rbind(tuning, data.frame(type='cubic', term=term, AICc=thisAic, terms=3))
+						# if (all(abs(coef(thisModel)) < tooBig | anyway)) {
+							# tuning <- rbind(tuning, data.frame(type='cubic', term=term, aicc=aicc, terms=3))
 						# }
 					# }
 
@@ -271,12 +276,12 @@ trainGlm <- function(
 					thisAic <- AIC(thisModel)
 					k <- length(thisModel$coefficients)
 
-					thisAic <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
+					aicc <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 					# remember if coefficients were stable
 					if (all(!is.na(coef(thisModel)))) {
-						if (all(abs(coef(thisModel)) < tooBig)) {
-							tuning <- rbind(tuning, data.frame(type='interaction', term=term, AICc=thisAic, terms=3))
+						if (all(abs(coef(thisModel)) < tooBig | anyway)) {
+							tuning <- rbind(tuning, data.frame(type='interaction', term=term, aicc=aicc, terms=3))
 						}
 					}
 
@@ -305,7 +310,7 @@ trainGlm <- function(
 						# # train model
 						# thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
-						# # get AICc
+						# # get aicc
 						# thisAic <- AIC(thisModel)
 						# k <- length(thisModel$coefficients)
 
@@ -313,7 +318,7 @@ trainGlm <- function(
 
 						# # remember if coefficients were stable
 						# if (all(!is.na(coef(thisModel)))) {
-							# if (all(abs(coef(thisModel)) < tooBig)) {
+							# if (all(abs(coef(thisModel)) < tooBig | anyway)) {
 								# tuning <- rbind(tuning, data.frame(type='interaction-quadratic', term=term, AICc=thisAic, terms=4))
 							# }
 						# }
@@ -327,7 +332,7 @@ trainGlm <- function(
 		# } # if there are more than desired number of presences per term and initial model can have more than 1 term
 
 		# sort by AIC
-		tuning <- tuning[order(tuning$AIC, tuning$terms), ]
+		tuning <<- tuning[order(tuning$aicc), ]
 
 		if (verbose) {
 			omnibus::say('GLM construction results for each term tested:');
@@ -339,6 +344,7 @@ trainGlm <- function(
 		####################################################
 
 		## construct final model
+		tuning <<- tuning
 		form <- paste0(resp, ' ~ 1 + ', tuning$term[1]) # add first term
 
 		numTerms <- length(colnames(attr(terms(as.formula(form)), 'factors')))
@@ -457,6 +463,7 @@ trainGlm <- function(
 
 			form <- as.formula(forms[[i]])
 
+			# models[[i]] <- glm(form, family=family, data=data, weights=w, method=method)
 			models[[i]] <- glm(form, family=family, data=data, weights=w, method=method, ...)
 			ll <- logLik(models[[i]])
 			aicc <- MuMIn::AICc(models[[i]])
@@ -487,11 +494,18 @@ trainGlm <- function(
 		if ('model' %in% out) {
 
 			model <- models[[1]]
+			
+			if (all(abs(stats::coef(model)) < tooBig)) {
 
-			if (verbose) {
-				omnibus::say('Final model:', pre=1);
-				print(summary(model))
-				omnibus::say('')
+				if (verbose) {
+					omnibus::say('Final model:', pre=1);
+					print(summary(model))
+					omnibus::say('')
+				}
+				
+			} else {
+				warning('The best model had unstable coefficients (> "tooBig").', immediate=.TRUE)
+				model <- NULL
 			}
 
 		}

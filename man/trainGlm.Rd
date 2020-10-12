@@ -10,6 +10,7 @@ trainGlm(
   preds = names(data)[2:ncol(data)],
   family = "binomial",
   tooBig = 1e+07,
+  anyway = FALSE,
   construct = TRUE,
   select = TRUE,
   quadratic = TRUE,
@@ -36,6 +37,8 @@ trainGlm(
 \item{family}{Name of family for data error structure (see \code{\link[stats]{family}}). Default is to use the 'binomial' family.}
 
 \item{tooBig}{Numeric. Used to catch errors when fitting a model fit with the \code{brglmFit} function in the \pkg{brglm2} package. In some cases fitted coefficients are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.}
+
+\item{anyway}{Logical. If \code{FALSE} (default), then during model construction, if no univariate models have valid coefficients (< \code{tooBog}), then do not proceed and return \code{NULL}. If \code{TRUE}, then proceed with instable models (with a warning), but if teh final "best" model has unstable coefficients, then return \code{NULL} for the best model.}
 
 \item{construct}{Logical. If \code{TRUE} (default) then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic} and \code{interaction}.}
 

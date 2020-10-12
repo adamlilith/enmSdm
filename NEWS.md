@@ -1,3 +1,6 @@
+enmSdm 0.5.2.8 2020-10-12
+trainGlm() now catches cases when no viable models are returned.
+
 enmSdm 0.5.2.7 2020-10-05
 Added new methods and a fail-safe to interpolateRasters()
 
