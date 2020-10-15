@@ -18,6 +18,7 @@
 #'	\item If \code{x} is a \code{RasterStack} or \code{RasterBrick} then this is ignored (latitude is obtained directly from the rasters, which \emph{must} be in equal-area projection for velocities to be valid).
 #'	\item If \code{x} is an array and \code{latitude} is \code{NULL} (default), then latitude will be obtained from row numbers in \code{x} and velocities will be in arbitrary spatial units (versus, for example, meters). Alternatively, this can be a two-dimensional matrix whose elements represent the latitude coordinates of the centers of cells of \code{x}. The matrix must have the same number of rows and columns as \code{x}. Coordinates must be from an equal-area projection for results to be valid.
 #' }
+#' @param elevation Either \code{NULL} (default) or a raster or matrix representing elevation. If this is supplied, eleational change in range centroid is calculated (no need to specify this in \code{metrics}).
 #' @param metrics Biotic velocity metrics to calculate (default is to calculate them all). All metrics ignore \code{NA} cells in \code{x}. Here "starting time period" represents one layer in \code{x} and "end time period" the next layer.
 #' \itemize{
 #' 	\item \code{centroid}: Movement of mass-weighted centroid.
@@ -29,6 +30,8 @@
 #'  \item \code{quants}: \emph{N}th quantile values across all cells (this is not really a measure of "velocity"). Quantiles are given by \code{quants}.
 #'  \item \code{prevalence}: Number of cells with values > 0 (this is not really a measure of "velocity").
 #'  \item \code{similarity}: Several metrics of similarity between each time period. Some of these make sense for cases where values in \code{x} are in the range [0, 1], but not if some values are outside this range. The metrics are the simple mean difference, mean absolute difference, the Expected Fraction of Shared Presences or ESP (Godsoe 2014), the D statistic (Schoener 1968), and I (Warren et al. 2008). The last three metrics have been modified from their original versions by dividing the values by the total number of cells (see \emph{Details}) so they fall in the range [0, 1] provided that cell values are in the range [0, 1] or \code{NA}.
+#'  \item \code{elevCentroid}: Velocity of the centroid of mass in elevation (up or down). Note that this metric is not calculated unless \code{elevation} is supplied.
+#' 	\item \code{elevQuants}: Velocity of the emph{n}th quantile of mass in elevation (up or down). The quantiles to be evaluated are given by \code{quants}. The lowest elevation with mass >0 is the 0th quantile, and the highest elevation with mass >0 is the 100th. Note that this metric is not calculated unless \code{elevation} is supplied.
 #' }
 #' @param quants Numeric vector indicating the quantiles at which biotic velocity is calculated for the "\code{quant}" and "\code{Quants}" metrics. Default is \code{c(0.05, 0.10, 0.5, 0.9, 0.95)}.
 #' @param onlyInSharedCells Logical, if \code{TRUE}, calculate biotic velocity using only those cells that are not \code{NA} in the start and end of each time period. This is useful for controlling for shifting land mass due to sea level rise, for example, when calculating biotic velocity for an ecosystem or a species. The default is \code{FALSE}.
@@ -53,6 +56,8 @@
 #' 	\item If \code{metrics} contains \code{quants}: A column named \code{quantile_quantN} -- The \emph{N}th quantile(s) of weight in the "timeTo" time step. In the same units as the values of the cells.
 #' 	\item If \code{metrics} contains \code{prevalence}: A column named \code{prevalence} -- Proportion of non-\code{NA} cells with weight >0 in the "timeTo" time step. Unitless.
 #' 	\item If \code{metrics} contains \code{similarity}: Columns named \code{simpleMeanDiff}, \code{meanAbsDiff}, \code{godsoeEsp}, \code{schoenersD}, and \code{warrensI} -- Measures of similarity (see \emph{Details}).
+#' 	\item If \code{metrics} contains \code{elevCentroid}: Columns named \code{elevCentroidVelocity} and \code{elevCentroidElev} -- Velocity of the centroid in elevation (up or down) and the elevation in the "to" timestep. Velocity is signed (positive means up, negative means down).
+#' 	\item If \code{metrics} contains \code{elevQuants}: Columns named \code{elevQuantVelocity_quantN} and \code{elevQuantVelocityElev_quantN} -- Velocity of the \emph{N}th quantile of mass in elevation (up or down) and the elevation of this quantile in the "to" timestep. Velocity is signed (positive means up, negative means down).
 #' }
 #' @details
 #' \emph{Attention:}  
@@ -427,6 +432,7 @@ bioticVelocity <- function(
 	atTimes = NULL,
 	longitude = NULL,
 	latitude = NULL,
+	elevation = NULL,
 	metrics = c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentroid', 'eCentroid', 'wCentroid', 'nsQuants', 'ewQuants', 'mean', 'sum', 'quants', 'prevalence', 'similarity'),
 	quants = c(0.05, 0.10, 0.5, 0.9, 0.95),
 	onlyInSharedCells = FALSE,
@@ -464,7 +470,21 @@ bioticVelocity <- function(
 	################
 		
 		if (length(times) != totalTimes) stop('The length of "times" does not match the total number of time periods represented by "x".')
-		if (!all(atTimes %in% times)) stop ('All time slices specified in "atTimes" must also appear in "times".')
+		if (!all(atTimes %in% times)) stop('All time slices specified in "atTimes" must also appear in "times".')
+		if (is.null(elevation) & ('elevCentroid' %in% metrics | 'elevQuants' %in% metrics)) {
+			
+			if (warn) warning('If argument "metrics" includes "elevCentroid" and/or "elevQuants",\nthen argument "elevation" must be non-NULL. These metrics will not\nbe calculated.')
+			
+			if (any('elevCentroid' == metrics)) metrics <- metrics[-which(metrics == 'elevCentroid')]
+			if (any('elevQuants' == metrics)) metrics <- metrics[-which(metrics == 'elevQuants')]
+			
+		}
+		
+		doingElev <- if (!is.null(elevation) & ('elevCentroid' %in% metrics | 'elevQuants' %in% metrics)) {
+			TRUE
+		} else {
+			FALSE
+		}
 
 	### convert input to array and get geographic information
 	#########################################################
@@ -509,15 +529,22 @@ bioticVelocity <- function(
 			x <- raster::brick(x, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
 			longitude <- raster::raster(longitude, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
 			latitude <- raster::raster(latitude, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
+			
+			if (doingElev) {
+				if ('matrix' %in% class(elevation)) {
+					elevation <- raster(elevation, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
+				}
+			}
 				
 		}
 		
-		if (any(raster::minValue(x) < 0, na.rm=TRUE) & warn) warning('Negative values appear in "x". Output may be unreliable or undesirable.')
+		# if (any(raster::minValue(x) < 0, na.rm=TRUE) & warn) warning('Negative values appear in "x". Output may be unreliable or undesirable.')
 			
 	### calculate weighted longitude and latitudes for starting time period
 	#######################################################################
 
 		x1 <- x[[1]]
+		if (doingElev) elev <- elevation
 
 		# correction for shared non-NA cells with next time period
 		if (onlyInSharedCells) {
@@ -527,6 +554,8 @@ bioticVelocity <- function(
 			x2mask <- x2 * 0 + 1
 			x1x2mask <- x1mask * x2mask
 			x1 <- x1 * x1x2mask
+			
+			if (doingElev) elev <- elev * x1x2mask
 			
 		}
 			
@@ -544,6 +573,8 @@ bioticVelocity <- function(
 			
 		}
 		
+		### pre-calculations
+		
 		# for faster reference in the ."interpolateLongFromMatrix" and ".interpolateLatFromMatrix" functions
 		if (any(c('nsQuants') %in% metrics)) {
 			latVect <- rev(latitude[ , 1])
@@ -551,6 +582,8 @@ bioticVelocity <- function(
 		if (any(c('ewQuants') %in% metrics)) {
 			longVect <- longitude[1, ]
 		}
+		
+		if (doingElev) elevVect <- raster::getValues(elev)
 		
 	### calculate velocities
 	########################
@@ -563,6 +596,11 @@ bioticVelocity <- function(
 		### by each time period
 		for (indexFrom in indicesFrom) {
 		
+			### get start time/end period layers and correct for shared non-NA cells
+			x1 <- x[[indexFrom]]
+			x2 <- x[[indexFrom + 1]]
+			if (doingElev) elev <- elevation
+
 			### time
 			timeFrom <- atTimes[indexFrom]
 			timeTo <- atTimes[indexFrom + 1]
@@ -575,10 +613,6 @@ bioticVelocity <- function(
 				timeSpan = timeSpan
 			)
 
-			### get start time/end period layers and correct for shared non-NA cells
-			x1 <- x[[indexFrom]]
-			x2 <- x[[indexFrom + 1]]
-
 			# correction for shared non-NA cells with next time period
 			if (onlyInSharedCells) {
 			
@@ -589,6 +623,8 @@ bioticVelocity <- function(
 				x1 <- x1 * x1x2mask
 				x2 <- x2 * x1x2mask
 						
+				if (doingElev) elev <- elev * x1x2mask
+
 			}
 			
 			# statistics about cells
@@ -629,7 +665,7 @@ bioticVelocity <- function(
 				x2centroidLat <- cellStats(x2weightedLats, 'sum') / x2sum
 				
 			}
-
+			
 			### weighted centroid metric
 			if ('centroid' %in% metrics) {
 
@@ -870,6 +906,95 @@ bioticVelocity <- function(
 				}
 				
 			}
+
+			# elevational centroid
+			if ('elevCentroid' %in% metrics & doingElev) {
+
+				### sum of x1 and of x2 if doing elevational metrics
+				if (!exists('x1sum', inherits=FALSE) | !exists('x2sum', inherits=FALSE)) {
+					x1sum <- cellStats(x1, 'sum')
+					x2sum <- cellStats(x2, 'sum')
+				}
+
+				elevCentroid_timeFrom <- cellStats(elev * x1, 'sum') / x1sum
+				elevCentroid_timeTo <- cellStats(elev * x2, 'sum') / x2sum
+				
+				metric <- elevCentroid_timeTo - elevCentroid_timeFrom
+				metricRate <- metric / timeSpan
+				
+				thisOut <- cbind(
+					thisOut,
+					data.frame(
+						elevCentroidVelocity = metricRate,
+						elevCentroidElev = elevCentroid_timeTo
+					),
+					row.names=NULL
+				)
+				
+			}
+
+			
+			# elevational quantiles
+			if ('elevQuants' %in% metrics & doingElev) {
+
+				# match location of quantiles
+				for (countQuant in seq_along(quants)) {
+
+					thisQuant <- quants[countQuant]
+					
+					# weighted elevations
+					weightedElevFrom <- elevVect * c(raster::as.matrix(x1))
+					weightedElevTo <- elevVect * c(raster::as.matrix(x2))
+					
+					# quantile
+					weightedElevQuantFrom <- quantile(weightedElevFrom, thisQuant, na.rm=TRUE)
+					weightedElevQuantTo <- quantile(weightedElevTo, thisQuant, na.rm=TRUE)
+					
+					# sort weighted elevations and elevations by this same order (necessary for "bracket()" function)
+					weightedElevFromOrder <- order(weightedElevFrom)
+					weightedElevToOrder <- order(weightedElevTo)
+					
+					weightedElevFrom <- weightedElevFrom[weightedElevFromOrder]
+					weightedElevTo <- weightedElevTo[weightedElevToOrder]
+					
+					elevVectFromOrdered <- elevVect[weightedElevFromOrder]
+					elevVectToOrdered <- elevVect[weightedElevToOrder]
+					
+					# find index of elevation(s) closest to this quantile value
+					elevQuantIndexFrom <- omnibus::bracket(weightedElevQuantFrom, by=weightedElevFrom, index=TRUE, warn=FALSE)
+					elevQuantIndexTo <- omnibus::bracket(weightedElevQuantTo, by=weightedElevTo, index=TRUE, warn=FALSE)
+					
+					# get the elevations
+					if (length(elevQuantIndexFrom) == 1) {
+						elevFrom <- elevVectFromOrdered[elevQuantIndexFrom]
+					} else {
+						elevFrom <- thisQuant * elevVectFromOrdered[elevQuantIndexFrom[1]] + (1 - thisQuant) * elevVectFromOrdered[elevQuantIndexFrom[2]]
+					}
+					
+					if (length(elevQuantIndexTo) == 1) {
+						elevTo <- elevVectToOrdered[elevQuantIndexTo]
+					} else {
+						elevTo <- thisQuant * elevVectToOrdered[elevQuantIndexTo[1]] + (1 - thisQuant) * elevVectToOrdered[elevQuantIndexTo[2]]
+					}
+					
+					metric <- elevTo - elevFrom
+					metricRate <- metric / timeSpan
+					
+					# remember
+					thisQuantOut <- data.frame(
+						elevQuantVelocity = metricRate,
+						elevQuantElev = elevTo
+					)
+					
+					quantCharacter <- gsub(quants[countQuant], pattern='[.]', replacement='p')
+					names(thisQuantOut) <- paste0(names(thisQuantOut), '_quant', quantCharacter)
+					
+					thisOut <- cbind(thisOut, thisQuantOut, row.names=NULL)
+				
+				}
+				
+			}
+
 			
 			### mean abundance
 			if ('mean' %in% metrics) {
