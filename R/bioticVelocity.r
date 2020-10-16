@@ -1261,8 +1261,22 @@ bioticVelocity <- function(
 
 	# standardized, cumulative sums of rows starting at bottom of matrix
 	xRowSum <- raster::rowSums(x, na.rm=TRUE)
-
 	xRowSum <- rev(xRowSum)
+
+	if (!is.null(x1weightedElev)) {
+		x1weightedElevVect <- raster::rowSums(x1weightedElevVect)
+		x2weightedElevVect <- rev(x2weightedElevVect)
+		x1elevVect <- x1weightedElevVect / xRowSum
+		x1elevVect <- c(0, x1elevVect)
+	}
+
+	if (!is.null(x2weightedElev)) {
+		x2weightedElevVect <- raster::rowSums(x2weightedElevVect)
+		x2weightedElevVect <- rev(x2weightedElevVect)
+		x2elevVect <- x2weightedElevVect / xRowSum
+		x2elevVect <- c(0, x2elevVect)
+	}
+
 	xRowSum <- c(0, xRowSum)
 	xRowCumSum <- cumsum(xRowSum)
 	xRowCumSumStd <- xRowCumSum / max(xRowCumSum)
