@@ -306,17 +306,15 @@ plot(matsRast)
 	latitude=lats, longitude=longs, cores=2))
 	
 
-#' ### very long test
-#' mats <- array(runif(100 * 100 * 1000), dim=c(100, 100, 1000))
-#' 
-#' mats <- brick(mats)
-#' projection(mats) <- getCRS('wgs84')
-#' 
-#' times=1:1000
-#' atTimes=1:1000
-#' 
-#' ll <- longLatRasters(mats)
-#' longitude <- ll[['longitude']]
-#' latitude <- ll[['latitude']]
-#' 
-#' (bioticVelocityMulti(x=mats, metrics='centroid', cores=4))
+### very long test
+mats <- array(runif(100 * 100 * 1000), dim=c(100, 100, 500))
+
+mats <- brick(mats)
+projection(mats) <- getCRS('wgs84')
+
+source('E:/Ecology/Drive/R/enmSdm/R/bioticVelocity.r')
+tic()
+mc <- bioticVelocity(x=mats, cores=4)
+toc()
+
+

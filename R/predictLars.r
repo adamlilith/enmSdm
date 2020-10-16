@@ -166,8 +166,8 @@ predictLars <- function(
 		out <- as.numeric(newdata %*% betas)
 	}
 
-	if (!is.null(out) && type == 'response' && object$fit$family == 'binomial') out <- statisfactory::probitAdj(out, 0)
-
+	if (!is.null(out) && type == 'response' && object$fit$family == 'binomial') out <- statisfactory::invLogitAdj(out, 0)
+1
 	out
 
 }

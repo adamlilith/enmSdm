@@ -354,19 +354,12 @@
 #' 
 #' \donttest{
 #' ### multi-core
-#' mats <- array(runif(100 * 100 * 1000), dim=c(100, 100, 1000))
+#' mats <- array(runif(100 * 100 * 1000), dim=c(100, 100, 500))
 #' 
 #' mats <- brick(mats)
 #' projection(mats) <- getCRS('wgs84')
 #' 
-#' times=1:1000
-#' atTimes=1:1000
-#' 
-#' ll <- longLatRasters(mats)
-#' longitude <- ll[['longitude']]
-#' latitude <- ll[['latitude']]
-#' 
-#' (bioticVelocityMulti(x=mats, metrics='centroid', cores=4))
+#' mc <- bioticVelocity(x=mats, metrics='centroid', cores=4)
 #' }
 #' 
 #' @export
@@ -430,8 +423,6 @@ bioticVelocity <- function(
 			
 		}
 		
-		doingElev <- (!is.null(elevation) & ('elevCentroid' %in% metrics | 'elevQuants' %in% metrics))
-		
 	### convert input to array and get geographic information
 	#########################################################
 
@@ -476,7 +467,7 @@ bioticVelocity <- function(
 			longitude <- raster::raster(longitude, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
 			latitude <- raster::raster(latitude, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
 			
-			if (doingElev) {
+			if (!is.null(elevation)) {
 				if ('matrix' %in% class(elevation)) {
 					elevation <- raster(elevation, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
 				}
@@ -490,7 +481,7 @@ bioticVelocity <- function(
 	#######################################################################
 
 		# x1 <- x[[1]]
-		# if (doingElev) elev <- elevation
+		# if (!is.null(elevation)) elev <- elevation
 
 		# # correction for shared non-NA cells with next time period
 		# if (onlyInSharedCells) {
@@ -501,7 +492,7 @@ bioticVelocity <- function(
 			# x1x2mask <- x1mask * x2mask
 			# x1 <- x1 * x1x2mask
 			
-			# if (doingElev) elev <- elev * x1x2mask
+			# if (!is.null(elevation)) elev <- elev * x1x2mask
 			
 		# }
 			
@@ -529,11 +520,13 @@ bioticVelocity <- function(
 			longVect <- longitude[1, ]
 		}
 		
-		if (doingElev) elevVect <- raster::getValues(elev)
+		if (!is.null(elevation) & ('elevCentroid' %in% metric | 'elevQuants' %in% metric)) elevVect <- raster::getValues(elev)
 		
 	### calculate velocities
 	########################
 	
+		if (cores > 1) cores <- min(cores, parallel::detectCores())
+		
 		### multi-core
 		##############
 
@@ -580,7 +573,7 @@ bioticVelocity <- function(
 				.inorder=FALSE,
 				.export=export,
 				.packages = c('raster'),
-				.verbose=TRUE) %makeWork%
+				.verbose=FALSE) %makeWork%
 				bioticVelocity(
 					x = raster::subset(x, repIndicesFrom[[i]]),
 					times = repAtTimes[[i]],
@@ -616,7 +609,7 @@ bioticVelocity <- function(
 				### get start time/end period layers and correct for shared non-NA cells
 				x1 <- x[[indexFrom]]
 				x2 <- x[[indexFrom + 1]]
-				if (doingElev) elev <- elevation
+				if (!is.null(elevation)) elev <- elevation
 
 				### time
 				timeFrom <- atTimes[indexFrom]
@@ -640,7 +633,7 @@ bioticVelocity <- function(
 					x1 <- x1 * x1x2mask
 					x2 <- x2 * x1x2mask
 							
-					if (doingElev) elev <- elev * x1x2mask
+					if (!is.null(elevation)) elev <- elev * x1x2mask
 
 				}
 				
@@ -671,7 +664,7 @@ bioticVelocity <- function(
 
 					x2weightedLongs <- longitude * x2
 					x2weightedLats <- latitude * x2
-
+					
 					# centroid
 					x1sum <- cellStats(x1, 'sum')
 					x1centroidLong <- cellStats(x1weightedLongs, 'sum') / x1sum
@@ -681,12 +674,24 @@ bioticVelocity <- function(
 					x2centroidLong <- cellStats(x2weightedLongs, 'sum') / x2sum
 					x2centroidLat <- cellStats(x2weightedLats, 'sum') / x2sum
 					
+					if (!is.null(elevation)) {
+
+						x1weightedElev <- elev * x1
+						x2weightedElev <- elev * x2
+						
+						x1elev <- x1weightedElev / x1sum
+						x2elev <- x2weightedElev / x2sum
+						
+					} else {
+						x1elev <- x2elev <- 0
+					}
+
 				}
 				
 				### weighted centroid metric
 				if ('centroid' %in% metrics) {
 
-					metric <- .euclid(x1centroidLong, x1centroidLat, x2centroidLong, x2centroidLat)
+					metric <- .euclid(c(x1centroidLong, x1centroidLat, x1elev), c(x2centroidLong, x2centroidLat, x2elev))
 					metricRate <- metric / timeSpan
 					
 					thisOut <- cbind(
@@ -706,6 +711,7 @@ bioticVelocity <- function(
 
 					cardOut <- .cardinalDistance(
 						direction='n',
+						longOrLat=latitude,
 						x1=x1,
 						x2=x2,
 						refLong=x1centroidLong,
@@ -714,7 +720,8 @@ bioticVelocity <- function(
 						x1weightedLats=x1weightedLats,
 						x2weightedLongs=x2weightedLongs,
 						x2weightedLats=x2weightedLats,
-						longOrLat=latitude
+						x1weightedElev=x1weightedElev,
+						x2weightedElev=x2weightedElev
 					)
 
 					metric <- cardOut$distance
@@ -738,6 +745,7 @@ bioticVelocity <- function(
 
 					cardOut <- .cardinalDistance(
 						direction='s',
+						longOrLat=latitude,
 						x1=x1,
 						x2=x2,
 						refLong=x1centroidLong,
@@ -746,7 +754,8 @@ bioticVelocity <- function(
 						x1weightedLats=x1weightedLats,
 						x2weightedLongs=x2weightedLongs,
 						x2weightedLats=x2weightedLats,
-						longOrLat=latitude
+						x1weightedElev=x1weightedElev,
+						x2weightedElev=x2weightedElev
 					)
 
 					metric <- cardOut$distance
@@ -770,6 +779,7 @@ bioticVelocity <- function(
 
 					cardOut <- .cardinalDistance(
 						direction='e',
+						longOrLat=longitude,
 						x1=x1,
 						x2=x2,
 						refLong=x1centroidLong,
@@ -778,7 +788,8 @@ bioticVelocity <- function(
 						x1weightedLats=x1weightedLats,
 						x2weightedLongs=x2weightedLongs,
 						x2weightedLats=x2weightedLats,
-						longOrLat=longitude
+						x1weightedElev=x1weightedElev,
+						x2weightedElev=x2weightedElev
 					)
 
 					metric <- cardOut$distance
@@ -802,6 +813,7 @@ bioticVelocity <- function(
 
 					cardOut <- .cardinalDistance(
 						direction='w',
+						longOrLat=longitude,
 						x1=x1,
 						x2=x2,
 						refLong=x1centroidLong,
@@ -810,7 +822,8 @@ bioticVelocity <- function(
 						x1weightedLats=x1weightedLats,
 						x2weightedLongs=x2weightedLongs,
 						x2weightedLats=x2weightedLats,
-						longOrLat=longitude
+						x1weightedElev=x1weightedElev,
+						x2weightedElev=x2weightedElev
 					)
 
 					metric <- cardOut$distance
@@ -832,8 +845,9 @@ bioticVelocity <- function(
 				### weighted north/south velocity
 				if ('nsCentroid' %in% metrics) {
 				
-					metric <- .euclid(x2centroidLat, x1centroidLat)
-					metricRate <- metric / timeSpan ### metricRate <- -1 * metric / timeSpan
+					metricSgn <- sign(x2centroidLat - x1centroidLat)
+					metric <- .euclid(c(x2centroidLat, x2elev), c(x1centroidLat, x1elev))
+					metricRate <- metricSgn * metric / timeSpan
 					
 					thisOut <- cbind(
 						thisOut,
@@ -849,8 +863,9 @@ bioticVelocity <- function(
 				### weighted east/west velocity
 				if ('ewCentroid' %in% metrics) {
 				
-					metric <- .euclid(x2centroidLong, x1centroidLong)
-					metricRate <- metric / timeSpan
+					metricSgn <- sign(x2centroidLong - x1centroidLong)
+					metric <- .euclid(c(x2centroidLong, x2elev), c(x1centroidLong, x1elev))
+					metricRate <- metricSgn * metric / timeSpan
 					
 					thisOut <- cbind(
 						thisOut,
@@ -876,7 +891,7 @@ bioticVelocity <- function(
 						x1lat <- .interpolateLatFromMatrix(prob=thisQuant, x=x1, latVect=latVect)
 						x2lat <- .interpolateLatFromMatrix(prob=thisQuant, x=x2, latVect=latVect)
 
-						metric <- .euclid(x2lat, x1lat)
+						metric <- x2lat - x1lat
 						metricRate <- metric / timeSpan
 						
 						# remember
@@ -906,7 +921,7 @@ bioticVelocity <- function(
 						x1long <- .interpolateLongFromMatrix(prob=thisQuant, x=x1, longVect=longVect)
 						x2long <- .interpolateLongFromMatrix(prob=thisQuant, x=x2, longVect=longVect)
 						
-						metric <- .euclid(x2long, x1long)
+						metric <- x2long - x1long
 						metricRate <- metric / timeSpan
 						
 						# remember
@@ -925,7 +940,7 @@ bioticVelocity <- function(
 				}
 
 				# elevational centroid
-				if ('elevCentroid' %in% metrics & doingElev) {
+				if ('elevCentroid' %in% metrics) {
 
 					### sum of x1 and of x2 if doing elevational metrics
 					if (!exists('x1sum', inherits=FALSE) | !exists('x2sum', inherits=FALSE)) {
@@ -952,7 +967,7 @@ bioticVelocity <- function(
 
 				
 				# elevational quantiles
-				if ('elevQuants' %in% metrics & doingElev) {
+				if ('elevQuants' %in% metrics) {
 
 					# match location of quantiles
 					for (countQuant in seq_along(quants)) {
@@ -1123,49 +1138,46 @@ bioticVelocity <- function(
 #' Euclidean distance between a pair of points
 #'
 #' Euclidean distance between a pair of points or two points. Note that the output is unsigned if \code{x2} and \code{y2} are provided, but signed if not.
-#' @param x1 Numeric
-#' @param y1 Numeric
-#' @param x2 Numeric
-#' @param y2 Numeric
-#' @details If \code{x2} and \code{y2} are \code{NULL} then the output is simply \code{x1 - y2}.
+#' @param a Numeric vector from 1 to 3 elements long
+#' @param b Numeric vector from 1 to 3 elements long
 #' @keywords internal
-.euclid <- compiler::cmpfun(function(x1, y1, x2=NULL, y2=NULL) {
+.euclid <- compiler::cmpfun(function(a, b) {
 
-	if (is.null(x2) & is.null(y2)) {
-		x1 - y1
-	} else if (!is.null(x2) & !is.null(y2)) {
-		sqrt((x1 - x2)^2 + (y1 - y2)^2)
-	} else {
-		stop('Please specify arguments "x1" and "x2" OR "x1", "x2", "y1", and "y2".')
-	}
+	if (length(a) != length(b)) stop('Length of "a" must be same as length of "b".')
+	sqrt(sum((a - b)^2))
 	
 })
 
 #' Movement of occupied cells in a given direction of a fixed point
 #' 
-#' This function calculates the weighted distance moved by a mass represented by set of cells which fall north, south, east, or west of a given location (i.e., typically the centroid of the starting population). Values >0 confer movement to the north, south, east, or west of this location. #' @param direction Any of: \code{'n'} (north), \code{'s'} (south), \code{'e'} (east), or \code{'w'} (west).
-#' @param refLong Numeric, longitude of reference point from which to partition the weights into a northern, southern, eastern, or western portion.
-#' @param refLat Numeric, latitude of reference point.
+#' This function calculates the weighted distance moved by a mass represented by set of cells which fall north, south, east, or west of a given location (i.e., typically the centroid of the starting population). Values >0 confer movement to the north, south, east, or west of this location.
+#' @param direction Any of: \code{'n'} (north), \code{'s'} (south), \code{'e'} (east), or \code{'w'} (west).
+#' @param longOrLat Numeric matrix, latitude or longitudes. If \code{direction} is \code{'n'} or \code{'s'} this must be latitudes. If \code{direction} is \code{'e'} or \code{'w'} this must be longitudes.
 #' @param x1 Matrix of weights in time 1 (i.e., population size).
 #' @param x2 Matrix of weights in time 2 (i.e., population size).
+#' @param refLong Numeric, longitude of reference point from which to partition the weights into a northern, southern, eastern, or western portion.
+#' @param refLat Numeric, latitude of reference point.
 #' @param x1weightedLongs Matrix of longitudes weighted (i.e., by population size, given by \code{x1}).
 #' @param x1weightedLats Matrix of latitudes weighted (i.e., by population size, given by \code{x1}).
 #' @param x2weightedLongs Matrix of longitudes weighted (i.e., by population size, given by \code{x2}).
 #' @param x2weightedLats Matrix of latitudes weighted (i.e., by population size, given by \code{x2}).
-#' @param longOrLat Numeric matrix, latitude or longitudes. If \code{direction} is \code{'n'} or \code{'s'} this must be latitudes. If \code{direction} is \code{'e'} or \code{'w'} this must be longitudes.
+#' @param x1weightedElev Matrix of elevations weighted by x1 or \code{NULL}.
+#' @param x2weightedElev Matrix of elevations weighted by x2 or \code{NULL}.
 #' @return a list object with distance moved and abundance of all cells north/south/east/west of reference point.
 #' @keywords internal
 .cardinalDistance <- function(
 	direction,
-	refLong,
-	refLat,
+	longOrLat,
 	x1,
 	x2,
+	refLong,
+	refLat,
 	x1weightedLongs,
 	x1weightedLats,
 	x2weightedLongs,
 	x2weightedLats,
-	longOrLat
+	x1weightedElev = NULL,
+	x2weightedElev = NULL
 ) {
 
 	# mask out cells north/south/east/west of or at starting centroid
@@ -1178,15 +1190,9 @@ bioticVelocity <- function(
 	} else if (direction == 'w') {
 		longOrLat < refLong
 	}
-	
-	x1censored <- x1 * maskCells
-	x1weightedLongsCensored <- x1weightedLongs * maskCells
-	x1weightedLatsCensored <- x1weightedLats * maskCells
 
+	# censor x2
 	x2censored <- x2 * maskCells
-	x2weightedLongsCensored <- x2weightedLongs * maskCells
-	x2weightedLatsCensored <- x2weightedLats * maskCells
-
 	abundance <- cellStats(x2censored, 'sum')
 	
 	# centroid of uncensored part of distribution
@@ -1194,13 +1200,48 @@ bioticVelocity <- function(
 		distance <- 0
 	} else {
 
-		x1centroidLongCensored <- cellStats(x1weightedLongsCensored, 'sum') / cellStats(x1censored, 'sum')
-		x1centroidLatCensored <- cellStats(x1weightedLatsCensored, 'sum') / cellStats(x1censored, 'sum')
+		# censored, weighted longs/lats for x1
+		x1censored <- x1 * maskCells
+		x1weightedLongsCensored <- x1weightedLongs * maskCells
+		x1weightedLatsCensored <- x1weightedLats * maskCells
 
-		x2centroidLongCensored <- cellStats(x2weightedLongsCensored, 'sum') / cellStats(x2censored, 'sum')
-		x2centroidLatCensored <- cellStats(x2weightedLatsCensored, 'sum') / cellStats(x2censored, 'sum')
+		# censored, weighted longs/lats for x2
+		x2weightedLongsCensored <- x2weightedLongs * maskCells
+		x2weightedLatsCensored <- x2weightedLats * maskCells
+
+		# weights for x1, x2
+		x1sumCens <- cellStats(x1censored, 'sum')
+		x2sumCens <- cellStats(x2censored, 'sum')
+
+		# weighted long/lats for x1
+		x1centroidLongCensored <- cellStats(x1weightedLongsCensored, 'sum') / x1sumCens
+		x1centroidLatCensored <- cellStats(x1weightedLatsCensored, 'sum') / x1sumCens
+
+		# weighted long/lats for x2
+		x2centroidLongCensored <- cellStats(x2weightedLongsCensored, 'sum') / x2sumCens
+		x2centroidLatCensored <- cellStats(x2weightedLatsCensored, 'sum') / x2sumCens
 		
-		distance <- .euclid(x1=x2centroidLongCensored, y1=x2centroidLatCensored, x2=x1centroidLongCensored, y2=x1centroidLatCensored)
+		# censored, weighted elevation for x1
+		if (!is.null(x1weightedElev)) {
+
+			x1weightedElevCensored <- cellStats(x1weightedElev * maskCells, 'sum')
+			x1weightedElevCensored <- x1weightedElevCensored / x1sumCens
+		
+		} else {
+			x1weightedElevCensored <- 0
+		}
+		
+		# censored, weighted elevation for x2
+		if (!is.null(x2weightedElev)) {
+
+			x2weightedElevCensored <- cellStats(x2weightedElev * maskCells, 'sum')
+			x2weightedElevCensored <- x2weightedElevCensored / x2sumCens
+		
+		} else {
+			x2weightedElevCensored <- 0
+		}
+		
+		distance <- .euclid(c(x2centroidLongCensored, x2centroidLatCensored, x1weightedElevCensored), c(x1centroidLongCensored, x1centroidLatCensored, x2weightedElevCensored))
 	
 	}
 
@@ -1220,13 +1261,13 @@ bioticVelocity <- function(
 
 	# standardized, cumulative sums of rows starting at bottom of matrix
 	xRowSum <- raster::rowSums(x, na.rm=TRUE)
-	xRowSum <- c(xRowSum, 0)
+
 	xRowSum <- rev(xRowSum)
+	xRowSum <- c(0, xRowSum)
 	xRowCumSum <- cumsum(xRowSum)
 	xRowCumSumStd <- xRowCumSum / max(xRowCumSum)
 	
 	rowIndex <- which(prob == xRowCumSumStd)
-	# latVect <- rev(latitude[ , 1])
 	
 	# exact latitude
 	if (length(rowIndex) != 0) {
