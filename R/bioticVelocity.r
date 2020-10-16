@@ -455,13 +455,8 @@ bioticVelocity <- function(
 		# time of each period
 		if (is.null(times)) times <- 1:totalTimes
 	
-		if (!all(order(times) == seq_along(times)) & warn) {
-			warning('Times assigned to each period are not sequential (e.g., {1, 2, 3}\nversus {3, 2, 1}). Velocities may have incorrect signs.')
-		}
-	
 		# times across which to calculate velocity
 		if (is.null(atTimes)) atTimes <- times
-		atTimes <- sort(atTimes)
 
 		### indices of layers to use (discard others)
 		atIndices <- which(times %in% atTimes)
@@ -469,6 +464,14 @@ bioticVelocity <- function(
 	### catch errors
 	################
 		
+		if (!all(order(times) == seq_along(times))) {
+			stop('Times assigned to each period (argument "times") are not\nsequential (e.g., {1, 2, 3} versus {3, 2, 1}).')
+		}
+	
+		if (!all(order(atTimes) == seq_along(atTimes))) {
+			stop('Values in argument "atTimes" are not sequential (e.g.,\n{1, 2, 3} versus {3, 2, 1}).')
+		}
+	
 		if (length(times) != totalTimes) stop('The length of "times" does not match the total number of time periods represented by "x".')
 		if (!all(atTimes %in% times)) stop('All time slices specified in "atTimes" must also appear in "times".')
 		if (is.null(elevation) & ('elevCentroid' %in% metrics | 'elevQuants' %in% metrics)) {
@@ -480,12 +483,8 @@ bioticVelocity <- function(
 			
 		}
 		
-		doingElev <- if (!is.null(elevation) & ('elevCentroid' %in% metrics | 'elevQuants' %in% metrics)) {
-			TRUE
-		} else {
-			FALSE
-		}
-
+		doingElev <- (!is.null(elevation) & ('elevCentroid' %in% metrics | 'elevQuants' %in% metrics))
+		
 	### convert input to array and get geographic information
 	#########################################################
 
@@ -543,35 +542,35 @@ bioticVelocity <- function(
 	### calculate weighted longitude and latitudes for starting time period
 	#######################################################################
 
-		x1 <- x[[1]]
-		if (doingElev) elev <- elevation
+		# x1 <- x[[1]]
+		# if (doingElev) elev <- elevation
 
-		# correction for shared non-NA cells with next time period
-		if (onlyInSharedCells) {
+		# # correction for shared non-NA cells with next time period
+		# if (onlyInSharedCells) {
 
-			x2 <- x[[2]]
-			x1mask <- x1 * 0 + 1
-			x2mask <- x2 * 0 + 1
-			x1x2mask <- x1mask * x2mask
-			x1 <- x1 * x1x2mask
+			# x2 <- x[[2]]
+			# x1mask <- x1 * 0 + 1
+			# x2mask <- x2 * 0 + 1
+			# x1x2mask <- x1mask * x2mask
+			# x1 <- x1 * x1x2mask
 			
-			if (doingElev) elev <- elev * x1x2mask
+			# if (doingElev) elev <- elev * x1x2mask
 			
-		}
+		# }
 			
-		# weighted longitude/latitude... used for centroid calculations for velocities
-		if (any(c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentriod', 'eCentroid', 'wCentroid') %in% metrics)) {
+		# # weighted longitude/latitude... used for centroid calculations for velocities
+		# if (any(c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentriod', 'eCentroid', 'wCentroid') %in% metrics)) {
 
-			# weight longitude/latitude
-			x1weightedLongs <- longitude * x1
-			x1weightedLats <- latitude * x1
+			# # weight longitude/latitude
+			# x1weightedLongs <- longitude * x1
+			# x1weightedLats <- latitude * x1
 
-			# centroid
-			x1sum <- cellStats(x1, 'sum')
-			x1centroidLong <- cellStats(x1weightedLongs, 'sum') / x1sum
-			x1centroidLat <- cellStats(x1weightedLats, 'sum') / x1sum
+			# # centroid
+			# x1sum <- cellStats(x1, 'sum')
+			# x1centroidLong <- cellStats(x1weightedLongs, 'sum') / x1sum
+			# x1centroidLat <- cellStats(x1weightedLats, 'sum') / x1sum
 			
-		}
+		# }
 		
 		### pre-calculations
 		
@@ -592,6 +591,7 @@ bioticVelocity <- function(
 		out <- data.frame()
 		
 		indicesFrom <- 1:(length(atTimes) - 1)
+
 
 		### by each time period
 		for (indexFrom in indicesFrom) {
