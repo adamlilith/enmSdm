@@ -236,7 +236,7 @@ times=1:4, latitude=lats, longitude=longs, elevation=elevation))
 
 # quantiles mostly move up, hold, then down
 mat <- matrix(0, nrow=4, ncol=4)
-mat1 <- elevation <- mat
+mat1 <- mat2 <- mat3 <- mat4 <- elevation <- mat
 
 mat1[] <- runif(16)
 mat2[] <- sort(mat1)
@@ -269,6 +269,7 @@ names(elevRast) <- 'elev'
 
 plot(stack(elevRast, mat1rast, mat2rast, mat3rast, mat4rast))
 
+source('E:/Ecology/Drive/R/enmSdm/R/bioticVelocity.r')
 (elevVel <- bioticVelocity(mats, metrics='elevQuants',
 times=1:4, latitude=lats, longitude=longs, elevation=elevation))
 
@@ -317,4 +318,102 @@ tic()
 mc <- bioticVelocity(x=mats, cores=4)
 toc()
 
+
+### elevation tests
+
+n <- 5
+mat <- matrix(NA, nrow=n, ncol=n)
+mat1 <- mat
+mat1[c(1, 5), ] <- 0
+mat1[c(2, 4), ] <- 1
+mat1[c(3), ] <- 3
+
+mat2 <- mat
+mat2[c(4, 5), ] <- 0
+mat2[c(1, 3), ] <- 1
+mat2[c(2), ] <- 3
+
+lat <- matrix(rep(n:1, n), nrow=n)
+long <- matrix(rep(1:n, each=n), nrow=n)
+
+colnames(mats) <- paste0('long', long)
+rownames(mats) <- paste0('lat', lat)
+
+mats <- array(c(mat1, mat2), dim=c(n, n, 2))
+elev1 <- mat
+elev1[] <- 1
+
+mats
+
+source('E:/Ecology/Drive/R/enmSdm/R/bioticVelocity.r')
+bioticVelocity(x=mats, longitude=long, latitude=lat, elevation=elev1)
+
+elev2 <- mat
+elev2[] <- 1
+elev2[1:2, ] <- 2
+bioticVelocity(x=mats, longitude=long, latitude=lat, elevation=elev2)
+
+library(raster)
+
+source('E:/Ecology/Drive/R/enmSdm/R/bioticVelocity.r')
+enm <- brick('E:/Ecology/Drive/Research/ABC vs Biogeography/NSF_ABI_2018_2021/data_and_analyses/green_ash/enms/predictions/ccsm_80kmExtent_brt.tif')
+bv1 <- bioticVelocity(x=enm, times=seq(-21000, 0, by=30), atTimes=seq(-21000, 0, by=30), cores=6)
+bv2 <- bioticVelocity(x=enm, times=seq(-21000, 0, by=30), atTimes=seq(-21000, 0, by=30), cores=6, onlyInSharedCells=TRUE)
+
+# quantiles
+ylim <- c(min(c(bv1$nsQuantVelocity_quant0p05, bv2$nsQuantVelocity_quant0p05)), max(c(bv1$nsQuantVelocity_quant0p95, bv2$nsQuantVelocity_quant0p95)))
+
+t <- rowMeans(bv1[ , c('timeFrom', 'timeTo')])
+plot(t, bv1$nsQuantVelocity_quant0p05, type='l', col='red', ylim=ylim)
+lines(t, bv1$nsQuantVelocity_quant0p1, type='l', col='orange')
+lines(t, bv1$nsQuantVelocity_quant0p5, type='l', col='black')
+lines(t, bv1$nsQuantVelocity_quant0p9, type='l', col='green')
+lines(t, bv1$nsQuantVelocity_quant0p95, type='l', col='darkgreen')
+
+t <- rowMeans(bv2[ , c('timeFrom', 'timeTo')])
+lines(t, bv2$nsQuantVelocity_quant0p05, type='l', col='red', lty='dotted')
+lines(t, bv2$nsQuantVelocity_quant0p1, type='l', col='orange', lty='dotted')
+lines(t, bv2$nsQuantVelocity_quant0p5, type='l', col='black', lty='dotted')
+lines(t, bv2$nsQuantVelocity_quant0p9, type='l', col='green', lty='dotted')
+lines(t, bv2$nsQuantVelocity_quant0p95, type='l', col='darkgreen', lty='dotted')
+for (i in seq(-21000, 0, by=500)) lines(c(i, i), c(0, 2000), lty='dotted', col='gray')
+
+# centroids
+ylim <- c(0, max(c(bv1$centroidVelocity, bv2$centroidVelocity)))
+t <- rowMeans(bv1[ , c('timeFrom', 'timeTo')])
+plot(t, bv1$centroidVelocity, type='l', col='red', ylim=ylim)
+lines(t, bv1$centroidVelocity, type='l', col='black', lty='dotted', lwd=3)
+
+plot(subset(enm, c(1, 701)))
+lines(bv1$centroidLong, bv1$centroidLat)
+lines(bv2$centroidLong, bv1$centroidLat, col='red')
+
+
+
+t <- rowMeans(bv2[ , c('timeFrom', 'timeTo')])
+ylim <- c(min(bv2$nsQuantLat_quant0p05), max(bv2$nsQuantLat_quant0p95))
+plot(t, bv2$nsQuantLat_quant0p05, type='l', col='red', main='shared cells', ylim=ylim)
+lines(t, bv2$nsQuantLat_quant0p1, type='l', col='orange')
+lines(t, bv2$nsQuantLat_quant0p5, type='l', col='black')
+lines(t, bv2$nsQuantLat_quant0p9, type='l', col='green')
+lines(t, bv2$nsQuantLat_quant0p95, type='l', col='darkgreen')
+for (i in seq(-21000, 0, by=500)) lines(c(i, i), c(0, 2000), lty='dotted', col='gray')
+
+
+	x=enm
+	x=subset(enm, c(701, 1))
+	longitude=NULL
+	latitude=NULL
+	elev <- NULL
+	times=seq(-21000, 0, by=30)
+	atTimes=seq(-21000, 0, by=21000)
+	onlyInSharedCells=FALSE
+	quants=0.9
+	elevation = NULL
+	# metrics = c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentroid', 'eCentroid', 'wCentroid', 'nsQuants', 'ewQuants', 'mean', 'sum', 'quants', 'prevalence', 'similarity')
+	metrics = c('nsQuants')
+	quants = c(0.05, 0.10, 0.5, 0.9, 0.95)
+	warn=T
+	
+	bioticVelocity(x=x, times=c(-21000, 0), atTimes=atTimes, metrics = c('nsQuants'), cores=1, onlyInSharedCells=FALSE)
 
