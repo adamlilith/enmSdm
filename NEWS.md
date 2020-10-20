@@ -1,3 +1,7 @@
+enmSdm 0.5.2.9 2020-10-20
+bioticVelocity() better estimates quantile velocities.
+bioticVelocity() speed improvements, including multi-core.
+
 enmSdm 0.5.2.8 2020-10-12
 trainGlm() now catches cases when no viable models are returned.
 

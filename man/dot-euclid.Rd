@@ -4,21 +4,14 @@
 \alias{.euclid}
 \title{Euclidean distance between a pair of points}
 \usage{
-.euclid(x1, y1, x2 = NULL, y2 = NULL)
+.euclid(a, b)
 }
 \arguments{
-\item{x1}{Numeric}
+\item{a}{Numeric vector from 1 to 3 elements long}
 
-\item{y1}{Numeric}
-
-\item{x2}{Numeric}
-
-\item{y2}{Numeric}
+\item{b}{Numeric vector from 1 to 3 elements long}
 }
 \description{
 Euclidean distance between a pair of points or two points. Note that the output is unsigned if \code{x2} and \code{y2} are provided, but signed if not.
-}
-\details{
-If \code{x2} and \code{y2} are \code{NULL} then the output is simply \code{x1 - y2}.
 }
 \keyword{internal}
