@@ -1,6 +1,6 @@
 #' Predict using Least Angle Regression (LARS) model
 #'
-#' This function makes calculates predictions from a \code{grpregOverlap} object constructed using the \code{\link{trainLars}} function..
+#' This function makes calculates predictions from a \code{grpregOverlap} object constructed using the \code{\link{trainLars}} function.
 #' @param object Object of classes \code{larsModel} and \code{cv.grpregOverlapMulti}.
 #' @param newdata Data frame.
 #' @param type Character. Type of prediction to make: \code{link} produces predictions on the scale of the predictors, \code{response} produces predictions on the scale of the response (i.e., in the range [0, 1] if \code{family = 'binomial'} in \code{trainLars}).
@@ -101,7 +101,7 @@ predictLars <- function(
 	type <- match.arg(type)
 
 	# create larsData object
-	x <- makeLarsData(
+	x <- .makeLarsData(
 		data=newdata,
 		resp=NULL,
 		preds=object$lars$preds,
@@ -167,7 +167,6 @@ predictLars <- function(
 	}
 
 	if (!is.null(out) && type == 'response' && object$fit$family == 'binomial') out <- statisfactory::invLogitAdj(out, 0)
-1
 	out
 
 }
