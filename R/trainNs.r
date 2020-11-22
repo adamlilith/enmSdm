@@ -95,7 +95,7 @@ trainNs <- function(
 	resp = names(data)[1],
 	preds = names(data)[2:ncol(data)],
 	family = 'binomial',
-	df = 1:3,
+	df = 1:4,
 	construct = TRUE,
 	select = TRUE,
 	presPerTermInitial = 10,
@@ -224,7 +224,7 @@ trainNs <- function(
 	## while model hasn't converged and while gamma is <= tolerance value... ##
 	###########################################################################
 
-	# get GAM model... using automated scale selection with weights so influence of absences equals influence of presences... using tryCatch because sometimes for variables with too little variation the default df of the basis is too high, in which case it is reduced and attempted again (for univariate and bivariate models only)
+	# get GLM model... using automated scale selection with weights so influence of absences equals influence of presences... using tryCatch because sometimes for variables with too little variation the default df of the basis is too high, in which case it is reduced and attempted again (for univariate and bivariate models only)
 	model <- stats::glm(stats::as.formula(form), family=family, data=data, weights=w, na.action='na.fail', method='brglmFit', ...)
 
 	if (verbose) {
