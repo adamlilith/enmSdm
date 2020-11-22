@@ -3,6 +3,11 @@
     
 	if (cubic & !quadratic) {
          quadratic <- TRUE
+         warning("Forcing quadratic features because cubic features are requested.", 
+             .immediate = TRUE)
+     }
+     if (interQuad & !quadratic) {
+         quadratic <- TRUE
          warning("Forcing quadratic features because linear-by-quadratic features are requested.", 
              .immediate = TRUE)
      }
