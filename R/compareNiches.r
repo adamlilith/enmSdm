@@ -5,9 +5,6 @@
 #' @param x2 Numeric. Vector or matrix of predictions from another model.
 #' @param method Character vector, indicates type of metric to calculate:
 #' \itemize{
-#' \item \code{meanDiff}: Mean difference between \code{x1} and \code{x2}
-#' \item \code{meanAbsDiff}: Mean absolute difference between \code{x1} and \code{x2} (ie, \code{sum(abs(x1 - x2))})
-#' \item \code{rmsd}: Root mean squared difference.
 #' \item \code{d}: Schoener's \emph{D}
 #' \item \code{i}: Warren's \emph{I}
 #' \item \code{esp}: Godsoe's \emph{ESP}
