@@ -9,7 +9,7 @@ trainNs(
   resp = names(data)[1],
   preds = names(data)[2:ncol(data)],
   family = "binomial",
-  df = 1:3,
+  df = 1:4,
   construct = TRUE,
   select = TRUE,
   presPerTermInitial = 10,
