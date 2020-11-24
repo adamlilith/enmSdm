@@ -32,7 +32,7 @@
 #'  \item \code{nsCentroid} or \code{ewCentroid}: Velocity in the north-south or east-west directions of the mass-weighted centroid. For north-south cardinality, positive values represent movement northward and negative southward.
 #'  \item \code{nCentroid}, \code{sCentroid}, \code{eCentroid}, and \code{wCentroid}: Speed of mass-weighted centroid of the portion of the raster north/south/east/west of the landscape-wide weighted centroid of the starting time period.
 #'  \item \code{nsQuants} or \code{ewQuants}: Velocity of the location of the \emph{N}th quantile of mass in the north-south or east-west directions. The quantiles can be specified in \code{quants}. For example, this could be the movement of the 5th, 50th, and 95th quantiles of population size going from south to north. The 0th quantile would measure the velocity of the southernmost or easternmost cell(s) with values >0, and the 100th quantile the northernmost or westernmost cell(s) with non-zero values.
-#'  \item \code{similarity}: Several metrics of similarity between each time period. Some of these make sense only for cases where values in \code{x} are in the range [0, 1], but not if some values are outside this range. The metrics are:
+#'  \item \code{similarity}: Several metrics of similarity between each time period. Some of these make sense only for cases where values in \code{x} are in the range [0, 1], but not if some values are outside this range. See \code{\link{compareNiches}} for more details. The metrics are:
 #'		\itemize{
 #'			\item Simple mean difference
 #'			\item Mean absolute difference
@@ -40,6 +40,8 @@
 #'			\item Expected Fraction of Shared Presences or ESP (Godsoe 2014)
 #'			\item D statistic (Schoener 1968)
 #'			\item I statistic (Warren et al. 2008)
+#'			\item Pearson correlation
+#'			\item Spearman rank correlation
 #'		}
 #'  \item \code{elevCentroid}: Velocity of the centroid of mass in elevation (up or down). Argument \code{elevation} must be supplied.
 #' 	\item \code{elevQuants}: Velocity of the emph{n}th quantile of mass in elevation (up or down). The quantiles to be evaluated are given by \code{quants}. The lowest elevation with mass >0 is the 0th quantile, and the highest elevation with mass >0 is the 100th. Argument \code{elevation} must be supplied.
@@ -75,9 +77,11 @@
 #'		\item A column named \code{simpleMeanDiff}: \code{sum(x2 - x1, na.rm=TRUE) / n}
 #'		\item A column named \code{meanAbsDiff}: \code{sum(abs(x2 - x1), na.rm=TRUE) / n}
 #'		\item A column named \code{rmsd} (root-mean square difference): \code{sqrt(sum((x2 - x1)^2, na.rm=TRUE)) / n}
-#'		\item A column named \code{godsoeEsp}: \code{1 - sum(2 * (x1 * x2), na.rm=TRUE) / sum(x1 + x2, na.rm=TRUE)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
-#'		\item A column named \code{schoenersD}: \code{1 - (sum(abs(x1 - x2), na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
-#'		\item A column named \code{warrensI}: \code{1 - sqrt(sum((sqrt(x1) - sqrt(x2))^2, na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
+#'		\item A column named \code{godsoeEsp}: \code{1 - sum(2 * (x1 * x2), na.rm=TRUE) / sum(x1 + x2, na.rm=TRUE)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar.
+#'		\item A column named \code{schoenersD}: \code{1 - (sum(abs(x1 - x2), na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar.
+#'		\item A column named \code{warrensI}: \code{1 - sqrt(sum((sqrt(x1) - sqrt(x2))^2, na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar.
+#'		\item A column named \code{cor}: Pearson correlation between values of \code{x1} and \code{x2}.
+#'		\item A column named \code{rankCor}: Spearman rank correlation between values of \code{x1} and \code{x2}.
 #'	}
 #' 	\item If \code{metrics} contains \code{elevCentroid}: Columns named \code{elevCentroidVelocity} and \code{elevCentroidElev} -- Velocity of the centroid in elevation (up or down) and the elevation in the "to" timestep. Positive values of velocity connote movement upward, and negative values downward.
 #' 	\item If \code{metrics} contains \code{elevQuants}: Columns named \code{elevQuantVelocity_quant\emph{N}} and \code{elevQuantVelocityElev_quant\emph{N}} -- Velocity of the \emph{N}th quantile of mass in elevation (up or down) and the elevation of this quantile in the "to" timestep. Positive values of velocity connote movement upward, and negative values downward.
@@ -90,12 +94,6 @@
 #' \emph{Note:}  
 #'   
 #' For the \code{nsQuants} and \code{ewQuants} metrics it is assumed that the latitude/longitude assigned to a cell is at its exact center. If a desired quantile does not fall exactly on the cell center, it is interpolated linearly between the rows/columns of cells that bracket the given quantile. For quantiles that fall south/westward of the first row/column of cells, the cell border is assumed to be at 0.5 * cell length south/west of the cell center.
-#' @references
-#' Schoener, T. W. 1968. \emph{Anolis} lizards of Bimini: Resource partitioning in a complex fauna. \emph{Ecology} 49:704–726.  
-#'
-#' Godsoe, W. 2014. Inferring the similarity of species distributions using Species’ Distribution Models. \emph{Ecography} 37:130-136.  
-#' 
-#' Warren, D.L., Glor, R.E., and Turelli, M. 2008. Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution. \emph{Evolution} 62:2868-2883.
 #' @examples
 #'
 #' library(raster)
@@ -350,7 +348,7 @@ bioticVelocity <- function(
 	longitude = NULL,
 	latitude = NULL,
 	elevation = NULL,
-	metrics = c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentroid', 'eCentroid', 'wCentroid', 'nsQuants', 'ewQuants', 'summary', 'similarity'),
+	metrics = c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentroid', 'eCentroid', 'wCentroid', 'nsQuants', 'ewQuants', 'similarity', 'summary'),
 	quants = c(0.05, 0.10, 0.5, 0.9, 0.95),
 	onlyInSharedCells = FALSE,
 	cores = 1,
@@ -358,6 +356,20 @@ bioticVelocity <- function(
 	...
 ) {
 
+	### debugging
+	if (FALSE) {
+		times <- NULL
+		atTimes <- NULL
+		longitude <- NULL
+		latitude <- NULL
+		elevation <- NULL
+		metrics <- c('centroid', 'nsCentroid', 'ewCentroid', 'nCentroid', 'sCentroid', 'eCentroid', 'wCentroid', 'nsQuants', 'ewQuants', 'summary', 'similarity')
+		quants <- c(0.05, 0.10, 0.5, 0.9, 0.95)
+		onlyInSharedCells <- FALSE
+		cores <- 1
+		warn <- TRUE
+	}
+	
 	xClass <- class(x)
 
 	### time of each period and times across which to calculate velocity
@@ -514,7 +526,7 @@ bioticVelocity <- function(
 			
 			mcOptions <- list(preschedule=TRUE, set.seed=FALSE, silent=FALSE)
 			
-			export <- c('bioticVelocity', '.euclid', '.cardinalDistance', '.interpCoordFromQuantile')
+			export <- c('bioticVelocity', '.euclid', '.cardinalDistance', '.interpCoordFromQuantile', 'compareNiches')
 			
 			out <- foreach::foreach(
 				i=seq_along(repAtTimes),
@@ -1039,34 +1051,35 @@ bioticVelocity <- function(
 				### similarities
 				if ('similarity' %in% metrics) {
 					
+					x1vect <- c(as.matrix(x1))
+					x2vect <- c(as.matrix(x2))
+					
+					
 					x1x2sum <- x1 + x2
 					x1x2diff <- x2 - x1
 					x1x2absDiff <- abs(x1x2diff)
 					x1x2prod <- x1 * x2
 
-					if (!exists('numSharedNonNaCells', inherits=FALSE)) {
+					if (!exists('naNonNaCells', inherits=FALSE)) {
 						x1ones <- x1 * 0 + 1
 						x2ones <- x2 * 0 + 1
 						x1x2ones <- x1ones * x2ones
-						numSharedNonNaCells <- cellStats(x1x2ones, 'sum')
+						naNonNaCells <- c(as.matrix(x1x2ones))
 					}
 					
-					simpleMeanDiff <- cellStats(x1x2diff, 'sum') / numSharedNonNaCells
-					meanAbsDiff <- cellStats(x1x2absDiff, 'sum') / numSharedNonNaCells
-					rmsd <- sqrt(cellStats(x1x2diff^2, 'sum')) / numSharedNonNaCells
-					godsoeEsp <- 1 - cellStats(2 * x1x2prod, 'sum') / cellStats(x1x2sum, 'sum')
-					schoenersD <- 1 - cellStats(x1x2absDiff, 'sum') / numSharedNonNaCells
-					warrenI <- 1 - sqrt(cellStats((sqrt(x1) - sqrt(x2))^2, 'sum') / numSharedNonNaCells)
+					sims <- compareNiches(x1vect, x2vect, w=naNonNaCells, na.rm=TRUE)
 
 					thisOut <- cbind(
 						thisOut,
 						data.frame(
-							simpleMeanDiff = simpleMeanDiff,
-							meanAbsDiff = meanAbsDiff,
-							rmsd = rmsd,
-							godsoeEsp = godsoeEsp,
-							schoenerD = schoenersD,
-							warrenI = warrenI
+							simpleMeanDiff = sims[['meanDiff']],
+							meanAbsDiff = sims[['meanAbsDiff']],
+							rmsd = sims[['rmsd']],
+							godsoeEsp = sims[['esp']],
+							schoenerD = sims[['d']],
+							warrenI = sims[['i']],
+							rho = sims[['rho']],
+							rankCor = sims[['rankCor']]
 						),
 						row.names=NULL
 					)

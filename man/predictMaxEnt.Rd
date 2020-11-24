@@ -30,13 +30,13 @@ predictMaxEnt(
         \item \code{'cloglog'} complementary log-log output (as per version 3.4.0+ of maxent--called "\code{maxnet()}" in the package of the same name)
 }}
 
-\item{perm}{Character list. Name(s) of variable to permute before calculating predictions. This permutes the variables for \emph{all} features in which they occur.  If a variable is named here, it overrides permutation settings for each feature featType.  Note that for product features the variable is permuted before the product is taken. This permutation is performed before any subsequent permutations (i.e., so if both variables in a product feature are included in \code{perms}, then this is equivalent to using the \code{'before'} rule for \code{permProdRule}). Ignored if \code{NULL}.}
+\item{perm}{Character vector. Name(s) of variable to permute before calculating predictions. This permutes the variables for \emph{all} features in which they occur.  If a variable is named here, it overrides permutation settings for each feature featType.  Note that for product features the variable is permuted before the product is taken. This permutation is performed before any subsequent permutations (i.e., so if both variables in a product feature are included in \code{perms}, then this is equivalent to using the \code{'before'} rule for \code{permProdRule}). Ignored if \code{NULL}.}
 
 \item{permLinear}{Character list. Names(s) of variables to permute in linear features before calculating predictions.  Ignored if \code{NULL}.}
 
 \item{permQuad}{Names(s) of variables to permute in quadratic features before calculating predictions.  Ignored if \code{NULL}.}
 
-\item{permHinge}{Character list. Names(s) of variables to permute in forward/reverse hinge features before calculating predictions.  Ignored if \code{NULL}.}
+\item{permHinge}{Character vector. Names(s) of variables to permute in forward/reverse hinge features before calculating predictions.  Ignored if \code{NULL}.}
 
 \item{permThresh}{Character list. Names(s) of variables to permute in threshold features before calculating predictions.  Ignored if \code{NULL}.}
 
@@ -50,7 +50,7 @@ predictMaxEnt(
 Numeric.
 }
 \description{
-Takes a MaxEnt \code{lambda} object or a MaxEnt object and returns raw or logistic predictions.  Its output is the same as the function \code{raster::predict(maxentModelObject, dataFrame)} or \code{raster::predict(maxentModelObject, dataFrame, args='outputformat=raw')} (to within rounding error), and in fact those functions should be faster. However, this function does allow custom manipulations that those functions do not allow (e.g., permuting product features while leaving other features with the same variables intact).  This function does \emph{not} clamp predictions--beyond the range of the training data, it extends the prediction in the direction it was going (up/down/no change). The function is based on Peter D. Wilson's document "Guidelines for computing MaxEnt model output values from a lambdas file".
+Takes a MaxEnt \code{lambda} object or a MaxEnt object and returns raw or logistic predictions.  Its output is the same as the function \code{raster::predict(maxentModelObject, dataFrame)} or \code{raster::predict(maxentModelObject, dataFrame, args='outputformat=raw')} (to within rounding error), and in fact those functions should be faster. However, this function does allow custom manipulations that those functions do not allow (e.g., permuting product features while leaving other features with the same variables intact).  This function does \emph{not} clamp predictions--beyond the range of the training data, it extends the prediction in the direction it was going (up/down/no change). The function is based on Peter D. Wilson's document "Guidelines for computing MaxEnt model output values from a lambdas file". The function has a special feature in that it allows you to permute single variables or combinations of variables in specific features before making predictions. This is potentially useful, for example, if you wanted to determine the relative importance of a quadratic feature for a particular variable in a Maxent model relative to the other features in the model.  You can also permute values of a variable regardless of which features they appear in. For product features, you can implement the permutation before or after the values are multiplied together (before often makes for bigger differences in predictions).
 }
 \examples{
 ### model red-bellied lemurs

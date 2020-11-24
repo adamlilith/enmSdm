@@ -12,7 +12,7 @@ bioticVelocity(
   latitude = NULL,
   elevation = NULL,
   metrics = c("centroid", "nsCentroid", "ewCentroid", "nCentroid", "sCentroid",
-    "eCentroid", "wCentroid", "nsQuants", "ewQuants", "summary", "similarity"),
+    "eCentroid", "wCentroid", "nsQuants", "ewQuants", "similarity", "summary"),
   quants = c(0.05, 0.1, 0.5, 0.9, 0.95),
   onlyInSharedCells = FALSE,
   cores = 1,
@@ -58,7 +58,7 @@ bioticVelocity(
  \item \code{nsCentroid} or \code{ewCentroid}: Velocity in the north-south or east-west directions of the mass-weighted centroid. For north-south cardinality, positive values represent movement northward and negative southward.
  \item \code{nCentroid}, \code{sCentroid}, \code{eCentroid}, and \code{wCentroid}: Speed of mass-weighted centroid of the portion of the raster north/south/east/west of the landscape-wide weighted centroid of the starting time period.
  \item \code{nsQuants} or \code{ewQuants}: Velocity of the location of the \emph{N}th quantile of mass in the north-south or east-west directions. The quantiles can be specified in \code{quants}. For example, this could be the movement of the 5th, 50th, and 95th quantiles of population size going from south to north. The 0th quantile would measure the velocity of the southernmost or easternmost cell(s) with values >0, and the 100th quantile the northernmost or westernmost cell(s) with non-zero values.
- \item \code{similarity}: Several metrics of similarity between each time period. Some of these make sense only for cases where values in \code{x} are in the range [0, 1], but not if some values are outside this range. The metrics are:
+ \item \code{similarity}: Several metrics of similarity between each time period. Some of these make sense only for cases where values in \code{x} are in the range [0, 1], but not if some values are outside this range. See \code{\link{compareNiches}} for more details. The metrics are:
     \itemize{
         \item Simple mean difference
         \item Mean absolute difference
@@ -66,6 +66,8 @@ bioticVelocity(
         \item Expected Fraction of Shared Presences or ESP (Godsoe 2014)
         \item D statistic (Schoener 1968)
         \item I statistic (Warren et al. 2008)
+        \item Pearson correlation
+        \item Spearman rank correlation
     }
  \item \code{elevCentroid}: Velocity of the centroid of mass in elevation (up or down). Argument \code{elevation} must be supplied.
     \item \code{elevQuants}: Velocity of the emph{n}th quantile of mass in elevation (up or down). The quantiles to be evaluated are given by \code{quants}. The lowest elevation with mass >0 is the 0th quantile, and the highest elevation with mass >0 is the 100th. Argument \code{elevation} must be supplied.
@@ -108,9 +110,11 @@ Depending on \code{metrics} that are specified, additional fields are as follows
 	\item A column named \code{simpleMeanDiff}: \code{sum(x2 - x1, na.rm=TRUE) / n}
 	\item A column named \code{meanAbsDiff}: \code{sum(abs(x2 - x1), na.rm=TRUE) / n}
 	\item A column named \code{rmsd} (root-mean square difference): \code{sqrt(sum((x2 - x1)^2, na.rm=TRUE)) / n}
-	\item A column named \code{godsoeEsp}: \code{1 - sum(2 * (x1 * x2), na.rm=TRUE) / sum(x1 + x2, na.rm=TRUE)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
-	\item A column named \code{schoenersD}: \code{1 - (sum(abs(x1 - x2), na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
-	\item A column named \code{warrensI}: \code{1 - sqrt(sum((sqrt(x1) - sqrt(x2))^2, na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar
+	\item A column named \code{godsoeEsp}: \code{1 - sum(2 * (x1 * x2), na.rm=TRUE) / sum(x1 + x2, na.rm=TRUE)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar.
+	\item A column named \code{schoenersD}: \code{1 - (sum(abs(x1 - x2), na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar.
+	\item A column named \code{warrensI}: \code{1 - sqrt(sum((sqrt(x1) - sqrt(x2))^2, na.rm=TRUE) / n)}, values of 1 ==> maximally similar, 0 ==> maximally dissimilar.
+	\item A column named \code{cor}: Pearson correlation between values of \code{x1} and \code{x2}.
+	\item A column named \code{rankCor}: Spearman rank correlation between values of \code{x1} and \code{x2}.
 }
 	\item If \code{metrics} contains \code{elevCentroid}: Columns named \code{elevCentroidVelocity} and \code{elevCentroidElev} -- Velocity of the centroid in elevation (up or down) and the elevation in the "to" timestep. Positive values of velocity connote movement upward, and negative values downward.
 	\item If \code{metrics} contains \code{elevQuants}: Columns named \code{elevQuantVelocity_quant\emph{N}} and \code{elevQuantVelocityElev_quant\emph{N}} -- Velocity of the \emph{N}th quantile of mass in elevation (up or down) and the elevation of this quantile in the "to" timestep. Positive values of velocity connote movement upward, and negative values downward.
@@ -373,11 +377,4 @@ xlab='No elevation', ylab='Elevation')
 abline(0, 1)
 }
 
-}
-\references{
-Schoener, T. W. 1968. \emph{Anolis} lizards of Bimini: Resource partitioning in a complex fauna. \emph{Ecology} 49:704–726.  
-
-Godsoe, W. 2014. Inferring the similarity of species distributions using Species’ Distribution Models. \emph{Ecography} 37:130-136.  
-
-Warren, D.L., Glor, R.E., and Turelli, M. 2008. Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution. \emph{Evolution} 62:2868-2883.
 }

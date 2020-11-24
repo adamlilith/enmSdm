@@ -4,13 +4,13 @@
 #' @param data Data frame.
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
-#' @param alphas Numeric or numeric vector in the range (0, 1]. Degree of ridge penalty to impose (values close to 0 ==> full ridge penalty, while a value of 1 imposes no rifhe penalty).
-#' @param scale Logical. If TRUE then scale values in \code{data[ , preds]} are rescaled to have mean of 0 and standard deviation of 1.
-#' @param quadratic Logical. If TRUE then include quadratic terms in model construction stage for non-factor predictors. Quadratic columns will be named \code{<predictor name>_pow2}.
+#' @param alphas Numeric or numeric vector in the range \code{(0, 1]}. Degree of ridge penalty to impose (values close to 0 ==> full ridge penalty, while a value of 1 imposes no rifhe penalty).
+#' @param scale Logical. If \code{TRUE} then scale values in \code{data[ , preds]} are rescaled to have mean of 0 and standard deviation of 1.
+#' @param quadratic Logical. If \code{TRUE} then include quadratic terms in model construction stage for non-factor predictors. Quadratic columns will be named \code{<predictor name>_pow2}.
 #' @param cubic Logical. If TRUE then include cubic terms in model construction stage for non-factor predictors. Cubic columns will be named \code{<predictor name>_pow3}.
-#' @param interaction Logical. If TRUE then include 2-way interaction terms (including interactions between factor predictors). Interaction columns will be named \code{<predictor 1 name>_by_<predictor 2 name>}.
+#' @param interaction Logical. If \code{TRUE} then include 2-way interaction terms (including interactions between factor predictors). Interaction columns will be named \code{<predictor 1 name>_by_<predictor 2 name>}.
 #' @param interQuad Logical. If TRUE then include all possible interactions of the form \code{x * y^2} unless \code{y} is a factor (linear-by-quadratic features). Linear-by-quadratic columns will be named \code{<predictor 1 name>_by_<predictor 2 name>_pow2}.
-#' @param na.rm Logical. If TRUE then remove all rows of \code{data} in which there is at least one \code{NA} among \code{resp} or \code{preds}. The default is FALSE, which will cause an error if any row has an \code{NA}.
+#' @param na.rm Logical. If \code{TRUE} then remove all rows of \code{data} in which there is at least one \code{NA} among \code{resp} or \code{preds}. The default is \code{FALSE}, which will cause an error if any row has an \code{NA}.
 #' @param verbose Logical. If \code{TRUE} then display progress.
 #' @param ... Arguments to pass to \code{grpreg} \code{grpregOverlap}, and \code{cv.grpregOverlap}, especially \code{family} and \code{penalty}. \emph{Do not} include the \code{'group'} argument or \code{alpha} arguments.
 #' @return Object of class \code{grpreg} and \code{grpregOverlap}.

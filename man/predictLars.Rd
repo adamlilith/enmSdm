@@ -29,7 +29,7 @@ failOnMissing Logical. If \code{TRUE} then if no variable(s) stated in \code{pre
 Numeric.
 }
 \description{
-This function makes calculates predictions from a \code{grpregOverlap} object constructed using the \code{\link{trainLars}} function..
+This function makes calculates predictions from a \code{grpregOverlap} object constructed using the \code{\link{trainLars}} function.
 }
 \examples{
 # linear regression, a simulation demo

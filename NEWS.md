@@ -1,3 +1,7 @@
+enmSdm 0.5.3.0 2020-11-24
+Fixed error in compareNiches() and bioticVelocity() related to calculating
+Hellinger's I (noted in Erratum to Warren et al. 2008--thank you, João Carlos!)
+
 enmSdm 0.5.2.9 2020-10-20
 bioticVelocity() better estimates quantile velocities.
 bioticVelocity() speed improvements, including multi-core.

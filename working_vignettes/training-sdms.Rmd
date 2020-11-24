@@ -6,7 +6,7 @@ output:
     toc: true
     toc_depth: 3
 	toc_float: true
-date: 2019-09-11
+date: 2020-11-21
 vignette: >
   %\VignetteIndexEntry{Calibrating species distribution models}
   %\VignetteEngine{knitr::rmarkdown}
@@ -21,14 +21,14 @@ knitr::opts_chunk$set(
 # Introduction
 A core feature of the `enmSdm` package is a set of "`train`" function which calibrate species distribution models. These functions include:
 
-* `trainGlm`: Generalized linear models (GLMs)
-* `trainGam`: Generalized additive models (GAMs)
-* `trainNs`: Natural splines (NS)
 * `trainBrt`: Boosted regression trees (BRTs), also known as gradient boosting machines
+* `trainGam`: Generalized additive models (GAMs)
+* `trainGlm`: Generalized linear models (GLMs)
+* `trainLars`: Least angle regression (LARS)
+* `trainMaxEnt` and `trainMaxNet`: Maximum entropy (MaxEnt)
+* `trainNs`: Natural splines (NS)
 * `trainRf`: Random forests (RFs)
 * `trainCrf`: Conditional random forest (CRF)
-* `trainMaxEnt` and `trainMaxNet`: Maximum entropy (MaxEnt)
-* `trainLars`: Least angle regression (LARS)
 * `trainByCrossValid`: Train any one of the models above using cross-validation
 
 But why would you want to use any of these functions if you could instead call them with perhaps more familiar functions like `glm()` or `gam()`? Unlike these base functions, the `train` functions actually go through the work of "tuning" the model so it best fits the data without being overfit. This process depends on the model and is described in this document.
@@ -100,9 +100,89 @@ head(presBg)
 tail(presBg)
 
 # define predictors
-# to speed things up we will just use the first
-# 5 BIOCLIM variables, which is a really bad idea
-preds <- paste0('bio', 1:5)
+# to speed things up we will just use:
+# mean annual temperature (BIO1)
+# temperature seasonality (BIO4)
+# temperature of the warmest month (BIO5)
+# mean annual precipitation (BIO12)
+# precipitation seasonality (BIO15)
+# precipitation of the driest quarter (BIO17)
+preds <- paste0('bio', c(1, 4, 5, 12, 15, 17))
+```
+
+# Boosted regression trees (BRTs)/gradient boosting machines (GBMs)
+BRTs use a series of classification and regression trees to divide a predictor space. The first tree uses the response specified by the modeler, and subsequent trees use the residuals from the previous tree (Elith et al. 2008). By "pasting" thousands of trees together a smooth curve can be approximated.
+
+BRTs have several parameters than can be varied to improve fit to the data or improve generality in predicting withheld data. These include the: __learning rate__ (how much each tree contributes to the overall model and thus how many trees are included in the optimal model), __tree complexity__ (number of levels in each tree, which determines the degree of interactions between variables: none, two-way, three-way, etc.), __bag fraction__ (proportion of data randomly withheld from each tree--helps reduce overfitting), and __maximum number of trees__ (total complexity of the model and degree of fit to observed data).  The `trainBrt` function performs a grid search across all possible combinations of these parameters.  It then returns the model with the smallest deviance. Personally, I only ever test the learning rate and tree complexity, keeping the bag fraction fraction at about 0.6 or 0.7 (following Elith et al. 2008) and total number of trees 6000-10000 or so (smaller reduces run time but may not yield the optimal model).
+
+The `trainBrt` function uses the `gbm.step` function from the `dismo` package to select a model with the optimal number of trees, up to the maximum allowed by the `maxTrees` argument (in `trainBrt`). Occasionally the model will not converge.  In this case the `trainBrt` function attempts to find a model thet does converge by manipulating learning rate, tree complexity, maximum number of trees, and the step size (number of trees by which the maximum number of trees is decremented to find the optimal model). In a few cases none of these attempts will work, in which case I have found that you can sometimes get a model to converge if you just try again--after all, BRTs have a random component, so a new start may get it out of a stuck place.
+
+Here's how to train a BRT using `trainBrt`. To speed things up I'll use just one learning rate, two tree depths, and a small number of maximum trees.
+```{r brtSimple}
+set.seed(123)
+out <- trainBrt(
+	presBg,
+	resp='presBg',
+	preds=preds,
+	learningRate=c(0.001),
+	treeComplexity = c(1, 3),
+	maxTrees=4000,
+	out=c('model', 'tuning'),
+	verbose=TRUE
+)
+
+summary(out$model)
+plot(out$model)
+out$tuning
+```
+
+To make predictions you can use the `predict` or `predictEnmSdm` function:
+```{r}
+predictions <- predict(out$model, newdata=presBg, n.trees=model$gbm.call$n.trees, type='response')
+predictions <- predictEnmSdm(out$model, newdata=presBg)
+```
+
+# Generalized Additive Models (GAMs)
+Generalized additive models are similar to generalized linear models except that they apply "smoothers" (non-linear functions) to the predictors during the model fitting procedure. This means the models can potentially fit high-complex shapes. GLMs can do this, too, but the user must know (or guess) beforehand what the form of the curves will be. GAMs more-or-less automate the process of identfying the complexity of the curves. GAMs can also "glue" smoothers together, so you could, for example, have a very wiggle part of the response in one section and a very unchanging response in another.
+
+By default, the `trainGam` function applies shrinkage to model coefficients.  Shrinkage is a type of variable selection, which shrinks coefficients of terms that are not very influential toward 0. 
+
+For singe predictors the `trainGam` function uses cubic splines as smoothers. For interactions between predictors `trainGam` uses Tensor products, which are appropriate for cases when predictors are on different scales (e.g., degrees C temperature and mm of precipitation), although this can be changed by the user. See `help('smooth.terms', package='mgcv')` for more information.
+
+The `trainGam` function solves two potential challenges. First, we may have a sample size that is relatively small compared to the number of predictors/terms we'd like to test. Second, we probably don't know a priori what the best model is across all potential predictors and terms.
+
+In the first step, the **model construction** phase, the `trainGam` function constructs a series of all possible simple models using just one or two terms (including an intercept-only model). It then ranks the models from most to least parsimonious using AICc. For example, say you provided the model two predictors, `x1` and `x2`. The function would assess the following models (I will use the `s(z)` function to indicate the smoothed version of `z` and `te(z1, z2)` to indicate an "interaction" (Tensor product) smooth):
+* `y ~ s(x1)`
+* `y ~ s(x2)`
+* `y ~ te(x1, x2)`
+These are then ranked using AICc. Assume that their order is then:
+1 `y ~ te(x1, x2)`
+2 `y ~ s(x2)`
+3 `y ~ s(x1)`
+
+In the second step, the *model selection* phases, the `trainGam` function identifies the most parsimonious model from across a set of predictors/terms while not growing the number of candidate models too large. For example, assume we have 28 presences. The function constructs a "full" model by adding terms in the order listed above such that there will be at least 10 presences per term (which can be changed using the `presPerTermInitial` argument).  So the full model will include `te(x1, x2)` and `s(x2)` but no others because we don't have enough terms. So the full model wil be `y ~ te(x1, x2) + s(x2)`. The function then tests all possible submodels (including the intercept-only model). In this case there are only 4 models (two with one term apiece, the full model, and the intercept-only model). It then ranks these, removes models with fewer than 20 presences per term (which can be changed using the `presPerTermFinal` argument), and selects the model with the lowest AICc.
+
+By default the function returns just this "best" model, but it can also return all models tested in the selection step and/or a table with AICc values for each model tested in the selection step.
+
+Here is how you would implement `trainGam` in `R`:
+```{r gamSimple}
+out <- trainGam(
+	presBg,
+	resp='presBg',
+	preds=preds,
+	out=c('model', 'tuning'),
+	verbose=TRUE
+)
+
+summary(out$model)
+out$tuning
+```
+So the best model uses terms that have interactions between BIO2 and BIO4 and between BIO4 and BIO5.
+
+To make predictions you can use the `predict` or `predictEnmSdm` functions:
+```{r}
+predictions <- predict(out$model, newdata=presBg, type='response')
+predictions <- predictEnmSdm(out$model, newdata=presBg)
 ```
 
 # Generalized linear models (GLMs)
@@ -159,7 +239,7 @@ out <- trainGlm(
 summary(out$model)
 out$tuning
 ```
-Notice that we no longer have models with `bio4:bio5` (or `bio5:bio4`--the order doesn't matter). If you didn't want `bio4` and `bio5` to appear in the same model ever (even if they didn't interact), you could use the argument `verboteCombos=list(c('bio4', 'bio5'))`.
+Notice that we no longer have models with `bio4:bio5` (or `bio5:bio4`--the order doesn't matter). If you didn't want `bio4` and `bio5` to appear in the same model ever (even if they didn't interact), you could use the argument `verbotenCombos=list(c('bio4', 'bio5'))`.
 
 Finally, note that sometimes you might get warnings that look like:
 ```
@@ -190,108 +270,37 @@ predictions <- predict(out$model, scaledPresBg, type='response')
 predictions <- predictEnmSdm(out$model, scaledPresBg)
 ```
 
-# Generalized Additive Models (GAMs)
-Generalized additive models are similar to generalized linear models except that they apply "smoothers" (non-linear functions) to the predictors during the model fitting procedure. This means the models can potentially fit high-complex shapes. GLMs can do this, too, but the user must know (or guess) beforehand what the form of the curves will be. GAMs more-or-less automate the process of identfying the complexity of the curves. GAMs can also "glue" smoothers together, so you could, for example, have a very wiggle part of the response in one section and a very unchanging response in another.
+#Least angle regression (LARS)
+Least angle regression, or LARS, is a form of generalized linear modeling that does model and variable selection using regularization. Theoretically, it is particularly fit for cases where there is strong correlation between predictors and/or the number of predictors is large compared to the number of occurrences. In fact, LARS works even when the number of predictors is larger than the number of occurrences (a "p >> N" problem; Efron et al. 2004).
 
-By default, the `trainGam` function applies shrinkage to model coefficients.  Shrinkage is a type of variable selection, which shrinks coefficients of terms that are not very influential toward 0. 
+LARS operates by first assigning all coefficients to 0. Then, it find the one predictor with the highest degree of correlation (positive or negative) with the response. The coefficient for this one variable is then increased (or decreased) by a small amount. Then, the model is used to make a prediction, after which residuals are calculated. The procedure repeats, with the next coefficient (which may be the same as in the previous step) chosen such that increasing (or decreasing) it increases the correlation between the chosen predictor and the residuals. Note that sometimes values of coefficients can increase then decrease, depending as new variables enter the model.
 
-For singe predictors the `trainGam` function uses cubic splines as smoothers. For interactions between predictors `trainGam` uses Tensor products, which are appropriate for cases when predictors are on different scales (e.g., degrees C temperature and mm of precipitation), although this can be changed by the user. See `help('smooth.terms', package='mgcv')` for more information.
+The `trainLars` function uses an elastic net to tune the degree of penalty applied to including a particular variable and the magnitude of its coefficient. This penalty is determined using an elastic net, which allows the model to range from implementing a full least absolute shrinkage and selection operator (LASSO) penalty and a ridge penalty. Both the LASSO and ridge are forms of regularization. LASSO attempts to reduce the sum of the magnitudes of coefficients, which ridge regression attempts to reduce the sum of squares of coefficients. The elastic net allows the model to test a gradient of penalties between LASSO and ridge, then select the best one based on cross-validation. The result is typically a sparse model with most coefficients set to 0 or very small, with only the most "important" variables having non-negigible coefficients.
 
-The `trainGam` function solves two potential challenges. First, we may have a sample size that is relatively small compared to the number of predictors/terms we'd like to test. Second, we probably don't know a priori what the best model is across all potential predictors and terms.
+The function `trainLars` relies on the `grpreg` and `grpregOverlap` packages (Zheng & Breheny 2016). As this is being written (in late 2020), it appears one or both of these packages have not been updated on CRAN for some time, so probably can't be installed automatically. To install them, you simple need go to the packages pages on CRAN (`grpreg`[https://cran.r-project.org/package=grpreg] `grpregOverlap`[https://cran.r-project.org/package=grpregOverlap]), download the gzip file, then manually install it in R. The function `grpregOverlap` allows grouping variables together such that they will have their coefficients increased/decreased as a group. `trainLars` takes advantage of this to construct quadratic and interaction terms plus quadratic-by-interaction terms (e.g., `x1 * x2^2)`, then enforce marginality constraints such that increasing/decreasing a coefficient related to a quadratic or interaction term will also cause the related linear terms to be altered as well. Note that this assumes the linear and non-linear terms have the same sign of relationship with the response.
 
-In the first step, the **model construction** phase, the `trainGam` function constructs a series of all possible simple models using just one or two terms (including an intercept-only model). It then ranks the models from most to least parsimonious using AICc. For example, say you provided the model two predictors, `x1` and `x2`. The function would assess the following models (I will use the `s(z)` function to indicate the smoothed version of `z` and `te(z1, z2)` to indicate an "interaction" (Tensor product) smooth):
-* `y ~ s(x1)`
-* `y ~ s(x2)`
-* `y ~ te(x1, x2)`
-These are then ranked using AICc. Assume that their order is then:
-1 `y ~ te(x1, x2)`
-2 `y ~ s(x2)`
-3 `y ~ s(x1)`
-
-In the second step, the *model selection* phases, the `trainGam` function identifies the most parsimonious model from across a set of predictors/terms while not growing the number of candidate models too large. For example, assume we have 28 presences. The function constructs a "full" model by adding terms in the order listed above such that there will be at least 10 presences per term (which can be changed using the `presPerTermInitial` argument).  So the full model will include `te(x1, x2)` and `s(x2)` but no others because we don't have enough terms. So the full model wil be `y ~ te(x1, x2) + s(x2)`. The function then tests all possible submodels (including the intercept-only model). In this case there are only 4 models (two with one term apiece, the full model, and the intercept-only model). It then ranks these, removes models with fewer than 20 presences per term (which can be changed using the `presPerTermFinal` argument), and selects the model with the lowest AICc.
-
-By default the function returns just this "best" model, but it can also return all models tested in the selection step and/or a table with AICc values for each model tested in the selection step.
-
-Here is how you would implement `trainGam` in `R`:
-```{r gamSimple}
-out <- trainGam(
-	presBg,
-	resp='presBg',
-	preds=preds,
-	out=c('model', 'tuning'),
-	verbose=TRUE
-)
-
-summary(out$model)
-out$tuning
-```
-So the best model uses terms that have interactions between BIO2 and BIO4 and between BIO4 and BIO5.
-
-To make predictions you can use the `predict` or `predictEnmSdm` functions:
-```{r}
-predictions <- predict(out$model, newdata=presBg, type='response')
-predictions <- predictEnmSdm(out$model, newdata=presBg)
+Training a LARS model can take while, so to speed up the demonstration, we'll test just three ratios of ridge-to-LASSO penalty and use just three predictors:
+```{r larsSetup}
+# ridge/LASSO gradient
+alphas <- c(0.01, 0.33, 0.66, 1)
+presBgSparse <- presBg[ , c('presBg', 'bio1', 'bio12', 'bio15')]
+out <- trainLars(presBgSparse, alphas=alphas, verbose=TRUE)
+summary(out)
 ```
 
-# Boosted regression trees (BRTs) or gradient boosting machines (GBMs)
-BRTs use a series of classification and regression trees to divide a predictor space. The first tree uses the response specified by the modeler, and subsequent trees use the residuals from the previous tree (Elith et al. 2008). By "pasting" thousands of trees together a smooth curve can be approximated.
+We can make two kinds of predictions using a LARS model, one using all terms (as you would for any other kind of model) and a partial response prediction, which uses just term(s) with the variable(s) of interest.
+```{r larsPredict}
+fullPred <- predictLars(out, presBg, type='response')
+partialPred <- predictLars(out, presBg, preds='bio1', type='response')
 
-BRTs have several parameters than can be varied to improve fit to the data or improve generality in predicting withheld data. These include the: __learning rate__ (how much each tree contributes to the overall model and thus how many trees are included in the optimal model), __tree complexity__ (number of levels in each tree, which determines the degree of interactions between variables: none, two-way, three-way, etc.), __bag fraction__ (proportion of data randomly withheld from each tree--helps reduce overfitting), and __maximum number of trees__ (total complexity of the model and degree of fit to observed data).  The `trainBrt` function performs a grid search across all possible combinations of these parameters.  It then returns the model with the smallest deviance. Personally, I only ever test the learning rate and tree complexity, keeping the bag fraction fraction at about 0.6 or 0.7 (following Elith et al. 2008) and total number of trees 6000-10000 or so (smaller reduces run time but may not yield the optimal model).
-
-The `trainBrt` function uses the `gbm.step` function from the `dismo` package to select a model with the optimal number of trees, up to the maximum allowed by the `maxTrees` argument (in `trainBrt`). Occasionally the model will not converge.  In this case the `trainBrt` function attempts to find a model thet does converge by manipulating learning rate, tree complexity, maximum number of trees, and the step size (number of trees by which the maximum number of trees is decremented to find the optimal model). In a few cases none of these attempts will work, in which case I have found that you can sometimes get a model to converge if you just try again--after all, BRTs have a random component, so a new start may get it out of a stuck place.
-
-Here's how to train a BRT using `trainBrt`. To speed things up I'll use just one learning rate, two tree depths, and a small number of maximum trees.
-```{r brtSimple}
-set.seed(123)
-out <- trainBrt(
-	presBg,
-	resp='presBg',
-	preds=preds,
-	learningRate=c(0.001),
-	treeComplexity = c(1, 3),
-	maxTrees=4000,
-	out=c('model', 'tuning'),
-	verbose=TRUE
-)
-
-summary(out$model)
-plot(out$model)
-out$tuning
-```
-
-To make predictions you can use the `predict` or `predictEnmSdm` function:
-```{r}
-predictions <- predict(out$model, newdata=presBg, n.trees=model$gbm.call$n.trees, type='response')
-predictions <- predictEnmSdm(out$model, newdata=presBg)
-```
-
-# Random forests (RFs)
-Random forests are constructed from a sets of classification and regression trees (Breiman 2001). Each tree divides the predictor space into quadrants, and each quadrant is assigned an outcome (e.g., "present" or "absent"). To generate a prediction the model averages across the predictions from all trees.  To reduce overfitting, each tree is fit with a random subset of the data (called "bagging") and a random subset of predictors.
-
-The `trainRf` function calls the `tuneRF` function in the `randomForest` package. This latter function finds the optimal number of predictors to be chosen (at random) to construct each tree.
-
-Here's how to use the `trainRf` function:
-```{r trainRf}
-out <- trainBrt(
-	presBg,
-	resp='presBg',
-	preds=preds
-)
-```
-To make predictions you can use the `predict` function. Note that there are some weirdnesses if the original response in the model was binary (1/0) because it has to be converted to a factor:
-```{r}
-predictions <- predict(out, newdata=presBg, type='prob')
-predictions <- unlist(predictions)
-```
-You can also use the `predictEnmSdm` function in the `enmSdm` package:
-```{r}
-predictions <- predictEnmSdm(out, newdata=presBg)
+# plot partial response to BIO1
+plot(presBg$bio1, partialPred)
 ```
 
 #Maxent
-Maximization of information entrop is a statistical method for finding probability distributions that reflect only--and no more than--what is known. The Maxent species distribution model first finds the probability of each environmental variable (or a transformation thereof) given a presence, then uses Bayes' theorem to inver the probabiliy to yield a prediction of the probability of presence (or an index thereof; Phillips et al. 2006; Phillips & Dud?k 2008). For further reading on how Maxent works see Elith et al. (2011), Merow et al. (2013), and Phillips et al. (2017).
+Maximization of information entropy is a statistical method for finding probability distributions that reflect only--and no more than--what is known. The Maxent species distribution model first finds the probability of each environmental variable (or a transformation thereof) given a presence, then uses Bayes' theorem to inver the probability to yield a prediction of the probability of presence (or an index thereof; Phillips et al. 2006; Phillips & Dud?k 2008). For further reading on how Maxent works see Elith et al. (2011), Merow et al. (2013), and Phillips et al. (2017).
 
-Maxent uses several tunable parameters and settings, including a "master regularization" parameter which controls the complexity (smoothness) of models and whethhr or not different transformations of predictors are used. The latter include linear, quadratic, and two-way interactions, plus hinge transformations (i.e., a flat line, then a linear increase or decrease, followed by a flat line again) and threshold transformatons (i.e., a flat line, then a "step" up or down followed by a flat line again). Maxent also allows for categorical variables. Maxent only uses categorical variables to estimate offsets from a model-wide intercept (i.e., you can't use a categorical variable interacting with a continuous variable).
+Maxent uses several tunable parameters and settings, including a "master regularization" parameter which controls the complexity (smoothness) of models and whether or not different transformations of predictors are used. The latter include linear, quadratic, and two-way interactions, plus hinge transformations (i.e., a flat line, then a linear increase or decrease, followed by a flat line again) and threshold transformations (i.e., a flat line, then a "step" up or down followed by a flat line again). Maxent also allows for categorical variables. Maxent only uses categorical variables to estimate offsets from a model-wide intercept (i.e., you can't use a categorical variable interacting with a continuous variable).
 
 The `trainMaxEnt` and `trainMaxNet` functions evaluate all possible combinations of the regularization parameter and predictor transformations. They then rank the models by AICc, remove those with more paramters than number of presences, and return either the "best" model (lowest AICc), all models, and/or a table with model structure and AICc.  The default transformations used by both functions include linear, quadratic, interaction, and hinge. `trainMaxNet` requires you to use the linear transformation in every model, but you can turn that behavior on or off in `trainMaxEnt` (by default it is on). Thus, by default, both functions will evaluate all possible models that meet these criteria:
 1. Regularization parameter values of 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 7.5, and 10;
@@ -350,9 +359,9 @@ predNet <- predictEnmSdm(net, presBg)
 #Natural splines (NSs)
 Natural splines are very similar to generalized additive models (GAM), except that they are "clamped" to produce straight lines (in the space of the predictors) outside of the range of the training data. This is different from "clamping" done by Maxent, boosted regression trees models, and random forests--in this case, the prediction can continue to increase or decrease, depending on what was happening just inside range of the training data. This is a nice featuse because you can get the high complexity of a GAM where you have information on the form of the response (i.e., within the range of the training data), but extrapolate in a highly predictable manner outside it.
 
-The `trainNs` function uses two steps to solve two potential problems. First, in many cases you may have few occurrence records compared to the number of predictors you'd like to include in the model. Thus, during the **model construction** phase, `trainNs` selects among predictors by constructing univariate models then ranking them by AICc.  The variables with the smallest AICc are selected to be in a "full" model, such that there must be (by default) 20 occurrences per predictor (which can be changed with the argument `presPerTermInitial`). Then, the `trainNs` function conducts a **model selection** phase in which all possible combinations of predictors in the full model that also have at least 10 occurrences per predictor (changed with argument `presPerTermFinal`) are evaluated, then ranked by AICc. By default, the function returns the best model of these, but can also return a list of all possibe models constructed from the full model and/or a table with model structure and AICc.
+The `trainNs` function uses two steps to solve two potential problems. First, in many cases you may have few occurrence records compared to the number of predictors you'd like to include in the model. Thus, during the **model construction** phase, `trainNs` selects among predictors by constructing univariate models with different degrees of freedom, then ranking them by AICc.  The combination of degrees of freedom and variable(s) with the smallest AICc are selected to be in a "full" model, such that there must be (by default) 20 occurrences per predictor (which can be changed with the argument `presPerTermInitial`). Then, the `trainNs` function conducts a **model selection** phase in which all possible combinations of predictors is tested such that each model has at least 10 occurrences per predictor (changed with argument `presPerTermFinal`) are evaluated. These are then ranked by AICc. By default, the function returns the best model of these, but can also return a list of all possible models constructed from the full model and/or a table with model structure and AICc.
 
-The "wiggliness" of the natural splines is determined by the argument `df`, which by default is `NULL`. Larger numbers allow for more complex responses.
+The "wiggliness" of the natural splines is determined by the argument `df` (degrees of freedom). By default, `trainNs` will test each variable with 1, 2, 3, or 4 degrees of freedom.
 
 ```{r nsSimple}
 out <- trainNs(
@@ -372,10 +381,35 @@ You can make predictions using either of these functions:
 preds <- predict(out$model, presBg, type='response')
 preds <- predict(out$model, presBg)
 ```
+# Random forests (RFs)
+Random forests are constructed from a sets of classification and regression trees (Breiman 2001). Each tree divides the predictor space into quadrants, and each quadrant is assigned an outcome (e.g., "present" or "absent"). To generate a prediction the model averages across the predictions from all trees.  To reduce overfitting, each tree is fit with a random subset of the data (called "bagging") and a random subset of predictors.
+
+The `trainRf` function calls the `tuneRF` function in the `randomForest` package. This latter function finds the optimal number of predictors to be chosen (at random) to construct each tree.
+
+Here's how to use the `trainRf` function:
+```{r trainRf}
+out <- trainBrt(
+	presBg,
+	resp='presBg',
+	preds=preds
+)
+```
+To make predictions you can use the `predict` function. Note that there are some weirdnesses if the original response in the model was binary (1/0) because it has to be converted to a factor:
+```{r}
+predictions <- predict(out, newdata=presBg, type='prob')
+predictions <- unlist(predictions)
+```
+You can also use the `predictEnmSdm` function in the `enmSdm` package:
+```{r}
+predictions <- predictEnmSdm(out, newdata=presBg)
+```
+
 
 
 # Literature cited
 Breiman, L. 2001. Random forests. __Machine Learning__ 45:5-32.
+
+Efron, B., Hastie, T., Johnstone, I., and Tibrshirani, R.  2004.  Least angle regresission. __The Annals of Statistics__ 32:407-451.
 
 Elith, J., J.R. Leathwick, and T. Hastie.  2008.  A working guide to boosted regression trees.  __Journal of Animal Ecology__ 77:802-813.
 
@@ -392,3 +426,5 @@ Phillips, S.J., Anderson, R.P., Dud?k, M. Schapire, R.E., and Blair, M.E.  2017.
 Firth, D. 1993. Bias reduction of maximum likelihood estimates. __Biometrika__ 80:27-38. (Note correction in __Biometrika__ 1995.)
 
 Firth, D. 1995. Bias reduction of maximum likelihood estimates. __Biometrika__ 82:667. (Correction to 1993 __Biometrika__ article.)
+
+Zheng, Y. and Breheny, P.  2016.  Overlapping group logistic regression with applications to genetic pathway selection.  __Cancer Informatics__ 15:179-187.

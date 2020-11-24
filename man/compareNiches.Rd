@@ -7,7 +7,7 @@
 compareNiches(
   x1,
   x2,
-  method = c("meanDiff", "meanAbsDiff", "d", "i", "esp", "rho", "rankCor"),
+  method = c("meanDiff", "meanAbsDiff", "rmsd", "d", "i", "esp", "rho", "rankCor"),
   w = rep(1, length(x1)),
   na.rm = FALSE,
   ...
@@ -20,13 +20,14 @@ compareNiches(
 
 \item{method}{Character vector, indicates type of metric to calculate:
 \itemize{
-\item \code{meanDiff} mean difference between \code{x1} and \code{x2}
-\item \code{meanAbsDiff} mean absolute difference between \code{x1} and \code{x2} (ie, \code{sum(abs(x1 - x2))})
-\item \code{d} Schoener's \emph{D}
-\item \code{i} Warren's \emph{I}
-\item \code{esp} Godsoe's \emph{ESP}
-\item \code{rho} Correlation between \code{x1} and \code{x2} (will apply \code{logitAdj()} first unless logit=FALSE).
-\item \code{rankCor}  Pearson rank correlation.
+\item \code{meanDiff}: Mean difference between \code{x1} and \code{x2}
+\item \code{meanAbsDiff}: Mean absolute difference between \code{x1} and \code{x2} (ie, \code{sum(abs(x1 - x2))})
+\item \code{rmsd}: Root mean squared difference.
+\item \code{d}: Schoener's \emph{D}
+\item \code{i}: Warren's \emph{I}
+\item \code{esp}: Godsoe's \emph{ESP}
+\item \code{rho}: Correlation between \code{x1} and \code{x2} (will apply \code{logitAdj()} first unless logit=FALSE).
+\item \code{rankCor}: Pearson rank correlation.
 }}
 
 \item{w}{Numeric list. Weights of predictions in \code{x1} and \code{x2}.}
@@ -45,6 +46,13 @@ This function calculates several metrics of niche overlap based on predictions f
 x1 <- seq(0, 1, length.out=100)
 x2 <- x1^2
 compareNiches(x1, x2)
+}
+\references{
+Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution.  Evolution 62:2868-2883.
+
+Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Erratum.  Evolution 62:2868-2883.
+
+Godsoe, W.  2014.  Inferring the similarity of species distributions using Species’ Distribution Models.  Ecography 37:130-136.
 }
 \seealso{
 \code{\link{compareResponse}}
