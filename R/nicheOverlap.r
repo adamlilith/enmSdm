@@ -138,7 +138,7 @@ nicheOverlap <- compiler::cmpfun(function(
 	freqOcc2 <- x2dens / envDens
 
 	# calculate niche overlap statistics
-	out <- compareNiches(freqOcc1, freqOcc2)
+	out <- compareNiches(freqOcc1, freqOcc2, method=c('d', 'i', 'esp', 'rho', 'rankCor'))
 	
 	if (densities) {
 		out <- list(similarity=out, environDensity=envDens, x1density=x1dens, x2density=x2dens)
