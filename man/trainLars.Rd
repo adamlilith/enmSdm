@@ -26,19 +26,19 @@ trainLars(
 
 \item{preds}{Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.}
 
-\item{alphas}{Numeric or numeric vector in the range (0, 1]. Degree of ridge penalty to impose (values close to 0 ==> full ridge penalty, while a value of 1 imposes no rifhe penalty).}
+\item{alphas}{Numeric or numeric vector in the range \code{(0, 1]}. Degree of ridge penalty to impose (values close to 0 ==> full ridge penalty, while a value of 1 imposes no rifhe penalty).}
 
-\item{scale}{Logical. If TRUE then scale values in \code{data[ , preds]} are rescaled to have mean of 0 and standard deviation of 1.}
+\item{scale}{Logical. If \code{TRUE} then scale values in \code{data[ , preds]} are rescaled to have mean of 0 and standard deviation of 1.}
 
-\item{quadratic}{Logical. If TRUE then include quadratic terms in model construction stage for non-factor predictors. Quadratic columns will be named \code{<predictor name>_pow2}.}
+\item{quadratic}{Logical. If \code{TRUE} then include quadratic terms in model construction stage for non-factor predictors. Quadratic columns will be named \code{<predictor name>_pow2}.}
 
 \item{cubic}{Logical. If TRUE then include cubic terms in model construction stage for non-factor predictors. Cubic columns will be named \code{<predictor name>_pow3}.}
 
-\item{interaction}{Logical. If TRUE then include 2-way interaction terms (including interactions between factor predictors). Interaction columns will be named \code{<predictor 1 name>_by_<predictor 2 name>}.}
+\item{interaction}{Logical. If \code{TRUE} then include 2-way interaction terms (including interactions between factor predictors). Interaction columns will be named \code{<predictor 1 name>_by_<predictor 2 name>}.}
 
 \item{interQuad}{Logical. If TRUE then include all possible interactions of the form \code{x * y^2} unless \code{y} is a factor (linear-by-quadratic features). Linear-by-quadratic columns will be named \code{<predictor 1 name>_by_<predictor 2 name>_pow2}.}
 
-\item{na.rm}{Logical. If TRUE then remove all rows of \code{data} in which there is at least one \code{NA} among \code{resp} or \code{preds}. The default is FALSE, which will cause an error if any row has an \code{NA}.}
+\item{na.rm}{Logical. If \code{TRUE} then remove all rows of \code{data} in which there is at least one \code{NA} among \code{resp} or \code{preds}. The default is \code{FALSE}, which will cause an error if any row has an \code{NA}.}
 
 \item{verbose}{Logical. If \code{TRUE} then display progress.}
 
