@@ -34,13 +34,13 @@ trainByCrossValid(
 \item If a matrix or data frame, there must be one row per row in \code{data}. Each column corresponds to a different model to be trained. For a given column there should be only two unique values, plus possibly \code{NA}s. Of the two values, the lesser value will be used to identify the calibration data and the greater value the evaluation data. Rows with \code{NA}s will be ignored.  For example, a particular column could contain 1s, 2, and \code{NA}s. Data rows corresponding to 1s will be used as training data, data rows corresponding to 2s as test data, and rows with \code{NA} are dropped. The \code{NA} flag is useful for creating spatially-structured cross-validation folds where training and test sites are separated (spatially) by censored (ignored) data.
 }}
 
-\item{trainFx}{Function, name of the "trainXYZ" function to use. Currently the functions/algorithms supported are \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainMaxEnt}}, and \code{\link[enmSdm]{trainNs}}.}
+\item{trainFx}{Function, name of the "trainXYZ" function to use. Currently the functions/algorithms supported are \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainMaxEnt}}, \code{\link[enmSdm]{trainMaxNet}}, and \code{\link[enmSdm]{trainNs}}.}
 
 \item{...}{Arguments to pass to the "trainXYZ" function.}
 
 \item{metrics}{Character vector, names of evaluation metrics to calculate. If \code{weightEvalTrain} and/or \code{weightEvalTest} is \code{TRUE}, then the "train" and "test" version of each metric will be weighted versions of each. The default is to calculate all of:
 \itemize{
-    \item \code{'logLoss'}: Log loss. Higher (less negative) values connote better fit.
+    \item \code{'logLoss'}: Log loss. Higher (less negative) values imply better fit.
     \item \code{'cbi'}: Continuous Boyce Index (CBI). Calculated with \code{\link[enmSdm]{contBoyce}}.
     \item \code{'auc'}: Area under the receiver-operator characteristic curve (AUC). Calculated with \code{\link[enmSdm]{aucWeighted}}.
     \item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
@@ -149,5 +149,5 @@ La Rest, K., Pinaud, D., Monestiez, P., Chadoeuf, J., and Bretagnolle, V.  2014.
 Wunderlich, R.F., Lin, P-Y., Anthony, J., and Petway, J.R. 2019. Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribution models. Nature Conservation 35:97-116.
 }
 \seealso{
-\code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainCrf}}, \code{\link[enmSdm]{trainGam}}, \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainMaxEnt}}, \code{\link[enmSdm]{trainLars}}, \code{\link[enmSdm]{trainMaxNet}}, \code{\link[enmSdm]{trainRf}}, \code{\link[enmSdm]{trainNs}}
+\code{\link[enmSdm]{trainBrt}}, \code{\link[enmSdm]{trainCrf}}, \code{\link[enmSdm]{trainGam}}, \code{\link[enmSdm]{trainGlm}}, \code{\link[enmSdm]{trainMaxEnt}}, \code{\link[enmSdm]{trainMaxNet}}, \code{\link[enmSdm]{trainLars}}, \code{\link[enmSdm]{trainMaxNet}}, \code{\link[enmSdm]{trainRf}}, \code{\link[enmSdm]{trainNs}}
 }
