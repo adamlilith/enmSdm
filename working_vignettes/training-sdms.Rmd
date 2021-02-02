@@ -13,7 +13,7 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 ```{r start, include=FALSE}
-knitr::opts_chunk$set(
+knitr::opts_chunk$set
 	echo = TRUE,
 	fig.align = 'center'
 )
@@ -142,12 +142,12 @@ predictions <- predict(out$model, newdata=presBg, n.trees=model$gbm.call$n.trees
 predictions <- predictEnmSdm(out$model, newdata=presBg)
 ```
 
-# Generalized Additive Models (GAMs)
+# Generalized additive models (GAMs)
 Generalized additive models are similar to generalized linear models except that they apply "smoothers" (non-linear functions) to the predictors during the model fitting procedure. This means the models can potentially fit high-complex shapes. GLMs can do this, too, but the user must know (or guess) beforehand what the form of the curves will be. GAMs more-or-less automate the process of identfying the complexity of the curves. GAMs can also "glue" smoothers together, so you could, for example, have a very wiggle part of the response in one section and a very unchanging response in another.
 
 By default, the `trainGam` function applies shrinkage to model coefficients.  Shrinkage is a type of variable selection, which shrinks coefficients of terms that are not very influential toward 0. 
 
-For singe predictors the `trainGam` function uses cubic splines as smoothers. For interactions between predictors `trainGam` uses Tensor products, which are appropriate for cases when predictors are on different scales (e.g., degrees C temperature and mm of precipitation), although this can be changed by the user. See `help('smooth.terms', package='mgcv')` for more information.
+For single predictors the `trainGam` function uses cubic splines as smoothers. For interactions between predictors `trainGam` uses Tensor products, which are appropriate for cases when predictors are on different scales (e.g., degrees C temperature and mm of precipitation), although this can be changed by the user. See `help('smooth.terms', package='mgcv')` for more information.
 
 The `trainGam` function solves two potential challenges. First, we may have a sample size that is relatively small compared to the number of predictors/terms we'd like to test. Second, we probably don't know a priori what the best model is across all potential predictors and terms.
 

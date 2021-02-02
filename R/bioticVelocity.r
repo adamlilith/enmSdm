@@ -374,7 +374,7 @@ bioticVelocity <- function(
 
 	### time of each period and times across which to calculate velocity
 	####################################################################
-	
+
 		# total number of time periods
 		totalTimes <- if ('array' %in% xClass) {
 			dim(x)[3]
@@ -393,7 +393,7 @@ bioticVelocity <- function(
 	
 	### catch errors
 	################
-		
+
 		if (!all(order(times) == seq_along(times))) {
 			stop('Times assigned to each period (argument "times") are not\nsequential (e.g., {1, 2, 3} versus {3, 2, 1}).')
 		}
@@ -447,17 +447,17 @@ bioticVelocity <- function(
 				latitude <- matrix(nRows:1, nrow=nRows, ncol=nCols, byrow=FALSE)
 				if (warn) warning('Argument "latitude" is not specified so using row number instead of latitude. Velocities will be in arbitrary spatial units.')
 			}
-			
+
 			# convert array to raster stack... assuming cell sizes from longitude/latitude
 			xmin <- longitude[1, 1] - 0.5 * (longitude[1, 2] - longitude[1, 1])
 			xmax <- longitude[1, ncol(longitude)] + 0.5 * (longitude[1, 2] - longitude[1, 1])
 			ymax <- latitude[1, 1] + 0.5 * (latitude[1, 1] - latitude[2, 1])
 			ymin <- latitude[nrow(latitude), 1] - 0.5 * (latitude[1, 1] - latitude[2, 1])
-		
+
 			x <- raster::brick(x, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
 			longitude <- raster::raster(longitude, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
 			latitude <- raster::raster(latitude, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
-			
+
 			if (!is.null(elevation)) {
 				if ('matrix' %in% class(elevation)) {
 					elevation <- raster(elevation, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
@@ -470,7 +470,7 @@ bioticVelocity <- function(
 			
 	### pre-calculations
 	####################
-		
+
 		# for faster reference in ."interpCoordFromQuantile"
 		if (any(c('nsQuants', 'nCentroid', 'sCentroid') %in% metrics)) latVect <- rev(latitude[ , 1])
 		if (any(c('nsQuants', 'eCentroid', 'wCentroid') %in% metrics)) longVect <- longitude[1, ]
@@ -559,7 +559,7 @@ bioticVelocity <- function(
 		###############
 		
 		} else {
-		
+
 			# output: data frame with one column per metric
 			out <- data.frame()
 			
@@ -567,7 +567,7 @@ bioticVelocity <- function(
 
 			### by each time period
 			for (indexFrom in indicesFrom) {
-			
+
 				### get start time/end period layers and correct for shared non-NA cells
 				x1 <- x[[indexFrom]]
 				x2 <- x[[indexFrom + 1]]
@@ -577,7 +577,7 @@ bioticVelocity <- function(
 				timeFrom <- atTimes[indexFrom]
 				timeTo <- atTimes[indexFrom + 1]
 				timeSpan <- timeTo - timeFrom
-				
+
 				### remember
 				thisOut <- data.frame(
 					timeFrom = timeFrom,
@@ -587,7 +587,7 @@ bioticVelocity <- function(
 
 				# correction for shared non-NA cells with next time period
 				if (onlyInSharedCells) {
-				
+
 					x1mask <- x1 * 0 + 1
 					x2mask <- x2 * 0 + 1
 					x1x2mask <- x1mask * x2mask
@@ -861,7 +861,7 @@ bioticVelocity <- function(
 					
 				### weighted north/south velocity
 				if ('nsCentroid' %in% metrics) {
-				
+
 					metricSign <- sign(x2centroidLat - x1centroidLat)
 					metric <- .euclid(c(x2centroidLat, x2centroidElev), c(x1centroidLat, x1centroidElev))
 					metricRate <- metricSign * metric / timeSpan
@@ -1050,23 +1050,22 @@ bioticVelocity <- function(
 
 				### similarities
 				if ('similarity' %in% metrics) {
-					
-					x1vect <- c(as.matrix(x1))
-					x2vect <- c(as.matrix(x2))
-					
-					
+
+					x1vect <- c(raster::as.matrix(x1))
+					x2vect <- c(raster::as.matrix(x2))
 					x1x2sum <- x1 + x2
 					x1x2diff <- x2 - x1
 					x1x2absDiff <- abs(x1x2diff)
 					x1x2prod <- x1 * x2
 
 					if (!exists('naNonNaCells', inherits=FALSE)) {
+
 						x1ones <- x1 * 0 + 1
 						x2ones <- x2 * 0 + 1
 						x1x2ones <- x1ones * x2ones
-						naNonNaCells <- c(as.matrix(x1x2ones))
+						naNonNaCells <- c(raster::as.matrix(x1x2ones))
 					}
-					
+
 					sims <- compareNiches(x1vect, x2vect, w=naNonNaCells, na.rm=TRUE)
 
 					thisOut <- cbind(
@@ -1083,7 +1082,7 @@ bioticVelocity <- function(
 						),
 						row.names=NULL
 					)
-					
+
 				}
 				
 				### remember
