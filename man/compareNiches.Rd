@@ -52,5 +52,5 @@ Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Erratum.  Evolution 62:2868-28
 Godsoe, W.  2014.  Inferring the similarity of species distributions using Species’ Distribution Models.  Ecography 37:130-136.
 }
 \seealso{
-\code{\link{compareResponse}}
+\code{\link[enmSdm]{compareResponse}}
 }

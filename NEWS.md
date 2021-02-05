@@ -1,4 +1,7 @@
-enmSdm 0.5.3.1 2020-11-24
+enmSdm 0.5.3.2 2021-02-05
+Fixed bug in compareResponse() for areal calculations
+
+enmSdm 0.5.3.1 2021-02-01
 Fixed runtime bug in bioticVelocity()
 
 enmSdm 0.5.3.0 2020-11-24

@@ -27,13 +27,13 @@ compareResponse(
 
 \item{predictor}{Character list. Name(s) of predictor(s) for which to calculate comparisons. These must appear as column names in \code{data}.}
 
-\item{adjust}{Logical. If TRUE then subtract the mean of \code{pred1} from \code{pred1} and the mean of \code{pred2} from \code{pred2} before analysis. Useful for comparing the shapes of curves while controlling for different elevations (intercepts).}
+\item{adjust}{Logical. If \code{TRUE} then subtract the mean of \code{pred1} from \code{pred1} and the mean of \code{pred2} from \code{pred2} before analysis. Useful for comparing the shapes of curves while controlling for different elevations (intercepts).}
 
 \item{gap}{Numeric >0. Proportion of range of predictor variable across which to assume a gap exists. Calculation of \code{areaAbsDiff} will  ignore gaps wide than this. To ensure the entire range of the data is included set this equal to \code{Inf} (default).}
 
 \item{smooth}{Logical. If TRUE then the responses are first smoothed using loess() then compared at \code{smoothN} values along each predictor. If FALSE then comparisons are conducted at the raw values \code{pred1} and \code{pred2}.}
 
-\item{smoothN}{\code{NULL} or positive integer. Number of values along "pred" at which to calculate comparisons. Only used if \code{smooth} is \code{TRUE}. If \code{NULL}, then comparisons are calculated at each value in data. If a number, then comparisons are calcualted at \code{smoothN} values of \code{data[ , pred]} that cover the range of \code{data[ , pred]}.}
+\item{smoothN}{\code{NULL} or positive integer. Number of values along "pred" at which to calculate comparisons. Only used if \code{smooth} is \code{TRUE}. If \code{NULL}, then comparisons are calculated at each value in data. If a number, then comparisons are calculated at \code{smoothN} values of \code{data[ , pred]} that cover the range of \code{data[ , pred]}.}
 
 \item{smoothRange}{2-element numeric list or \code{NULL}. If \code{smooth} is TRUE, then force loess'ed predictions < \code{smoothRange[1]} to equal \code{smoothRange[1]} and predictions > \code{smoothRange[2]} to equal \code{smoothRange[2]}. Ignored if \code{NULL}.}
 
@@ -50,10 +50,10 @@ Either a data frame (if \code{smooth = FALSE} or a list object with the smooth m
 \item \code{smooth} \code{smooth} argument.
 \item \code{meanDiff} Mean difference between predictions of \code{pred1} and \code{pred2} (higher ==> more different).
 \item \code{meanAbsDiff} Mean absolute value of difference between predictions of \code{pred1} and \code{pred2} (higher ==> more different).
-\item \code{areaAbsDiff} Sum of the area between curves predicted by \code{pred1} and \code{pred2}, standardized by total potential area between the two curves to be in the range [0, 1] (higher ==> more different).
-\item \code{d} Schoener's \emph{D} (Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution.  \emph{Evolution} 62:2868-2883.)
-\item \code{i} Hellinger's \emph{I} (adjusted to have a range [0, 1]; Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution.  |emph{Evolution} 62:2868-2883.)
-\item \code{esp} Godsoe's ESP (Godsoe, W. and Case, B.S.  2015.  Accounting for shifts in the frequency of suitable environments when testing for niche overlap.  \emph{Methods in Ecology and Evolution} 6:59-66.)
+\item \code{areaAbsDiff} Sum of the area between curves predicted by \code{pred1} and \code{pred2}, standardized by total potential area between the two curves (i.e., the area available between the minimum and maximum prediction along the minimum and maximum values of the predictor) (higher ==> more different).
+\item \code{d} Schoener's \emph{D}
+\item \code{i} Hellinger's \emph{I} (adjusted to have a range [0, 1])
+\item \code{esp} Godsoe's ESP
 \item \code{rho} Pearson correlation between predictions of \code{pred1} and \code{pred2}.
 \item \code{rankCor} Spearman rank correlation between predictions of \code{pred1} and \code{pred2}.
 }
@@ -63,13 +63,25 @@ This function calculates a suite of metrics reflecting of niche overlap for two 
 }
 \examples{
 set.seed(123)
-pred1 <- seq(0.4, 1, length.out=100) * runif(100)
-pred2 <- seq(0, 1, length.out=100) * runif(100)
- data <- data.frame(x1=1:100, x2=1:100 + (1:100 - 51)^2)
- compareResponse(pred1, pred2, data)
- compareResponse(pred1, pred2, data, smooth=TRUE)
- compareResponse(pred1, pred2, data, adjust=TRUE)
+data <- data.frame(
+	x1=seq(-1, 1, length.out=100),
+	x2=seq(-1, 1, length.out=100) + rnorm(100, 0, 0.3)
+)
+
+pred1 <- 1 / (1 + exp(-(0.3 + 2 * (data$x1 - 0.2) -0.3 * data$x2)))
+pred2 <- 1 / (1 + exp(-(-0 + 0.1 * data$x1 - 4 * data$x1^2 + 0.4 * data$x2)))
+
+compareResponse(pred1, pred2, data, graph=TRUE)
+compareResponse(pred1, pred2, data, smooth=TRUE, graph=TRUE)
+compareResponse(pred1, pred2, data, adjust=TRUE, graph=TRUE)
+}
+\references{
+Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution.  Evolution 62:2868-2883.
+
+Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Erratum.  Evolution 62:2868-2883.
+
+Godsoe, W.  2014.  Inferring the similarity of species distributions using Species’ Distribution Models.  Ecography 37:130-136.
 }
 \seealso{
-[compareNiches()]
+\code{\link[enmSdm]{compareNiches}}
 }

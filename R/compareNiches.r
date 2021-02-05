@@ -18,7 +18,7 @@
 #' @references Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution.  Evolution 62:2868-2883.
 #' @references Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Erratum.  Evolution 62:2868-2883.
 #' @references Godsoe, W.  2014.  Inferring the similarity of species distributions using Species’ Distribution Models.  Ecography 37:130-136.
-#' @seealso \code{\link{compareResponse}}
+#' @seealso \code{\link[enmSdm]{compareResponse}}
 #' @examples
 #' x1 <- seq(0, 1, length.out=100)
 #' x2 <- x1^2
