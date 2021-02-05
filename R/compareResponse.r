@@ -5,10 +5,10 @@
 #' @param pred2 Numeric list. Predictions from second model along \code{data} (one value per row in \code{data}).
 #' @param data Data frame or matrix corresponding to \code{pred1} and \code{pred2}.
 #' @param predictor Character list. Name(s) of predictor(s) for which to calculate comparisons. These must appear as column names in \code{data}.
-#' @param adjust Logical. If TRUE then subtract the mean of \code{pred1} from \code{pred1} and the mean of \code{pred2} from \code{pred2} before analysis. Useful for comparing the shapes of curves while controlling for different elevations (intercepts).
+#' @param adjust Logical. If \code{TRUE} then subtract the mean of \code{pred1} from \code{pred1} and the mean of \code{pred2} from \code{pred2} before analysis. Useful for comparing the shapes of curves while controlling for different elevations (intercepts).
 #' @param gap Numeric >0. Proportion of range of predictor variable across which to assume a gap exists. Calculation of \code{areaAbsDiff} will  ignore gaps wide than this. To ensure the entire range of the data is included set this equal to \code{Inf} (default).
 #' @param smooth Logical. If TRUE then the responses are first smoothed using loess() then compared at \code{smoothN} values along each predictor. If FALSE then comparisons are conducted at the raw values \code{pred1} and \code{pred2}.
-#' @param smoothN \code{NULL} or positive integer. Number of values along "pred" at which to calculate comparisons. Only used if \code{smooth} is \code{TRUE}. If \code{NULL}, then comparisons are calculated at each value in data. If a number, then comparisons are calcualted at \code{smoothN} values of \code{data[ , pred]} that cover the range of \code{data[ , pred]}.
+#' @param smoothN \code{NULL} or positive integer. Number of values along "pred" at which to calculate comparisons. Only used if \code{smooth} is \code{TRUE}. If \code{NULL}, then comparisons are calculated at each value in data. If a number, then comparisons are calculated at \code{smoothN} values of \code{data[ , pred]} that cover the range of \code{data[ , pred]}.
 #' @param smoothRange 2-element numeric list or \code{NULL}. If \code{smooth} is TRUE, then force loess'ed predictions < \code{smoothRange[1]} to equal \code{smoothRange[1]} and predictions > \code{smoothRange[2]} to equal \code{smoothRange[2]}. Ignored if \code{NULL}.
 #' @param graph Logical. If \code{TRUE} then plot predictions.
 #' @param ... Arguments to pass to functions like \code{sum()} (for example, \code{na.rm=TRUE}) and to \code{overlap()} (for example, \code{w} for weights). Note that if \code{smooth} = TRUE then passing an argument called \code{w} will likely cause a warning and make results circumspect \emph{unless} weights are pre-calculated for each of the \code{smoothN} points along a particular predictor.
@@ -20,22 +20,30 @@
 #' \item \code{smooth} \code{smooth} argument.
 #' \item \code{meanDiff} Mean difference between predictions of \code{pred1} and \code{pred2} (higher ==> more different).
 #' \item \code{meanAbsDiff} Mean absolute value of difference between predictions of \code{pred1} and \code{pred2} (higher ==> more different).
-#' \item \code{areaAbsDiff} Sum of the area between curves predicted by \code{pred1} and \code{pred2}, standardized by total potential area between the two curves to be in the range [0, 1] (higher ==> more different).
-#' \item \code{d} Schoener's \emph{D} (Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution.  \emph{Evolution} 62:2868-2883.)
-#' \item \code{i} Hellinger's \emph{I} (adjusted to have a range [0, 1]; Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution.  |emph{Evolution} 62:2868-2883.)
-#' \item \code{esp} Godsoe's ESP (Godsoe, W. and Case, B.S.  2015.  Accounting for shifts in the frequency of suitable environments when testing for niche overlap.  \emph{Methods in Ecology and Evolution} 6:59-66.)
+#' \item \code{areaAbsDiff} Sum of the area between curves predicted by \code{pred1} and \code{pred2}, standardized by total potential area between the two curves (i.e., the area available between the minimum and maximum prediction along the minimum and maximum values of the predictor) (higher ==> more different).
+#' \item \code{d} Schoener's \emph{D}
+#' \item \code{i} Hellinger's \emph{I} (adjusted to have a range [0, 1])
+#' \item \code{esp} Godsoe's ESP
 #' \item \code{rho} Pearson correlation between predictions of \code{pred1} and \code{pred2}.
 #' \item \code{rankCor} Spearman rank correlation between predictions of \code{pred1} and \code{pred2}.
 #' }
-#' @seealso [compareNiches()]
+#' @references Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution.  Evolution 62:2868-2883.
+#' @references Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Erratum.  Evolution 62:2868-2883.
+#' @references Godsoe, W.  2014.  Inferring the similarity of species distributions using Species’ Distribution Models.  Ecography 37:130-136.
+#' @seealso \code{\link[enmSdm]{compareNiches}}
 #' @examples
-#'	set.seed(123)
-#'	pred1 <- seq(0.4, 1, length.out=100) * runif(100)
-#'	pred2 <- seq(0, 1, length.out=100) * runif(100)
-#'  data <- data.frame(x1=1:100, x2=1:100 + (1:100 - 51)^2)
-#'  compareResponse(pred1, pred2, data)
-#'  compareResponse(pred1, pred2, data, smooth=TRUE)
-#'  compareResponse(pred1, pred2, data, adjust=TRUE)
+#' set.seed(123)
+#' data <- data.frame(
+#' 	x1=seq(-1, 1, length.out=100),
+#' 	x2=seq(-1, 1, length.out=100) + rnorm(100, 0, 0.3)
+#' )
+#' 
+#' pred1 <- 1 / (1 + exp(-(0.3 + 2 * (data$x1 - 0.2) -0.3 * data$x2)))
+#' pred2 <- 1 / (1 + exp(-(-0 + 0.1 * data$x1 - 4 * data$x1^2 + 0.4 * data$x2)))
+#' 
+#' compareResponse(pred1, pred2, data, graph=TRUE)
+#' compareResponse(pred1, pred2, data, smooth=TRUE, graph=TRUE)
+#' compareResponse(pred1, pred2, data, adjust=TRUE, graph=TRUE)
 #' @export
 
 compareResponse <- function(
@@ -67,6 +75,22 @@ compareResponse <- function(
 		origPred1 <- pred1
 		origPred2 <- pred2
 
+		### if adjusting elevation
+		if (adjust) {
+
+			adjust1 <- mean(pred1, na.rm=TRUE)
+			adjust2 <- mean(pred2, na.rm=TRUE)
+
+			pred1 <- pred1 - adjust1
+			pred2 <- pred2 - adjust2
+
+			minPred <- min(min(pred1, na.rm=TRUE), min(pred2, na.rm=TRUE)) - omnibus::eps()
+
+			pred1 <- pred1 - minPred
+			pred2 <- pred2 - minPred
+
+		}
+
 		### if using smooth to smooth predictions
 		if (smooth) {
 
@@ -96,22 +120,6 @@ compareResponse <- function(
 
 		}
 
-		### if adjusting elevation
-		if (adjust) {
-
-			adjust1 <- mean(pred1, na.rm=TRUE)
-			adjust2 <- mean(pred2, na.rm=TRUE)
-
-			pred1 <- pred1 - adjust1
-			pred2 <- pred2 - adjust2
-
-			minPred <- min(min(pred1, na.rm=TRUE), min(pred2, na.rm=TRUE)) - omnibus::eps()
-
-			pred1 <- pred1 - minPred
-			pred2 <- pred2 - minPred
-
-		}
-
 		### calculate comparisons
 
 		# basic comparisons
@@ -129,7 +137,7 @@ compareResponse <- function(
 			if (x[count] - x[count - 1] <= gapRange) {
 
 				# absolute areal difference between pred1 and pred2 curves
-				thisArea <- omnibus::quadArea(x=c(x[count - 1], x[count], x[count], x[count - 1]), y=c(pred1[count - 1], pred1[count], pred2[count], pred2[count - 1]))
+				thisArea <- 0.5 * (x[count] - x[count - 1]) * abs(pred1[count - 1] - pred2[count - 1]) * abs(pred1[count] - pred2[count])
 
 				areaWeight <- if (exists('w', where=args)) {
 					mean(args$w[c(count, count - 1)], ...)
@@ -155,14 +163,14 @@ compareResponse <- function(
 			smoothN=if (smooth & !is.null(smoothN)) { smoothN } else { NA },
 			smoothRange=if (smooth & !is.null(smoothRange)) { paste(smoothRange, collapse=' ') } else { NA },
 			gap=gap,
-			meanDiff=sim$meanDiff,
-			meanAbsDiff=sim$meanAbsDiff,
+			meanDiff=sim['meanDiff'],
+			meanAbsDiff=sim['meanAbsDiff'],
 			areaAbsDiff=areaAbsDiff,
-			d=sim$d,
-			i=sim$i,
-			esp=sim$esp,
-			rho=sim$rho,
-			rankCor=sim$rankCor
+			d=sim['d'],
+			i=sim['i'],
+			esp=sim['esp'],
+			rho=sim['rho'],
+			rankCor=sim['rankCor']
 		)
 
 		out <- if (exists('out', inherits=FALSE)) {
@@ -179,11 +187,11 @@ compareResponse <- function(
 			lims <- c(min(pred1, pred2, origPred1, origPred2, na.rm=TRUE), max(pred1, pred2, origPred1, origPred2, na.rm=TRUE))
 
 			### predictions #1 vs predictions #2
-			plot(pred1, pred2, col='white', main='Model 1 vs Model 2', xlab=paste('Model 1 Prediction', ifelse(adjust, '(Adjusted)', '')), ylab=paste('Model 2 Prediction', ifelse(adjust, '(Adjusted)', '')), xlim=lims, ylim=lims)
+			plot(pred1, pred2, col='white', main=paste0('Model 1 vs Model 2 for ', thisPred), xlab=paste('Model 1 Prediction', ifelse(adjust, '(Adjusted)', '')), ylab=paste('Model 2 Prediction', ifelse(adjust, '(Adjusted)', '')), xlim=lims, ylim=lims)
 			abline(0, 1, col='gray')
 
 			# original predictions
-			if (smooth) points(origPred1, origPred2, pch=16, cex=0.4, col=scales::alpha('black', 0.2))
+			if (smooth) points(origPred1, origPred2, pch=16, cex=0.8, col=scales::alpha('black', 0.2))
 
 			# pred1 vs pred2
 			points(pred1, pred2, col='darkgreen')
@@ -191,20 +199,20 @@ compareResponse <- function(
 			# fake legend (stats)
 			legend('bottomright', inset=0.01, bty='n', lwd=NA, pch=NA,
 				legend=c(
-					paste0('rho = ', format(round(sim$rho, 2), nsmall=2)),
-					paste0('rankCor = ', format(round(sim$rankCor, 2), nsmall=2))
+					paste0('rho = ', format(round(sim['rho'], 2), nsmall=2)),
+					paste0('rankCor = ', format(round(sim['rankCor'], 2), nsmall=2))
 				)
 			)
 
 			### predictions #1 and #2 vs this predictor
-			plot(x, pred1, col='white', main=paste('Versus', thisPred), xlab=thisPred, ylab=paste('Prediction', ifelse(adjust, '(Adjusted)', '')), ylim=lims)
+			plot(x, pred1, col='white', main=paste('Responses versus', thisPred), xlab=thisPred, ylab=paste('Prediction', ifelse(adjust, '(Adjusted)', '')), ylim=lims)
 
 			# plot original predictions if using smooth
 			if (smooth) {
 				# origPred1 <- origPred1[order(x)]
 				# origPred2 <- origPred2[order(x)]
-				points(origX, origPred1, pch=16, cex=0.4, col=scales::alpha('blue', 0.5))
-				points(origX, origPred2, pch=16, cex=0.4, col=scales::alpha('red', 0.3))
+				points(origX, origPred1, pch=16, cex=0.8, col=scales::alpha('blue', 0.5))
+				points(origX, origPred2, pch=16, cex=0.8, col=scales::alpha('red', 0.3))
 			}
 
 			# plot areal difference between curves
@@ -217,17 +225,17 @@ compareResponse <- function(
 			rug(origPred2, ticksize=0.01, side=4, col='red')
 
 			# real legend
-			legend('topright', inset=0.01, bty='n', pch=NA, col=c('blue', 'red', NA), fill=c(NA, NA, 'gray70'), border=NA, legend=c('model 1', 'model 2', 'areaAbsDiff'), lwd=2)
+			legend('topright', inset=0.01, bty='n', pch=NA, col=c('blue', 'red', NA), fill=c(NA, NA, 'gray70'), border=c(NA, NA, 'black'), legend=c('model 1', 'model 2', 'areaAbsDiff'), lwd=2)
 
 			# fake legend (stats)
 			legend('bottomright', inset=0.01, bty='n', lwd=NA, pch=NA,
 				legend=c(
-					paste0('meanDiff = ', format(round(sim$meanDiff, 2), nsmall=2)),
-					paste0('meanAbsDiff = ', format(round(sim$meanAbsDiff, 2), nsmall=2)),
+					paste0('meanDiff = ', format(round(sim['meanDiff'], 2), nsmall=2)),
+					paste0('meanAbsDiff = ', format(round(sim['meanAbsDiff'], 2), nsmall=2)),
 					paste0('areaAbsDiff = ', format(round(areaAbsDiff, 2), nsmall=2)),
-					paste0('d = ', format(round(sim$d, 2), nsmall=2)),
-					paste0('i = ', format(round(sim$i, 2), nsmall=2)),
-					paste0('esp = ', format(round(sim$esp, 2), nsmall=2))
+					paste0('d = ', format(round(sim['d'], 2), nsmall=2)),
+					paste0('i = ', format(round(sim['i'], 2), nsmall=2)),
+					paste0('esp = ', format(round(sim['esp'], 2), nsmall=2))
 				)
 			)
 
