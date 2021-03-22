@@ -5,6 +5,7 @@
 #' @param pts Either \code{NULL} or a \code{SpatialPoints} or \code{SpatialPointsDataFrame} object in an equal-area projection. These must be in an equal-area projection! See \emph{Details}.
 #' @return SpatialPolygons object representing a minimum convex polygon.
 #' @details This function constructs a minimum convex polygon (MCP) from a set of spatial polygons. The MCP is constructed from the point on each polygon that lies on the border of the polygon that is closest to the centroid of the point \code{pts}, if they are provided, or if not the centroid of the set of polygons if only the polygons are provided.
+#'
 #' @examples
 #' # red-bellied lemur in Madagascar
 #' # represented by points data and (pretend) Frarita-level occurrences

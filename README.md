@@ -1,7 +1,7 @@
 # enmSdm
 Tools for modeling niches and distributions of species
 
-<img align="right" src="enmSdm.png" height="190"/>
+<img align="right" src="enmSdm.png" height="250"/>
 
 This package is a complement to the popular `dismo` package for R by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating species distribution models and ecological niche models, and comparing ecological niches.
 
@@ -75,6 +75,7 @@ Note: If for some reason these commands don't work, you can install the package(
 * `decimalToDms`: Convert decimal coordinate to degrees-minutes-seconds
 * `dmsToDecimal`: Convert degrees-minutes-seconds coordinate to decimal
 * `getCRS`: Return a proj4string (coordinate reference system string) using a nickname
+* `getEPSG`: Return a EPSG code (coordinate reference system codeg) using a nickname
 * `pointDist`: Geographic distance between set(s) of points
 * `xToCoords`: Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object
 

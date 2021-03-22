@@ -67,6 +67,7 @@
 #' 		\code{\link{decimalToDms}} Convert decimal coordinate to degrees-minutes-seconds \cr
 #' 		\code{\link{dmsToDecimal}} Convert degrees-minutes-seconds coordinate to decimal \cr
 #' 		\code{\link{getCRS}} Return a proj4string (coordinate reference system string) using a nickname \cr
+#' 		\code{\link{getEPSG}} Return a EPSG code0 (coordinate reference system code) using a nickname \cr
 #' 		\code{\link{pointDist}} Geographic distance between set(s) of points \cr
 #' 		\code{\link{xToCoords}} Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object \cr
 #' @section Data:
