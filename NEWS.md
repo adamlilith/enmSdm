@@ -1,3 +1,6 @@
+enmSdm 0.5.3.3 2021-03-22
+Add getEPSG() for returning EPSG codes
+
 enmSdm 0.5.3.2 2021-02-05
 Fixed bug in compareResponse() for areal calculations
 
