@@ -9,7 +9,7 @@
 #' @export
 xToCoords <- function(x, longLat = NULL, sp = TRUE) {
 
-	if (class(x) == 'data.frame' | class(x) == 'matrix') {
+	if (any(class(x) %in% c('data.frame', 'matrix'))) {
 		if (is.null(longLat) & ncol(x) == 2) longLat <- 1:2
 		x <- x[ , longLat]
 		crs <- getCRS('wgs84', asCRS=TRUE)
