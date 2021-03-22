@@ -23,7 +23,7 @@ getCRS(x, asCRS = FALSE)
 \item \code{laeaN} Lambert azimuthal equal area for the North Pole: \code{+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs}
 \item \code{laeaS} Lambert azimuthal equal area for the South Pole: \code{+proj=laea +lat_0=-90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs}
 \item \code{mollweide} Mollweide equal-area for the world: \code{+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs}
-\code{nad27} NAD27 (unprojected): \code{+proj=longlat +datum=NAD27 +no_defs +ellps=clrk66 +nadgrids=@conus,@alaska,@ntv2_0.gsb,@ntv1_can.dat}
+\item code{nad27} NAD27 (unprojected): \code{+proj=longlat +datum=NAD27 +no_defs +ellps=clrk66 +nadgrids=@conus,@alaska,@ntv2_0.gsb,@ntv1_can.dat}
 \item \code{nad83} NAD83 (unprojected): \code{+proj=longlat +datum=NAD83 +no_defs +ellps=GRS80}
 \item \code{nad83harn} NAD83 HARN (unprojected): \code{+proj=longlat +ellps=GRS80 +no_defs}
 \item \code{plateCaree} Plate Caree using WGS84: \code{+proj=eqc +lat_ts=0 +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_def}
