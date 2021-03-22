@@ -22,7 +22,7 @@ elimCellDups <- function(
 ) {
 
 	# check CRS of points and raster
-	if (class(x) %in% c('SpatialPoints', 'SpatialPointsDataFrame')) {
+	if (any(class(x) %in% c('SpatialPoints', 'SpatialPointsDataFrame'))) {
 		if (is.na(raster::projection(r))) {
 			warning('Raster will be assumed to have same coordinate reference system as points.', .immediate=TRUE)
 			raster::projection(r) <- raster::projection(x)
