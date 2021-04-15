@@ -1,3 +1,10 @@
+enmSdm 0.5.3.5 2021-04-14
+Added thresholdMultiWeighted()
+Better handling of extreme cases in aucMultiWeighted()
+
+enmSdm 0.5.3.4 2021-04-12
+Fixed bug in aucMultiWeighted()
+
 enmSdm 0.5.3.3 2021-03-22
 Add getEPSG() for returning EPSG codes
 
