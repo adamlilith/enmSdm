@@ -1,13 +1,13 @@
 #' Weighted thresholds for predictions
 #'
-#' This function is similar to the \code{\link[dismo]{threshold}} function in the \pkg{dismo} package, which calculates thresholds to create binary predictions from continuous values. However, unlike that function is allows the user to specify weights for presences and absence/background predictions. The output will thus be the threshold that best matches the specified criterion taking into account the relative weights of the inpyt values.
-#' @param pres Numeric vector. Predicted values at test presences
+#' This function is similar to the \code{\link[dismo]{threshold}} function in the \pkg{dismo} package, which calculates thresholds to create binary predictions from continuous values. However, unlike that function, it allows the user to specify weights for presences and absence/background predictions. The output will thus be the threshold that best matches the specified criterion taking into account the relative weights of the input values.
+#' @param pres Numeric vector. Predicted values at test presences.
 #' @param contrast Numeric vector. Predicted values at background/absence sites.
 #' @param presWeight Numeric vector same length as \code{pres}. Relative weights of presence sites. The default is to assign each presence a weight of 1.
 #' @param contrastWeight Numeric vector same length as \code{contrast}. Relative weights of background sites. The default is to assign each presence a weight of 1.
 #' @param at Character or character vector, name(s) of threshold(s) to calculate. The default is to calculate them all.
 #' \itemize{
-#' 		\item \code{'msss'}: Threshold that the maximums sum of sensitivity and specificity.
+#' 		\item \code{'msss'}: Threshold that the maximizes the sum of sensitivity and specificity.
 #' 		\item \code{'mdss'}: Threshold that minimizes the difference between sensitivity and specificity.
 #' 		\item \code{'minPres'}: Minimum prediction across presences. This threshold is not weighted.
 #' 		\item \code{'orss'}: Threshold that maximizes the odds ratio skill score (Wunderlich et al. 2019).
@@ -24,8 +24,8 @@
 #' @param ... Other arguments (unused).
 #' @return Named numeric vector.
 #' @references Fielding, A.H. and J.F. Bell. 1997. A review of methods for the assessment of prediction errors in conservation presence/absence models. \emph{Environmental Conservation} 24:38-49.
-#' @references Wunderlich, R.F., Lin, P-Y., Anthony, J., and Petway, J.R. 2019. Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribition models. Nature Conservation 35:97-116.
-#' @seealso \code{\link[dismo]{threshold}}, \code{\link[dismo]{evaluate}}
+#' @references Wunderlich, R.F., Lin, P-Y., Anthony, J., and Petway, J.R. 2019. Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribution models. Nature Conservation 35:97-116.
+#' @seealso  \code{\link{thresholdMultiWeighted}}, \code{\link[dismo]{threshold}}, \code{\link[dismo]{evaluate}}
 #' @examples
 #' set.seed(123)
 #' 
