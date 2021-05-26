@@ -1,8 +1,8 @@
 #' Calculate multivariate weighted AUC
 #'
-#' This function calculates a multivariate version of the area under the receiver-operator characteristic curve (AUC). The multivariate version is simply the mean AUC across all possible pairwise AUCs for all cases (Hand & Till 2001). For example, if we have predictions that can be classified into three groups of expectation, say A, B, and C, where we expect predictions assigned to group A are > those in B and C, and predictions in group B are expected to be > those in group C, the multivariate AUC for this situation is \code{mean(wAB* auc_mean(A, B), wAC * auc_mean(A, C), wBC * auc_mean(B, C))}, where \code{auc_mean(X, Y)}, is the AUC calculated between cases \code{X} and \code{Y}, and \code{wXY} is a weight.
+#' This function calculates a multivariate version of the area under the receiver-operator characteristic curve (AUC). The multivariate version is simply the mean AUC across all possible pairwise AUCs for all cases (Hand & Till 2001). For example, if we have predictions that can be classified into three groups of expectation, say A, B, and C, where we expect predictions assigned to group A are > those in B and C, and predictions in group B are expected to be > those in group C, the multivariate AUC for this situation is \code{mean(wAB * auc_mean(A, B), wAC * auc_mean(A, C), wBC * auc_mean(B, C))}, where \code{auc_mean(X, Y)}, is the AUC calculated between cases \code{X} and \code{Y}, and \code{wXY} is a weight.
 #'
-#' @param ... A set of two or more objects, each of which can be any of a 1- or 2-column matrix or data frame or a numeric vector. The objects must be listed in order of \emph{expected} probability. For example, you might have a set of predictions for objects you expect to have a low predicted probability (e.g., long-term absences of an animal), a set that you expect to have middle levels of probability (e.g., sites that were recently vacated), and a set for which you expect a high level of predicted probability (e.g., sites that are currently occupied). In this case you should list the cases in order: low, middle, high. If a 2-column matrix or data frame is supplied, then the first column is assumed to represent predictions and the second assumed to represent weights.
+#' @param ... A set of two or more numeric vectors \emph{or} two or more 2-column matrices or data frames. The objects must be listed in order of \emph{expected} probability. For example, you might have a set of predictions for objects you expect to have a low predicted probability (e.g., long-term absences of an animal), a set that you expect to have middle levels of probability (e.g., sites that were recently vacated), and a set for which you expect a high level of predicted probability (e.g., sites that are currently occupied). In this case you should list the cases in order: low, middle, high. If a 2-column matrix or data frame is supplied, then the first column is assumed to represent predictions and the second assumed to represent weights.
 #' @param weightBySize Logical, if \code{FALSE} (default) then the multivariate measure of AUC will treat all comparisons as equal (e.g., low versus middle will weigh as much as middle versus high), and so will simply be the mean AUC across all possible comparisons. If \code{TRUE} then multivariate AUC is the weighted mean across all possible comparisons where weights are the number of comparisons between each of the two cases. For example, if a set of "low" predictions ("low") has 10 data points, "middle" has 10, and "high" has 20, then the multivariate AUC will be (10 * low + 10 * middle + 20 * high) / (10 + 10 + 20).
 #' @param na.rm Logical. If \code{TRUE} then remove any cases in \code{...} that are \code{NA}.
 #'
@@ -49,9 +49,9 @@ aucMultiWeighted <- function(
 	cases <- list(...)
 	ncases <- length(cases)
 	names(cases) <- if (ncases > 26) {
-		c(LETTERS, letters[1:(ncases - 25)])
+		rev(c(LETTERS, letters[1:(ncases - 25)]))
 	} else {
-		LETTERS[1:ncases]
+		LETTERS[ncases:1]
 	}
 
 	# if input is a data frame or matrix with just one column, add another
@@ -85,7 +85,6 @@ aucMultiWeighted <- function(
 	aucs <- numCases <- numeric()
 	
 	# calculate AUC
-	aucs <- numeric()
 	for (one in 1:(length(cases) - 1)) {
 		for (two in (one + 1):length(cases)) {
 
