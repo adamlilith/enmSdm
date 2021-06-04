@@ -85,5 +85,5 @@ Fielding, A.H. and J.F. Bell. 1997. A review of methods for the assessment of pr
 Wunderlich, R.F., Lin, P-Y., Anthony, J., and Petway, J.R. 2019. Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribution models. Nature Conservation 35:97-116.
 }
 \seealso{
-\code{\link{thresholdMultiWeighted}}, \code{\link[dismo]{threshold}}, \code{\link[dismo]{evaluate}}
+\code{\link[dismo]{threshold}}, \code{\link[dismo]{evaluate}}
 }
