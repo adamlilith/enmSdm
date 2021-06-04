@@ -528,13 +528,15 @@ bioticVelocity <- function(
 			
 			export <- c('bioticVelocity', '.euclid', '.cardinalDistance', '.interpCoordFromQuantile', 'compareNiches')
 			
+			# parallel::clusterEvalQ(cl, .libPaths(.libPaths()))
+			
 			out <- foreach::foreach(
 				i=seq_along(repAtTimes),
 				.options.multicore=mcOptions,
 				.combine='rbind',
 				.inorder=FALSE,
 				.export=export,
-				.packages = c('raster'),
+				.packages = c('raster', 'doParallel'),
 				.verbose=FALSE) %makeWork%
 				bioticVelocity(
 					x = raster::subset(x, repIndicesFrom[[i]]),
