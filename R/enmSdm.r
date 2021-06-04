@@ -28,6 +28,7 @@
 #' 		\code{\link{contBoyce}} Continuous Boyce Index (with/out site weights) \cr
 #' 		\code{\link{contBoyce2x}} "2X coverage" version of the Continuous Boyce Index (with/out site weights) \cr
 #' 		\code{\link{fpb}} Fpb (with/out site weights) \cr
+#' 		\code{\link{thresholdMultiWeighted}} Find optimal thresholds for predictions to >2 classes \cr
 #' 		\code{\link{thresholdWeighted}} Thresholds to convert continuous predictions to binary predictions (with/out site weights) \cr
 #' 		\code{\link{thresholdStats}} Model performance statistics based on thresholded predictions (with/out site weights) \cr
 #' 		\code{\link{tssWeighted}} True Skill Statistic (TSS) (with/out site weights) \cr
