@@ -6,7 +6,7 @@
 #' @param weightBySize Logical, if \code{FALSE} (default) then the multivariate measure of AUC will treat all comparisons as equal (e.g., low versus middle will weigh as much as middle versus high), and so will simply be the mean AUC across all possible comparisons. If \code{TRUE} then multivariate AUC is the weighted mean across all possible comparisons where weights are the number of comparisons between each of the two cases. For example, if a set of "low" predictions ("low") has 10 data points, "middle" has 10, and "high" has 20, then the multivariate AUC will be (10 * low + 10 * middle + 20 * high) / (10 + 10 + 20).
 #' @param na.rm Logical. If \code{TRUE} then remove any cases in \code{...} that are \code{NA}.
 #'
-#' @return Named numeric vector. The names will appear as \code{A_over_B} (which in this example means the AUC of item #1 in the \code{...} when compared to the second item in \code{...}), plus \code{multivariate} (which is the multivariate AUC).
+#' @return Named numeric vector. The names will appear as \code{case2_over_case1} (which in this example means the AUC of item #1 in the \code{...} when compared to the second item in \code{...}), plus \code{multivariate} (which is the multivariate AUC).
 #' 
 #' @seealso \code{\link{fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}, \code{link[enmSdm]{aucWeighted}}
 #'
@@ -48,11 +48,7 @@ aucMultiWeighted <- function(
 
 	cases <- list(...)
 	ncases <- length(cases)
-	names(cases) <- if (ncases > 26) {
-		rev(c(LETTERS, letters[1:(ncases - 25)]))
-	} else {
-		LETTERS[ncases:1]
-	}
+	names(cases) <- paste0('case', seq_along(cases))
 
 	# if input is a data frame or matrix with just one column, add another
 	# to represent weights (all weights = 1), if input is a vector then
@@ -107,7 +103,7 @@ aucMultiWeighted <- function(
 			aucs <- c(aucs, thisAuc)
 			name1 <- names(cases)[one]
 			name2 <- names(cases)[two]
-			name <- paste0(name1, '_over_', name2)
+			name <- paste0(name2, '_over_', name1)
 			names(aucs)[length(aucs)] <- name
 			
 			# remember number of cases
