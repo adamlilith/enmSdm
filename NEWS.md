@@ -1,4 +1,7 @@
 enmSdm 0.5.3.5 2021-04-14
+Renamed aucMultiWeighted() cases to be more intuitive
+
+enmSdm 0.5.3.5 2021-04-14
 Added thresholdMultiWeighted()
 Better handling of extreme cases in aucMultiWeighted()
 

@@ -34,7 +34,6 @@ Note: If for some reason these commands don't work, you can install the package(
 * `contBoyce`: Continuous Boyce Index (with/out site weights)
 * `contBoyce2x`: "2X coverage" version of the Continuous Boyce Index (with/out site weights)
 * `fpb`: Fpb measure of model discrimination capacity (with/out site weights)
-* `thresholdMultiWeighted`: Find optimal thresholds for predictions to >2 classes (with/out site weights)
 * `thresholdWeighted`: Thresholds to convert continuous predictions to binary predictions (with/out site weights)
 * `thresholdStats`: Model performance statistics based on thresholded predictions (with/out site weights)
 * `tssWeighted`: True Skill Statistic (TSS) (with/out site weights)
