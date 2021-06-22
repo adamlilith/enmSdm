@@ -24,7 +24,7 @@
 #' \item \code{d} Schoener's \emph{D}
 #' \item \code{i} Hellinger's \emph{I} (adjusted to have a range [0, 1])
 #' \item \code{esp} Godsoe's ESP
-#' \item \code{rho} Pearson correlation between predictions of \code{pred1} and \code{pred2}.
+#' \item \code{cor} Pearson correlation between predictions of \code{pred1} and \code{pred2}.
 #' \item \code{rankCor} Spearman rank correlation between predictions of \code{pred1} and \code{pred2}.
 #' }
 #' @references Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution.  Evolution 62:2868-2883.
@@ -169,7 +169,7 @@ compareResponse <- function(
 			d=sim['d'],
 			i=sim['i'],
 			esp=sim['esp'],
-			rho=sim['rho'],
+			cor=sim['cor'],
 			rankCor=sim['rankCor']
 		)
 
@@ -199,7 +199,7 @@ compareResponse <- function(
 			# fake legend (stats)
 			legend('bottomright', inset=0.01, bty='n', lwd=NA, pch=NA,
 				legend=c(
-					paste0('rho = ', format(round(sim['rho'], 2), nsmall=2)),
+					paste0('cor = ', format(round(sim['cor'], 2), nsmall=2)),
 					paste0('rankCor = ', format(round(sim['rankCor'], 2), nsmall=2))
 				)
 			)

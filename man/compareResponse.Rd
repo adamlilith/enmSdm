@@ -54,7 +54,7 @@ Either a data frame (if \code{smooth = FALSE} or a list object with the smooth m
 \item \code{d} Schoener's \emph{D}
 \item \code{i} Hellinger's \emph{I} (adjusted to have a range [0, 1])
 \item \code{esp} Godsoe's ESP
-\item \code{rho} Pearson correlation between predictions of \code{pred1} and \code{pred2}.
+\item \code{cor} Pearson correlation between predictions of \code{pred1} and \code{pred2}.
 \item \code{rankCor} Spearman rank correlation between predictions of \code{pred1} and \code{pred2}.
 }
 }
