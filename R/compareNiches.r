@@ -8,8 +8,8 @@
 #' \item \code{d}: Schoener's \emph{D}
 #' \item \code{i}: Warren's \emph{I}
 #' \item \code{esp}: Godsoe's \emph{ESP}
-#' \item \code{rho}: Correlation between \code{x1} and \code{x2} (will apply \code{logitAdj()} first unless logit=FALSE).
-#' \item \code{rankCor}: Pearson rank correlation.
+#' \item \code{cor}: Pearson correlation between \code{x1} and \code{x2} (will apply \code{logitAdj()} first unless logit=FALSE).
+#' \item \code{rankCor}: Spearman rank correlation.
 #' }
 #' @param w Numeric list. Weights of predictions in \code{x1} and \code{x2}.
 #' @param na.rm Logical.  If T\code{TRUE} then remove elements in \code{x1} and \code{2} that are \code{NA} in \emph{either} \code{x1} or \code{x2}.
@@ -28,7 +28,7 @@
 compareNiches <- function(
 	x1,
 	x2,
-	method = c('meanDiff', 'meanAbsDiff', 'rmsd', 'd', 'i', 'esp', 'rho', 'rankCor'),
+	method = c('meanDiff', 'meanAbsDiff', 'rmsd', 'd', 'i', 'esp', 'cor', 'rankCor'),
 	w = rep(1, length(x1)),
 	na.rm = FALSE,
 	...
@@ -75,7 +75,7 @@ compareNiches <- function(
 	if ('esp' %in% method) sim <- c(sim, 2 * sum(w * x1 * x2) / (sum(w * (x1 + x2))))
 
 	# correlation
-	if ('rho' %in% method) sim <- c(sim, boot::corr(cbind(x1, x2, w=w)))
+	if ('cor' %in% method) sim <- c(sim, boot::corr(cbind(x1, x2, w=w)))
 
 	# rank correlation
 	if ('rankCor' %in% method) sim <- c(sim, stats::cor(w * x1, w * x2, method='spearman'))

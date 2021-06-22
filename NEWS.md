@@ -1,3 +1,7 @@
+enmSdm 0.5.3.6 2021-06-22
+Fixed mistake in how Pearson correlation is named in
+compareNiches() and compareResponse() (was "rho", is now "cor")
+
 enmSdm 0.5.3.5 2021-04-14
 Renamed aucMultiWeighted() cases to be more intuitive
 

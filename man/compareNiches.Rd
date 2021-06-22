@@ -7,7 +7,7 @@
 compareNiches(
   x1,
   x2,
-  method = c("meanDiff", "meanAbsDiff", "rmsd", "d", "i", "esp", "rho", "rankCor"),
+  method = c("meanDiff", "meanAbsDiff", "rmsd", "d", "i", "esp", "cor", "rankCor"),
   w = rep(1, length(x1)),
   na.rm = FALSE,
   ...
@@ -23,8 +23,8 @@ compareNiches(
 \item \code{d}: Schoener's \emph{D}
 \item \code{i}: Warren's \emph{I}
 \item \code{esp}: Godsoe's \emph{ESP}
-\item \code{rho}: Correlation between \code{x1} and \code{x2} (will apply \code{logitAdj()} first unless logit=FALSE).
-\item \code{rankCor}: Pearson rank correlation.
+\item \code{cor}: Pearson correlation between \code{x1} and \code{x2} (will apply \code{logitAdj()} first unless logit=FALSE).
+\item \code{rankCor}: Spearman rank correlation.
 }}
 
 \item{w}{Numeric list. Weights of predictions in \code{x1} and \code{x2}.}
