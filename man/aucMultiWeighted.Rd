@@ -14,7 +14,7 @@ aucMultiWeighted(..., weightBySize = FALSE, na.rm = FALSE)
 \item{na.rm}{Logical. If \code{TRUE} then remove any cases in \code{...} that are \code{NA}.}
 }
 \value{
-Named numeric vector. The names will appear as \code{A_over_B} (which in this example means the AUC of item #1 in the \code{...} when compared to the second item in \code{...}), plus \code{multivariate} (which is the multivariate AUC).
+Named numeric vector. The names will appear as \code{case2_over_case1} (which in this example means the AUC of item #1 in the \code{...} when compared to the second item in \code{...}), plus \code{multivariate} (which is the multivariate AUC).
 }
 \description{
 This function calculates a multivariate version of the area under the receiver-operator characteristic curve (AUC). The multivariate version is simply the mean AUC across all possible pairwise AUCs for all cases (Hand & Till 2001). For example, if we have predictions that can be classified into three groups of expectation, say A, B, and C, where we expect predictions assigned to group A are > those in B and C, and predictions in group B are expected to be > those in group C, the multivariate AUC for this situation is \code{mean(wAB * auc_mean(A, B), wAC * auc_mean(A, C), wBC * auc_mean(B, C))}, where \code{auc_mean(X, Y)}, is the AUC calculated between cases \code{X} and \code{Y}, and \code{wXY} is a weight.
