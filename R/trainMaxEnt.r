@@ -371,7 +371,8 @@ trainMaxEnt <- function(
 		x=data,
 		p=as.vector(presentBg),
 		path=thisScratchDir,
-		args=params
+		args=params,
+		silent=TRUE
 	)
 
 	## predict to training (and maybe test presences)
