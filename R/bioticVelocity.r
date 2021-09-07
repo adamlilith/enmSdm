@@ -1079,7 +1079,7 @@ bioticVelocity <- function(
 							godsoeEsp = sims[['esp']],
 							schoenerD = sims[['d']],
 							warrenI = sims[['i']],
-							rho = sims[['rho']],
+							cor = sims[['cor']],
 							rankCor = sims[['rankCor']]
 						),
 						row.names=NULL
