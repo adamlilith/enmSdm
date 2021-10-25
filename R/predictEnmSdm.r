@@ -18,6 +18,8 @@ predictEnmSdm <- function(
 	...
 ) {
 
+	dots <- list(...)
+
 	modelClass <- class(model)
 	dataClass <- class(newdata)
 	dataType <- if (any(c('matrix', 'data.frame') %in% dataClass)) {
@@ -62,7 +64,11 @@ predictEnmSdm <- function(
 	# MaxNet
 	} else if ('maxnet' %in% modelClass) {
 
-		out <- predict(model, newdata, ...)
+		out <- if (any('type' %in% names(dots))) {
+			predict(model, newdata, ...)[ , 1]
+		} else {
+			predict(model, newdata, type='cloglog', ...)[ , 1]
+		}
 
 	# random forest in party package
 	} else if ('RandomForest' %in% modelClass) {
