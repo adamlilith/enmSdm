@@ -1,3 +1,6 @@
+enmSdm 0.5.3.8 2021-10-25
+Update for Maxent 3.4.4
+
 enmSdm 0.5.3.6 2021-06-22
 Fixed mistake in how Pearson correlation is named in
 compareNiches() and compareResponse() (was "rho", is now "cor")
