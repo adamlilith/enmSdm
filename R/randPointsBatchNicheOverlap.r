@@ -16,7 +16,7 @@
 #' data(lemurs, package='enmSdm')
 #' longLat <- c('decimalLongitude', 'decimalLatitude')
 #'
-#' mad- <- raster::getData('GADM', country='MDG', level=0)
+#' mad <- raster::getData('GADM', country='MDG', level=0)
 #' elev <- raster::getData('alt', country='MDG', mask=TRUE, res=2.5)
 #'
 #' # plot data as-is
@@ -91,7 +91,7 @@
 #' 	pt.bg=c('cornflowerblue', 'cornflowerblue', NA, NA))
 #'
 #' ### batch mode
-#' \donttest{
+#' \dontrun{
 #'
 #' # download climate data
 #' clim <- raster::getData('worldclim', var='bio', res=2.5)

@@ -5,7 +5,7 @@
 #' @param bg Numeric vector. Predictions at background sites.
 #' @param presWeight Numeric same length as \code{pres}. Weights for presence predictions.
 #' @param bgWeight Numeric same length as \code{bg}. Weights for background predictions.
-#' @param ttr Same as \code{threshold} but deprecated. Included for backwards compatability.
+#' @param tr Same as \code{threshold} but deprecated. Included for backwards compatibility.
 #' @return Numeric.
 #' @export
 

@@ -68,7 +68,7 @@ contBoyce2x(pres, contrast)
 presWeight <- c(rep(1, 10), rep(0.5, 90))
 contBoyce(pres, contrast, presWeight=presWeight)
 contBoyce2x(pres, contrast, presWeight=presWeight)
-\donttest{
+\dontrun{
 # compare stability of CBI calculated with ecospat.boyce() in ecospat package
 library(ecospat)
 set.seed(123)

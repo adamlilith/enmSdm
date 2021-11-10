@@ -19,7 +19,7 @@
 #' The function \code{spatialCorrForPointsWeight} calculates weights for a set of points based on the characteristic scale of spatial autocorrelation.
 #' @seealso \code{\link[enmSdm]{spatialCorrForPointsSummary}}, \code{\link[enmSdm]{spatialCorrForPointsPlot}}, \code{\link[enmSdm]{spatialCorrForPointsWeight}}, \code{\link[enmSdm]{localSpatialCorrForValues}}
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # create raster of Madagascar
 #' data(mad0)
 #' rast <- raster::raster(mad0, res=c(1/12, 1/12))
@@ -122,7 +122,7 @@ spatialCorrForPoints <- function(
 	if (distDistrib[1, 'middle'] < 0) distDistrib[1, 'middle'] <- mean(distDistrib[1, c('lower', 'upper')])
 	colnames(distDistrib)[which('proportion' == colnames(distDistrib))] <- 'observedProportion'
 	
-	if (verbose) progress <- txtProgressBar(min=0, max=iters, style=3, width=min(64, getOption('width')))
+	if (verbose) progress <- utils::txtProgressBar(min=0, max=iters, style=3, width=min(64, getOption('width')))
 	
 	# by iteration
 	for (iter in 1:iters) {
@@ -146,7 +146,7 @@ spatialCorrForPoints <- function(
 		colnames(thisRandProportion) <- paste0('randProportion', iter)
 		distDistrib <- cbind(distDistrib, thisRandProportion)
 	
-		if (verbose) setTxtProgressBar(progress, iter)
+		if (verbose) utils::setTxtProgressBar(progress, iter)
 	
 	}
 

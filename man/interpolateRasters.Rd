@@ -17,7 +17,7 @@ interpolateRasters(
 )
 }
 \arguments{
-\item{rasts}{Raster stack or brick.}
+\item{rasts}{A "stack" of \code{SpatRaster}s.}
 
 \item{interpFrom}{Numeric vector, one value per raster in \code{rasts}. Values represent "distance" along the set of rasters rasters (e.g., time).}
 
@@ -54,10 +54,10 @@ This function returns a stack of rasters interpolated from a stack of rasters. F
 This function can be very memory-intensive for large rasters.  It may speed things up (and make them possible) to do interpolations piece by piece (e.g., instead of interpolating between times t0, t1, t2, t3, ..., interpolate between t0 and t1, then t1 and t2, etc. This may give results that differ from using the entire set, however. Note that using linear and splines will often yield very similar results except that in a small number of cases splines may produce very extreme interpolated values.
 }
 \examples{
-\donttest{
+\dontrun{
 interpFrom <- c(1, 3, 4, 8, 10, 11, 15)
 interpTo <- 1:15
-rx <- raster(nrows=10, ncols=10)
+rx <- rast(nrows=10, ncols=10)
 r1 <- setValues(rx, rnorm(100, 1))
 r3 <- setValues(rx, rnorm(100, 3))
 r4 <- setValues(rx, rnorm(100, 5))
@@ -65,7 +65,7 @@ r8 <- setValues(rx, rnorm(100, 11))
 r10 <- setValues(rx, rnorm(100, 3))
 r11 <- setValues(rx, rnorm(100, 5))
 r15 <- setValues(rx, rnorm(100, 13))
-rasts <- stack(r1, r3, r4, r8, r10, r11, r15)
+rasts <- c(r1, r3, r4, r8, r10, r11, r15)
 names(rasts) <- paste0('rasts', interpFrom)
 
 linear <- interpolateRasters(rasts, interpFrom, interpTo)
@@ -74,17 +74,18 @@ gam <- interpolateRasters(rasts, interpFrom, interpTo, type='gam', onFail='linea
 ns <- interpolateRasters(rasts, interpFrom, interpTo, type='ns', onFail='linear', verbose=FALSE)
 poly <- interpolateRasters(rasts, interpFrom, interpTo, type='poly', onFail='linear')
 bs <- interpolateRasters(rasts, interpFrom, interpTo, type='bs', onFail='linear')
-ss <- interpolateRasters(rasts, interpFrom, interpTo, type='smooth.spline', onFail='linear', verbose=FALSE)
+ss <- interpolateRasters(rasts, interpFrom, interpTo, type='smooth.spline', onFail='linear',
+verbose=FALSE)
 
 # examine trends for a particular point on the landscape
 pts <- rbind(c(-9, 13))
-linearExt <- c(extract(linear, pts))
-splineExt <- c(extract(spline, pts))
-gamExt <- c(extract(gam, pts))
-nsExt <- c(extract(ns, pts))
-polyExt <- c(extract(poly, pts))
-bsExt <- c(extract(bs, pts))
-ssExt <- c(extract(ss, pts))
+linearExt <- unlist(raster::extract(linear, pts))
+splineExt <- unlist(raster::extract(spline, pts))
+gamExt <- unlist(raster::extract(gam, pts))
+nsExt <- unlist(raster::extract(ns, pts))
+polyExt <- unlist(raster::extract(poly, pts))
+bsExt <- unlist(raster::extract(bs, pts))
+ssExt <- unlist(raster::extract(ss, pts))
 
 mins <- min(linearExt, splineExt, gamExt, nsExt, polyExt, bsExt, ssExt)
 maxs <- max(linearExt, splineExt, gamExt, nsExt, polyExt, bsExt, ssExt)

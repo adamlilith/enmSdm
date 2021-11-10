@@ -18,7 +18,7 @@
 #' @return If \code{out = 'model'} this function returns an object of class \code{gam}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{gam} object and the data frame.
 #' @seealso \code{\link[splines]{ns}}, \code{\link[mgcv]{gam}}, \code{\link{trainGam}}
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(brglm2)
 #'
 #' ### model red-bellied lemurs
@@ -163,7 +163,7 @@ trainNs <- function(
 				thisThisForm <- paste0(form, ' + ', term)
 
 				thisModel <- stats::glm(stats::as.formula(thisThisForm), family=family, data=data, weights=w, method='brglmFit', ...)
-				thisAic <- AIC(thisModel)
+				thisAic <- stats::AIC(thisModel)
 
 				# remember
 				tuning <- if (exists('tuning', inherits=FALSE)) {

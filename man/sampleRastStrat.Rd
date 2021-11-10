@@ -22,5 +22,5 @@ sampleRastStrat(x, n, adjArea = TRUE, replace = TRUE)
 This function is a robust version of \code{sampleStratified()} in the \code{raster} package where sampling can be performed with replacement in each stratum. Each unique value in a raster is identified as a stratum. Each stratum is sampled a given number of times.
 }
 \seealso{
-\code{\link[raster]{sampleStratified}}, \code{\link[randomPoints]{randomPoints}}, \code{\link{sampleRast}}
+\code{\link[raster]{sampleStratified}}, \code{\link[dismo]{randomPoints}}, \code{\link{sampleRast}}
 }

@@ -29,9 +29,9 @@ spatialCorrForPointsPlot(
 
 \item{leg}{Logical, if \code{TRUE} (default) then include legend.}
 
-\item{...}{Arguments to pass to \code{plot}.}
+\item{xlab, ylab}{x- and y-axis labels.}
 
-\item{return}{Displays a plot.}
+\item{...}{Arguments to pass to \code{plot}.}
 }
 \description{
 This function plots output from the function \code{\link[enmSdm]{spatialCorrForPoints}} which estimates a null distribution of pairwise distances between points for an observed set of points. In the plot the lines and points represent the observed pairwise distance distribution and the polygon represents the randomized distribution with maximum values representing the upper \emph{n}-th (usually 95th) percentile of the null distribution. Points falling above the polygon indicate the observed set of points has more pairwise distances than expected by chance at the given distance interval.
@@ -43,7 +43,7 @@ Alternatively, one can specify a set of points using the \code{fixed} argument. 
 The function \code{spatialCorrForPointsWeight} calculates weights for a set of points based on the characteristic scale of spatial autocorrelation.
 }
 \examples{
-\donttest{
+\dontrun{
 # create raster of Madagascar
 data(mad0)
 rast <- raster::raster(mad0, res=c(1/12, 1/12))

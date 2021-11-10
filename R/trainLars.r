@@ -15,9 +15,9 @@
 #' @param ... Arguments to pass to \code{grpreg} \code{grpregOverlap}, and \code{cv.grpregOverlap}, especially \code{family} and \code{penalty}. \emph{Do not} include the \code{'group'} argument or \code{alpha} arguments.
 #' @return Object of class \code{grpreg} and \code{grpregOverlap}.
 #' @details If \code{scale} is \code{TRUE} then predictors with zero variance will be removed from the data before the model is trained.
-#' @seealso \code{\link{.makeLarsData}}, \code{\link{predictLars}}, \code{\link[grpreg]{grpreg}}, \code{\link[grpregOverlap]{grpregOverlap}}, \code{\link[grpregOverlap]{cv.grpregOverlap}}
+#' @seealso \code{\link{predictLars}}, \code{\link[grpreg]{grpreg}}, \code{\link[grpregOverlap]{grpregOverlap}}, \code{\link[grpregOverlap]{cv.grpregOverlap}}
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' ### model red-bellied lemurs
 #' data(mad0)
 #' data(lemurs)
@@ -84,7 +84,6 @@
 #' plot(pred3, pred3bio1_12)
 #' abline(0, 1)
 #' }
-#' @export
 
 trainLars <- function(
 	data,
@@ -179,10 +178,12 @@ trainLars <- function(
 #' @details If \code{scale} is \code{TRUE} then predictors with zero variance will be removed from the data before creating higher-order terms.
 #' @seealso \code{\link{trainLars}}, \code{\link{predictLars}}
 #' @examples
+#' \dontrun{
 #' set.seed(123)
 #' x <- data.frame(y=c(rep(1, 10), rep(0, 10)), x1=1:10, x2=runif(20) * 1:20, x3=rnorm(20) - 1:20)
 #' out <- .makeLarsData(x, resp='y', preds=c('x1', 'x2', 'x3'))
 #' str(out)
+#' }
 
 .makeLarsData <- function(
 	data,

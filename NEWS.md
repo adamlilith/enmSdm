@@ -1,3 +1,6 @@
+enmSdm 0.6.0 2021-11-10
+Fixing R CMD check issues
+
 enmSdm 0.5.3.8 2021-10-25
 Update for Maxent 3.4.4
 

@@ -74,7 +74,7 @@ fpb <- function(
 		bg <- cleanedBg[[1]]
 		bgWeight <- cleanedBg[[2]]
 
-		thresholds <- na.omit(thresholds)
+		thresholds <- stats::na.omit(thresholds)
 		
 	}
 

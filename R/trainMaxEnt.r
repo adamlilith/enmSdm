@@ -416,9 +416,9 @@ trainMaxEnt <- function(
 	AICc <- -2 * ll + 2 * numCoeff + (2 * numCoeff * (numCoeff + 1)) / (sum(presentBg) - numCoeff - 1)
 
 	# remove temporary files... note that "species.lambda" file cannot be removed unless R is closed, so we'll just make it smaller to reduce disk space usage
-	write.csv(NULL, paste0(thisScratchDir, '/species.lambdas'))
-	if (file.exists(paste0(thisScratchDir, '/presences'))) write.csv(NULL, paste0(scratchDir, '/', i, '/presences'))
-	if (file.exists(paste0(thisScratchDir, '/absences'))) write.csv(NULL, paste0(scratchDir, '/', i, '/absences'))
+	utils::write.csv(NULL, paste0(thisScratchDir, '/species.lambdas'))
+	if (file.exists(paste0(thisScratchDir, '/presences'))) utils::write.csv(NULL, paste0(scratchDir, '/', i, '/presences'))
+	if (file.exists(paste0(thisScratchDir, '/absences'))) utils::write.csv(NULL, paste0(scratchDir, '/', i, '/absences'))
 	unlink(paste0(thisScratchDir, '/plots'), recursive=TRUE, force=TRUE)
 	unlink(thisScratchDir, recursive=TRUE, force=TRUE)
 

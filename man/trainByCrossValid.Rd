@@ -13,7 +13,6 @@ trainByCrossValid(
   ...,
   metrics = c("logLoss", "cbi", "auc", "fpb", "tss", "msss", "mdss", "orss", "sedi",
     "minTrainPres", "trainSe95", "trainSe90"),
-  sensitivity = 0.9,
   weightEvalTrain = TRUE,
   weightEvalTest = TRUE,
   na.rm = FALSE,

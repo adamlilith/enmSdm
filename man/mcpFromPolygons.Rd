@@ -34,7 +34,9 @@ wgs84 <- enmSdm::getCRS('wgs84', TRUE)
 redBelly <- sp::SpatialPoints(redBelly[ , ll], proj4string=wgs84)
 redBelly <- sp::spTransform(redBelly, madEaProj)
 
-faritras <- c('Vakinankaratra', 'Haute matsiatra', 'Ihorombe', 'Vatovavy Fitovinany', 'Alaotra-Mangoro', 'Analanjirofo', 'Atsinanana', 'Analamanga', 'Itasy')
+faritras <- c('Vakinankaratra', 'Haute matsiatra', 'Ihorombe',
+'Vatovavy Fitovinany', 'Alaotra-Mangoro', 'Analanjirofo', 'Atsinanana',
+'Analamanga', 'Itasy')
 polys <- mad[mad$NAME_2 \%in\% faritras, ]
 
 mcpPolys <- mcpFromPolygons(polys)
@@ -50,5 +52,11 @@ plot(polys, col='gray80', add=TRUE)
 plot(mcpPolysPoints, add=TRUE, col=scales::alpha('green', 0.4))
 plot(mcpPolys, add=TRUE, col=scales::alpha('purple', 0.4))
 points(redBelly, pch=16)
-legend('bottomright', legend=c('Presences', '"Occupied" Faritras', 'MCP w/ polygons', 'MCP w/ polygons & points'), fill=c(NA, 'gray', scales::alpha('purple', 0.4), scales::alpha('green', 0.4)), pch=c(16, NA, NA, NA), border=c(NA, 'black', 'black', 'black'))
+legend('bottomright', 
+legend=c('Presences', '"Occupied" Faritras',
+'MCP w/ polygons', 'MCP w/ polygons & points'),
+fill=c(NA, 'gray', scales::alpha('purple', 0.4),
+scales::alpha('green', 0.4)),
+pch=c(16, NA, NA, NA),
+border=c(NA, 'black', 'black', 'black'))
 }

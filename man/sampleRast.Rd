@@ -11,20 +11,20 @@ sampleRast(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE)
 
 \item{n}{Positive integer. Number of points to draw.}
 
-\item{adjArea}{Logical. If TRUE then adjust probabilities so sampling accounts for cell area.}
+\item{adjArea}{Logical. If \code{TRUE} then adjust probabilities so sampling accounts for cell area.}
 
-\item{replace}{Logical. If TRUE then sample with replacement.}
+\item{replace}{Logical. If \code{TRUE} then sample with replacement.}
 
-\item{prob}{Logical. If TRUE then sample cells with probabilities proportional to cell values. If `adjArea` is also TRUE then probabilities are drawn proportional to the product of cell area * the value of the cell.}
+\item{prob}{Logical. If TRUE then sample cells with probabilities proportional to cell values. If \code{adjArea} is also \code{TRUE} then probabilities are drawn proportional to the product of cell area * the value of the cell.}
 }
 \value{
-2-column matrix with longitude and latitude of random points.
+2-column matrix with longitude and latitude of random points. Points will be located at cell centers.
 }
 \description{
-This function returns coordinates randomly located on a raster where cells can be sampled more than once if desired (sampled with replacement) and where the probability of selection is proportinate to the cell value (plus maybe cell area--both if desired).
+This function returns coordinates randomly located on a raster where cells can be sampled more than once if desired (sampled with replacement) and where the probability of selection is proportionate to the cell value (plus maybe cell area--both if desired).
 }
-\seealso{
-\code{\link[dismo]{randomPoints}}, \code{\link{sampleRastStrat}}
+\examples{
+
 r <- raster::raster()
 nc <- raster::ncell(r)
 r[] <- 1:nc
@@ -41,4 +41,7 @@ plot(r, main='adjArea = TRUE & prob = FALSE')
 points(rands3, pch='.')
 plot(r, main='adjArea = FALSE & prob = FALSE')
 points(rands4, pch='.')
+}
+\seealso{
+\code{\link[dismo]{randomPoints}}, \code{\link{sampleRastStrat}}
 }

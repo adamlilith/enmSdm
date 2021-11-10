@@ -33,7 +33,7 @@ Object of class \code{RandomForest}.
 This function trains a  conditional random forest model. It is nearly identical to the \code{\link[party]{cforest}} function in the \pkg{party} package but is included for consistency with \code{\link{trainGlm}}, \code{\link{trainGam}}, and similar functions.
 }
 \examples{
-\donttest{
+\dontrun{
 ### model red-bellied lemurs
 data(mad0)
 data(lemurs)

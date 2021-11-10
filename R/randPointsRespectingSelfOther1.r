@@ -19,7 +19,7 @@
 #' data(lemurs, package='enmSdm')
 #' longLat <- c('decimalLongitude', 'decimalLatitude')
 #' 
-#' mad- <- raster::getData('GADM', country='MDG', level=0)
+#' mad <- raster::getData('GADM', country='MDG', level=0)
 #' elev <- raster::getData('alt', country='MDG', mask=TRUE, res=2.5)
 #' 
 #' # plot data as-is
@@ -94,7 +94,7 @@
 #' 	pt.bg=c('cornflowerblue', 'cornflowerblue', NA, NA))
 #' 
 #' ### batch mode
-#' \donttest{
+#' \dontrun{
 #' 
 #' # download climate data
 #' clim <- raster::getData('worldclim', var='bio', res=2.5)
@@ -198,8 +198,8 @@ randPointsRespectingSelfOther1 <- function(
 	out1 <- x1
 
 	# convert SpatialPointsDataFrame to SpatialPoints
-	if (class(x1) == 'SpatialPointsDataFrame') x1 <- sp::SpatialPoints(coordinates(x1), proj4string=CRS(raster::projection(x1)))
-	if (class(x2) == 'SpatialPointsDataFrame') x2 <- sp::SpatialPoints(coordinates(x2), proj4string=CRS(raster::projection(x2)))
+	if (class(x1) == 'SpatialPointsDataFrame') x1 <- sp::SpatialPoints(sp::coordinates(x1), proj4string=sp::CRS(raster::projection(x1)))
+	if (class(x2) == 'SpatialPointsDataFrame') x2 <- sp::SpatialPoints(sp::coordinates(x2), proj4string=sp::CRS(raster::projection(x2)))
 
 	# convert matrix/data frame to SpatialPoints
 	if (class(x1) %in% c('matrix', 'data.frame')) {

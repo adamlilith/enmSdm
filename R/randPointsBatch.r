@@ -94,7 +94,7 @@
 #' 	pt.bg=c('cornflowerblue', 'cornflowerblue', NA, NA))
 #'
 #' ### batch mode
-#' \donttest{
+#' \dontrun{
 #'
 #' # download climate data
 #' clim <- raster::getData('worldclim', var='bio', res=2.5)

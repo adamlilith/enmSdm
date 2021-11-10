@@ -9,7 +9,7 @@
 #' @param ... Extra arguments to pass to \code{distFunct}.
 #' @return Object of class \code{x}.
 #' @details If \code{x} is a data frame or a matrix then it will be assumed to be unprojected (WGS84 coordinate reference system) and \code{minDist} should be in units of meters unless the argument \code{r} (passed to the distance function using \code{...}, see \code{\link[geosphere]{distGeo}} is not in meters.
-#' @seealso \code{\link[ENMEval]{thin.algorithm}}, \code{\link[geosphere]{distGeo}}, \code{\link{geoThin}}
+#' @seealso \code{\link[geosphere]{distGeo}}, \code{\link{geoThin}}
 #' @examples
 #' x <- data.frame(long=c(-90.1, -90.1, -90.15, -90.17, -90.2, -89),
 #'    lat=c(38, 38, 38, 38, 38, 38), point=letters[1:6])
@@ -72,7 +72,7 @@ geoThinApprox <- function(
 		if (verbose) {
 			omnibus::say('Thinning points...')
 			pointsWithNeighs <- sum(neighsStart > 0)
-			prog <- txtProgressBar(min=0, max=neighsStart, width=32, style=3)
+			prog <- utils::txtProgressBar(min=0, max=neighsStart, width=32, style=3)
 		}
 
 		remainingPointsWithNeighs <- sum(neighs > 0)
@@ -92,7 +92,7 @@ geoThinApprox <- function(
 
 			remainingPointsWithNeighs <- sum(neighs > 0)
 			
-			if (verbose) setTxtProgressBar(prog, neighsStart - remainingPointsWithNeighs)
+			if (verbose) utils::setTxtProgressBar(prog, neighsStart - remainingPointsWithNeighs)
 
 		}
 

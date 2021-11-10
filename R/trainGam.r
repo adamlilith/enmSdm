@@ -19,7 +19,7 @@
 #' @return If \code{out = 'model'} this function returns an object of class \code{gam}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{gam} object and the data frame.
 #' @seealso \code{\link[mgcv]{gam}}
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(brglm2)
 #'
 #' ### model red-bellied lemurs
@@ -163,7 +163,7 @@ trainGam <- function(
 
 				thisThisForm <- paste0(form, ' + ', term)
 
-				thisAic <- stats::AIC(
+				thisAic <- MuMIn::AICc(
 					mgcv::gam(
 						formula=stats::as.formula(thisThisForm),
 						family=family,
@@ -214,9 +214,9 @@ trainGam <- function(
 
 						}
 
-						thisAic <- AIC(
+						thisAic <- MuMIn::AICc(
 							mgcv::gam(
-								formula=as.formula(paste0(form, ' + ', term)),
+								formula=stats::as.formula(paste0(form, ' + ', term)),
 								family=family,
 								data=data,
 								method='ML',
@@ -331,7 +331,7 @@ trainGam <- function(
 		# # get GAM model... using automated scale selection with weights so influence of absences equals influence of presences... using tryCatch because sometimes for variables with too little variation the default df of the basis is too high, in which case it is reduced and attempted again (for univariate and bivariate models only)
 		# model <- tryCatch(
 			# mgcv::gam(
-				# formula=as.formula(form),
+				# formula=stats::as.formula(form),
 				# family=family,
 				# data=data,
 				# method='ML',
@@ -370,7 +370,7 @@ trainGam <- function(
 
 	# train FULL model
 	model <- mgcv::gam(
-		formula=as.formula(form),
+		formula=stats::as.formula(form),
 		family=family,
 		data=data,
 		method='ML',
@@ -386,7 +386,7 @@ trainGam <- function(
 
 		omnibus::say('Full model:', level=1);
 		print(summary(model))
-		flush.console()
+		utils::flush.console()
 
 	}
 
@@ -429,7 +429,7 @@ trainGam <- function(
 				# # using tryCatch because sometimes for variables with too little variation the default df of the basis is too high, in which case it is reduced and attempted again
 				# model <- tryCatch(
 					# mgcv::gam(
-						# formula=as.formula(thisFormula),
+						# formula=stats::as.formula(thisFormula),
 						# family=family,
 						# data=data,
 						# method='REML',
@@ -459,7 +459,7 @@ trainGam <- function(
 
 			## compute final GAM
 			model <- mgcv::gam(
-				formula=as.formula(thisFormula),
+				formula=stats::as.formula(thisFormula),
 				family=family,
 				data=data,
 				method='REML',

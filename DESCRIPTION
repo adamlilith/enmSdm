@@ -1,34 +1,39 @@
 Package: enmSdm
 Type: Package
 Title: Tools for modeling niches and distributions of species
-Version: 0.5.3.8
-Date: 2021-10-25
+Version: 0.6.0
+Date: 2021-11-10
 Author: Adam B. Smith <adam.smith@mobot.org>
 Maintainer: Adam B. Smith <adam.smith@mobot.org>
 Description: Better modeling of niches and distributions.
 Depends:
-	dismo,
-	raster,
-	sp
 Imports:
+	adehabitatHR,
 	boot,
 	brglm2,
 	cluster,
+	dismo,
 	doParallel,
 	foreach,
 	geosphere,
 	gbm,
 	MASS,
 	maxnet,
+	methods,
 	mgcv,
 	MuMIn,
+	omnibus,
 	party,
+	raster,
 	rJava,
+	rlist,
 	randomForest,
 	rgdal,
 	rgeos,
 	scales,
+	sp,
 	splines,
+	statisfactory,
 	stats
 Remotes:
 	github::adamlilith/omnibus,
@@ -44,5 +49,5 @@ LazyData: true
 LazyLoad: yes
 URL: http://www.earthSkySea.org
 Encoding: UTF-8
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 VignetteBuilder: knitr

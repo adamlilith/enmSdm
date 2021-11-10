@@ -97,14 +97,14 @@ Depending on \code{metrics} that are specified, additional fields are as follows
 	\item A column named \code{propSharedCellsNotNA}: Proportion of cells that are not \code{NA} in both the "from" and "to" time step.
 	\item Columns named \code{timeFromPropNotNA} and \code{timeToPropNotNA}: Proportion of cells in the "from" time and "to" steps that are not \code{NA}.
 		\item A column named \code{mean}: Mean weight in "timeTo" time step. In the same units as the values of the cells.
-		\item Columns named \code{quantile_quant\emph{N}}: The \emph{N}th quantile(s) of weight in the "timeTo" time step. In the same units as the values of the cells.
+		\item Columns named \code{quantile_quant}\emph{N}: The \emph{N}th quantile(s) of weight in the "timeTo" time step. In the same units as the values of the cells.
 		\item A column named \code{prevalence}: Proportion of non-\code{NA} cells with weight >0 in the "timeTo" time step relative to all non-\code{NA} cells. Unitless.
 }
 	\item If \code{metrics} has \code{'centroid'}: Columns named \code{centroidVelocity}, \code{centroidLong}, \code{centroidLat} -- Speed of weighted centroid, plus its longitude and latitude (in the "to" time period of each time step). Values are always >= 0.
 	\item If \code{metrics} has \code{'nsCentroid'}: Columns named \code{nsCentroid} and \code{nsCentroidLat} -- Velocity of weighted centroid in north-south direction, plus its latitude (in the "to" time period of each time step). Positive values connote movement north, and negative values south.
 	\item If \code{metrics} has \code{'ewControid'}: \code{ewCentroid} and \code{ewCentroidLong} -- Velocity of weighted centroid in east-west direction, plus its longitude (in the "to" time period of each time step).  Positive values connote movement east, and negative values west.
 	\item If \code{metrics} has \code{'nCentroid'}, \code{'sCentroid'}, \code{'eCentroid'}, and/or \code{'wCentroid'}: Columns named \code{nCentroidVelocity} and \code{nCentroidAbund}, \code{sCentroid} and \code{sCentroidAbund}, \code{eCentroid} and \code{eCentroidAbund}, and/or \code{wCentroid} and \code{wCentroidAbund} -- Speed of weighted centroid of all cells that fall north, south, east, or west of the landscape-wide centroid, plus a column indicating the weight (abundance) of all such populations. Values are always >= 0.
-	\item If \code{metrics} contains any of \code{nsQuants} or \code{ewQuants}: Columns named \code{nsQuantVelocity_quant\emph{N}} and \code{nsQuantLat_quant\emph{N}}, or \code{ewQuantVelocity_quant\emph{N}} and \code{ewQuantLat_quant\emph{N}}: Velocity of the \emph{N}th quantile weight in the north-south or east-west directions, plus the latitude or longitude thereof (in the "to" time period of each time step). Quantiles are cumulated starting from the south or the west, so the 0.05th quantile, for example, is in the far south or west of the range and the 0.95th in the far north or east. Positive values connote movement north or east, and negative values movement south or west.
+	\item If \code{metrics} contains any of \code{nsQuants} or \code{ewQuants}: Columns named \code{nsQuantVelocity_quant}\emph{N} and \code{nsQuantLat_quant}\emph{N}, or \code{ewQuantVelocity_quant}\emph{N} and \code{ewQuantLat_quant}\emph{N}: Velocity of the \emph{N}th quantile weight in the north-south or east-west directions, plus the latitude or longitude thereof (in the "to" time period of each time step). Quantiles are cumulated starting from the south or the west, so the 0.05th quantile, for example, is in the far south or west of the range and the 0.95th in the far north or east. Positive values connote movement north or east, and negative values movement south or west.
 \item If \code{metrics} contains \code{similarity}, metrics of similarity are calculated for each pair of successive landscapes, defined below as \code{x1} and \code{x2}, with the number of shared non-\code{NA} cells between them being \code{n}:
 \itemize{
 	\item A column named \code{simpleMeanDiff}: \code{sum(x2 - x1, na.rm=TRUE) / n}
@@ -117,7 +117,7 @@ Depending on \code{metrics} that are specified, additional fields are as follows
 	\item A column named \code{rankCor}: Spearman rank correlation between values of \code{x1} and \code{x2}.
 }
 	\item If \code{metrics} contains \code{elevCentroid}: Columns named \code{elevCentroidVelocity} and \code{elevCentroidElev} -- Velocity of the centroid in elevation (up or down) and the elevation in the "to" timestep. Positive values of velocity connote movement upward, and negative values downward.
-	\item If \code{metrics} contains \code{elevQuants}: Columns named \code{elevQuantVelocity_quant\emph{N}} and \code{elevQuantVelocityElev_quant\emph{N}} -- Velocity of the \emph{N}th quantile of mass in elevation (up or down) and the elevation of this quantile in the "to" timestep. Positive values of velocity connote movement upward, and negative values downward.
+	\item If \code{metrics} contains \code{elevQuants}: Columns named \code{elevQuantVelocity_quant}\emph{N} and \code{elevQuantVelocityElev_quant}\emph{N} -- Velocity of the \emph{N}th quantile of mass in elevation (up or down) and the elevation of this quantile in the "to" timestep. Positive values of velocity connote movement upward, and negative values downward.
 }
 }
 \description{
@@ -133,7 +133,7 @@ This function may yield erroneous velocities if the region of interest is near o
 For the \code{nsQuants} and \code{ewQuants} metrics it is assumed that the latitude/longitude assigned to a cell is at its exact center. If a desired quantile does not fall exactly on the cell center, it is interpolated linearly between the rows/columns of cells that bracket the given quantile. For quantiles that fall south/westward of the first row/column of cells, the cell border is assumed to be at 0.5 * cell length south/west of the cell center.
 }
 \examples{
-
+\dontrun{
 library(raster)
 
 ### movement in north-south directions
@@ -358,8 +358,9 @@ bv2 <- bioticVelocity(x=mats, longitude=long, latitude=lat, metrics=metrics,
 elevation=elev2)
 
 rbind(bv1, bv2)
+}
 
-\donttest{
+\dontrun{
 ### multi-core
 mats <- array(runif(100 * 100 * 1000), dim=c(100, 100, 500))
 mats <- brick(mats)

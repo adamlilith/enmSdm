@@ -6,7 +6,7 @@
 #' @param adjArea Logical. If TRUE then adjust sample probability of cells by cell area.
 #' @param replace Logical. If TRUE then sample with replacement.
 #' @return 2-column matrix with longitude and latitude of random points.
-#' @seealso \code{\link[raster]{sampleStratified}}, \code{\link[randomPoints]{randomPoints}}, \code{\link{sampleRast}}
+#' @seealso \code{\link[raster]{sampleStratified}}, \code{\link[dismo]{randomPoints}}, \code{\link{sampleRast}}
 #' @export
 sampleRastStrat <- function(x, n, adjArea = TRUE, replace = TRUE) {
 

@@ -20,14 +20,14 @@
 
 	if (!keepData) {
 		if (class(x) %in% c('SpatialPoints', 'SpatialPointDataFrame')) {
-			out <- sp::SpatialPoints(coords, CRS(crs))
+			out <- sp::SpatialPoints(coords, sp::CRS(crs))
 		} else {
 			out <- coords
 			if (class(x) == 'data.frame') out <- as.data.frame(out)
 		}
 	} else {
 		if (class(x) == 'SpatialPointsDataFrame') {
-			out <- sp::SpatialPointsDataFrame(coords, data=as.data.frame(out), CRS(crs))
+			out <- sp::SpatialPointsDataFrame(coords, data=as.data.frame(out), sp::CRS(crs))
 		} else {
 			out[ , 1:2] <- coords
 		}

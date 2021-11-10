@@ -64,14 +64,14 @@
 #'		\item A column named \code{propSharedCellsNotNA}: Proportion of cells that are not \code{NA} in both the "from" and "to" time step.
 #'		\item Columns named \code{timeFromPropNotNA} and \code{timeToPropNotNA}: Proportion of cells in the "from" time and "to" steps that are not \code{NA}.
 #' 		\item A column named \code{mean}: Mean weight in "timeTo" time step. In the same units as the values of the cells.
-#' 		\item Columns named \code{quantile_quant\emph{N}}: The \emph{N}th quantile(s) of weight in the "timeTo" time step. In the same units as the values of the cells.
+#' 		\item Columns named \code{quantile_quant}\emph{N}: The \emph{N}th quantile(s) of weight in the "timeTo" time step. In the same units as the values of the cells.
 #' 		\item A column named \code{prevalence}: Proportion of non-\code{NA} cells with weight >0 in the "timeTo" time step relative to all non-\code{NA} cells. Unitless.
 #' }
 #' 	\item If \code{metrics} has \code{'centroid'}: Columns named \code{centroidVelocity}, \code{centroidLong}, \code{centroidLat} -- Speed of weighted centroid, plus its longitude and latitude (in the "to" time period of each time step). Values are always >= 0.
 #' 	\item If \code{metrics} has \code{'nsCentroid'}: Columns named \code{nsCentroid} and \code{nsCentroidLat} -- Velocity of weighted centroid in north-south direction, plus its latitude (in the "to" time period of each time step). Positive values connote movement north, and negative values south.
 #' 	\item If \code{metrics} has \code{'ewControid'}: \code{ewCentroid} and \code{ewCentroidLong} -- Velocity of weighted centroid in east-west direction, plus its longitude (in the "to" time period of each time step).  Positive values connote movement east, and negative values west.
 #' 	\item If \code{metrics} has \code{'nCentroid'}, \code{'sCentroid'}, \code{'eCentroid'}, and/or \code{'wCentroid'}: Columns named \code{nCentroidVelocity} and \code{nCentroidAbund}, \code{sCentroid} and \code{sCentroidAbund}, \code{eCentroid} and \code{eCentroidAbund}, and/or \code{wCentroid} and \code{wCentroidAbund} -- Speed of weighted centroid of all cells that fall north, south, east, or west of the landscape-wide centroid, plus a column indicating the weight (abundance) of all such populations. Values are always >= 0.
-#' 	\item If \code{metrics} contains any of \code{nsQuants} or \code{ewQuants}: Columns named \code{nsQuantVelocity_quant\emph{N}} and \code{nsQuantLat_quant\emph{N}}, or \code{ewQuantVelocity_quant\emph{N}} and \code{ewQuantLat_quant\emph{N}}: Velocity of the \emph{N}th quantile weight in the north-south or east-west directions, plus the latitude or longitude thereof (in the "to" time period of each time step). Quantiles are cumulated starting from the south or the west, so the 0.05th quantile, for example, is in the far south or west of the range and the 0.95th in the far north or east. Positive values connote movement north or east, and negative values movement south or west.
+#' 	\item If \code{metrics} contains any of \code{nsQuants} or \code{ewQuants}: Columns named \code{nsQuantVelocity_quant}\emph{N} and \code{nsQuantLat_quant}\emph{N}, or \code{ewQuantVelocity_quant}\emph{N} and \code{ewQuantLat_quant}\emph{N}: Velocity of the \emph{N}th quantile weight in the north-south or east-west directions, plus the latitude or longitude thereof (in the "to" time period of each time step). Quantiles are cumulated starting from the south or the west, so the 0.05th quantile, for example, is in the far south or west of the range and the 0.95th in the far north or east. Positive values connote movement north or east, and negative values movement south or west.
 #' \item If \code{metrics} contains \code{similarity}, metrics of similarity are calculated for each pair of successive landscapes, defined below as \code{x1} and \code{x2}, with the number of shared non-\code{NA} cells between them being \code{n}:
 #'	\itemize{
 #'		\item A column named \code{simpleMeanDiff}: \code{sum(x2 - x1, na.rm=TRUE) / n}
@@ -84,7 +84,7 @@
 #'		\item A column named \code{rankCor}: Spearman rank correlation between values of \code{x1} and \code{x2}.
 #'	}
 #' 	\item If \code{metrics} contains \code{elevCentroid}: Columns named \code{elevCentroidVelocity} and \code{elevCentroidElev} -- Velocity of the centroid in elevation (up or down) and the elevation in the "to" timestep. Positive values of velocity connote movement upward, and negative values downward.
-#' 	\item If \code{metrics} contains \code{elevQuants}: Columns named \code{elevQuantVelocity_quant\emph{N}} and \code{elevQuantVelocityElev_quant\emph{N}} -- Velocity of the \emph{N}th quantile of mass in elevation (up or down) and the elevation of this quantile in the "to" timestep. Positive values of velocity connote movement upward, and negative values downward.
+#' 	\item If \code{metrics} contains \code{elevQuants}: Columns named \code{elevQuantVelocity_quant}\emph{N} and \code{elevQuantVelocityElev_quant}\emph{N} -- Velocity of the \emph{N}th quantile of mass in elevation (up or down) and the elevation of this quantile in the "to" timestep. Positive values of velocity connote movement upward, and negative values downward.
 #' }
 #' @details
 #' \emph{Attention:}  
@@ -95,7 +95,7 @@
 #'   
 #' For the \code{nsQuants} and \code{ewQuants} metrics it is assumed that the latitude/longitude assigned to a cell is at its exact center. If a desired quantile does not fall exactly on the cell center, it is interpolated linearly between the rows/columns of cells that bracket the given quantile. For quantiles that fall south/westward of the first row/column of cells, the cell border is assumed to be at 0.5 * cell length south/west of the cell center.
 #' @examples
-#'
+#' \dontrun{
 #' library(raster)
 #' 
 #' ### movement in north-south directions
@@ -320,8 +320,9 @@
 #' elevation=elev2)
 #'
 #' rbind(bv1, bv2)
-#' 
-#' \donttest{
+#' }
+#'
+#' \dontrun{
 #' ### multi-core
 #' mats <- array(runif(100 * 100 * 1000), dim=c(100, 100, 500))
 #' mats <- brick(mats)
@@ -460,7 +461,7 @@ bioticVelocity <- function(
 
 			if (!is.null(elevation)) {
 				if ('matrix' %in% class(elevation)) {
-					elevation <- raster(elevation, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
+					elevation <- raster::raster(elevation, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax)
 				}
 			}
 				
@@ -507,8 +508,8 @@ bioticVelocity <- function(
 			}
 			
 			# add times excluded because of rounding
-			lastRepAtTime <- tail(repAtTimes[[length(repAtTimes)]], 1)
-			lastAtTime <- tail(atTimes, 1)
+			lastRepAtTime <- utils::tail(repAtTimes[[length(repAtTimes)]], 1)
+			lastAtTime <- utils::tail(atTimes, 1)
 			if (lastRepAtTime < lastAtTime) {
 				indicesRemainingAtTimes <- which(atTimes == lastRepAtTime):length(atTimes)
 				repAtTimes[[numReps + 1]] <- atTimes[indicesRemainingAtTimes]
@@ -609,10 +610,10 @@ bioticVelocity <- function(
 					x1ones <- x1 * 0 + 1
 					x2ones <- x2 * 0 + 1
 					x1x2ones <- x1ones * x2ones
-					numSharedNonNaCells <- cellStats(x1x2ones, 'sum')
+					numSharedNonNaCells <- raster::cellStats(x1x2ones, 'sum')
 					propSharedCellsNotNA <- numSharedNonNaCells / size
-					timeFromPropNotNA <- cellStats(x1ones, 'sum')  / size
-					timeToPropNotNA <- cellStats(x2ones, 'sum')  / size
+					timeFromPropNotNA <- raster::cellStats(x1ones, 'sum')  / size
+					timeToPropNotNA <- raster::cellStats(x2ones, 'sum')  / size
 
 					thisOut <- cbind(
 						thisOut,
@@ -625,7 +626,7 @@ bioticVelocity <- function(
 					)
 					
 					# mean
-					metric <- cellStats(x2, 'mean')
+					metric <- raster::cellStats(x2, 'mean')
 					thisOut <- cbind(
 						thisOut,
 						data.frame(
@@ -635,7 +636,7 @@ bioticVelocity <- function(
 					)
 				
 					# sum
-					metric <- cellStats(x2, 'sum')
+					metric <- raster::cellStats(x2, 'sum')
 					thisOut <- cbind(
 						thisOut,
 						data.frame(
@@ -661,7 +662,7 @@ bioticVelocity <- function(
 					}
 
 					# prevalence
-					metric <- cellStats(x2 > 0, 'sum') / cellStats(x2ones, 'sum')
+					metric <- raster::cellStats(x2 > 0, 'sum') / raster::cellStats(x2ones, 'sum')
 					
 					thisOut <- cbind(
 						thisOut,
@@ -684,21 +685,21 @@ bioticVelocity <- function(
 					x2weightedLats <- latitude * x2
 					
 					# centroid
-					x1sum <- cellStats(x1, 'sum')
-					x1centroidLong <- cellStats(x1weightedLongs, 'sum') / x1sum
-					x1centroidLat <- cellStats(x1weightedLats, 'sum') / x1sum
+					x1sum <- raster::cellStats(x1, 'sum')
+					x1centroidLong <- raster::cellStats(x1weightedLongs, 'sum') / x1sum
+					x1centroidLat <- raster::cellStats(x1weightedLats, 'sum') / x1sum
 					
-					x2sum <- cellStats(x2, 'sum')
-					x2centroidLong <- cellStats(x2weightedLongs, 'sum') / x2sum
-					x2centroidLat <- cellStats(x2weightedLats, 'sum') / x2sum
+					x2sum <- raster::cellStats(x2, 'sum')
+					x2centroidLong <- raster::cellStats(x2weightedLongs, 'sum') / x2sum
+					x2centroidLat <- raster::cellStats(x2weightedLats, 'sum') / x2sum
 					
 					if (!is.null(elevation)) {
 
 						x1weightedElev <- elev * x1
 						x2weightedElev <- elev * x2
 						
-						x1centroidElev <- cellStats(x1weightedElev, 'sum') / x1sum
-						x2centroidElev <- cellStats(x2weightedElev, 'sum') / x2sum
+						x1centroidElev <- raster::cellStats(x1weightedElev, 'sum') / x1sum
+						x2centroidElev <- raster::cellStats(x2weightedElev, 'sum') / x2sum
 						
 					} else {
 						x1weightedElev <- x2weightedElev <- NULL
@@ -966,11 +967,11 @@ bioticVelocity <- function(
 						x1weightedElev <- elev * x1
 						x2weightedElev <- elev * x2
 						
-						x1sum <- cellStats(x1, 'sum')
-						x2sum <- cellStats(x2, 'sum')
+						x1sum <- raster::cellStats(x1, 'sum')
+						x2sum <- raster::cellStats(x2, 'sum')
 						
-						x1centroidElev <- cellStats(x1weightedElev, 'sum') / x1sum
-						x2centroidElev <- cellStats(x2weightedElev, 'sum') / x2sum
+						x1centroidElev <- raster::cellStats(x1weightedElev, 'sum') / x1sum
+						x2centroidElev <- raster::cellStats(x2weightedElev, 'sum') / x2sum
 						
 					}
 
@@ -1002,8 +1003,8 @@ bioticVelocity <- function(
 						weightedElevTo <- elevVect * as.vector(x2)
 						
 						# quantile
-						weightedElevQuantFrom <- quantile(weightedElevFrom, thisQuant, na.rm=TRUE)
-						weightedElevQuantTo <- quantile(weightedElevTo, thisQuant, na.rm=TRUE)
+						weightedElevQuantFrom <- stats::quantile(weightedElevFrom, thisQuant, na.rm=TRUE)
+						weightedElevQuantTo <- stats::quantile(weightedElevTo, thisQuant, na.rm=TRUE)
 						
 						# sort weighted elevations and elevations by this same order (necessary for "bracket()" function)
 						weightedElevFromOrder <- order(weightedElevFrom)
@@ -1172,7 +1173,7 @@ bioticVelocity <- function(
 	
 	# censor x2
 	x2censored <- x2 * maskCells
-	abundance <- cellStats(x2censored, 'sum')
+	abundance <- raster::cellStats(x2censored, 'sum')
 	
 	# centroid of uncensored part of distribution
 	if (abundance == 0) {
@@ -1189,22 +1190,22 @@ bioticVelocity <- function(
 		x2weightedLatsCensored <- x2weightedLats * maskCells
 
 		# censored weights for x1, x2
-		x1sumCens <- cellStats(x1censored, 'sum')
-		x2sumCens <- cellStats(x2censored, 'sum')
+		x1sumCens <- raster::cellStats(x1censored, 'sum')
+		x2sumCens <- raster::cellStats(x2censored, 'sum')
 
 		# weighted, censored centroid for x1
-		x1centroidLongCensored <- cellStats(x1weightedLongsCensored, 'sum') / x1sumCens
-		x1centroidLatCensored <- cellStats(x1weightedLatsCensored, 'sum') / x1sumCens
+		x1centroidLongCensored <- raster::cellStats(x1weightedLongsCensored, 'sum') / x1sumCens
+		x1centroidLatCensored <- raster::cellStats(x1weightedLatsCensored, 'sum') / x1sumCens
 
 		# weighted, censored centroid for x2
-		x2centroidLongCensored <- cellStats(x2weightedLongsCensored, 'sum') / x2sumCens
-		x2centroidLatCensored <- cellStats(x2weightedLatsCensored, 'sum') / x2sumCens
+		x2centroidLongCensored <- raster::cellStats(x2weightedLongsCensored, 'sum') / x2sumCens
+		x2centroidLatCensored <- raster::cellStats(x2weightedLatsCensored, 'sum') / x2sumCens
 		
 		# censored, weighted elevation for x1
 		if (!is.null(x1weightedElev)) {
 
 			x1weightedElevCensored <- x1weightedElev * maskCells
-			x1elevCensored <- cellStats(x1weightedElevCensored, 'sum') / x1sumCens
+			x1elevCensored <- raster::cellStats(x1weightedElevCensored, 'sum') / x1sumCens
 		
 		} else {
 			x1elevCensored <- NA
@@ -1214,7 +1215,7 @@ bioticVelocity <- function(
 		if (!is.null(x2weightedElev)) {
 
 			x2weightedElevCensored <- x2weightedElev * maskCells
-			x2elevCensored <- cellStats(x2weightedElevCensored, 'sum') / x2sumCens
+			x2elevCensored <- raster::cellStats(x2weightedElevCensored, 'sum') / x2sumCens
 		
 		} else {
 			x2elevCensored <- NA
@@ -1300,7 +1301,7 @@ bioticVelocity <- function(
 			if (!is.null(weightedElev)) {
 				
 				if (length(cells) == 1) { # exact match
-					elev <- weightedElevVect[row1]
+					elev <- weightedElevVect[cell1]
 				} else if (length(cells) == 2) { # bracketed
 					
 					elev1 <- weightedElevVect[cell1]

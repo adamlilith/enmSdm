@@ -69,7 +69,7 @@ The characteristic scale of spatial autocorrelation for a variable for a specifi
 Note that this measure of spatial autocorrelation assumes anisotropy, meaning that from a given focals site the characteristic distance of spatial autocorrelation is the same in all directions.
 }
 \examples{
-\donttest{
+\dontrun{
 # get rasters for mean annual temperature and total precipitation
 worldClim <- raster::getData('worldclim', var='bio', res=10)
 worldClim <- raster::subset(worldClim, c(1, 12))

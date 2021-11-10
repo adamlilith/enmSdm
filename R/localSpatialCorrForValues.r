@@ -37,7 +37,7 @@
 #' Note that this measure of spatial autocorrelation assumes anisotropy, meaning that from a given focals site the characteristic distance of spatial autocorrelation is the same in all directions.
 #' @seealso \code{\link[enmSdm]{spatialCorrForPoints}}
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # get rasters for mean annual temperature and total precipitation
 #' worldClim <- raster::getData('worldclim', var='bio', res=10)
 #' worldClim <- raster::subset(worldClim, c(1, 12))
@@ -185,7 +185,7 @@ localSpatialCorrForValues <- function(
 			proj4=sp::CRS(raster::projection(x))
 		)
 		
-		nonNas <- which(complete.cases(refs@data))
+		nonNas <- which(stats::complete.cases(refs@data))
 		if (length(nonNas) != raster::ncell(x)) refs <- refs[nonNas, ]
 
 		# convert "focals" to SPSDF
@@ -198,7 +198,7 @@ localSpatialCorrForValues <- function(
 			crs <- sp::CRS(raster::projection(x))
 		
 			focals <- focals[ , 1:2]
-			focals <- SpatialPoints(focals, crs)
+			focals <- sp::SpatialPoints(focals, crs)
 			vals <- raster::extract(x, focals)
 			vals <- as.data.frame(vals)
 			colnames(vals) <- names(x)
@@ -300,7 +300,7 @@ localSpatialCorrForValues <- function(
 		focalObs <- focals@data[ , thisVar, drop=TRUE]
 		refsObs <- refs@data[ , thisVar, drop=TRUE]
 
-		if (verbose) progress <- txtProgressBar(min=0, max=nrow(focals), style=3, width=min(40, getOption('width')))
+		if (verbose) progress <- utils::txtProgressBar(min=0, max=nrow(focals), style=3, width=min(40, getOption('width')))
 
 		# for each focals point
 		for (countFocal in 1:nrow(focals)) {
@@ -320,7 +320,7 @@ localSpatialCorrForValues <- function(
 			# limit distances being considered
 			if (limitDist) {
 				dists <- c(dists[dists <= maxDistToInclude])
-				if (length(dists) > 0) dists <- na.omit(dists)
+				if (length(dists) > 0) dists <- stats::na.omit(dists)
 			}
 
 			# if any inter-point distances are in the set being considered
@@ -341,10 +341,10 @@ localSpatialCorrForValues <- function(
 				}
 
 				# observed lower/middle/upper quantiles of observed difference distribution
-				obsAbsDiffLower <- sapply(obsAbsDiff, quantile, p=twoTailLower, na.rm=TRUE)
+				obsAbsDiffLower <- sapply(obsAbsDiff, stats::quantile, p=twoTailLower, na.rm=TRUE)
 				# obsAbsDiffMid <- sapply(obsAbsDiff, quantile, twoTailMid, na.rm=TRUE)
 				obsAbsDiffMid <- sapply(obsAbsDiff, mean, na.rm=TRUE)
-				obsAbsDiffUpper <- sapply(obsAbsDiff, quantile, p=twoTailUpper, na.rm=TRUE)
+				obsAbsDiffUpper <- sapply(obsAbsDiff, stats::quantile, p=twoTailUpper, na.rm=TRUE)
 
 				# matrices to store lower/middle/upper quantiles of each iterations differences for each distance
 				randAbsDiffUpper <- randAbsDiffMid <- randAbsDiffLower <- randAbsDiffBlank
@@ -367,10 +367,10 @@ localSpatialCorrForValues <- function(
 						}
 					}
 				
-					randAbsDiffLower[iter, ] <- sapply(randAbsDiff, quantile, oneTailLower, na.rm=TRUE)
+					randAbsDiffLower[iter, ] <- sapply(randAbsDiff, stats::quantile, oneTailLower, na.rm=TRUE)
 					# randAbsDiffMid[iter, ] <- sapply(randAbsDiff, quantile, oneTailMid, na.rm=TRUE)
 					randAbsDiffMid[iter, ] <- sapply(randAbsDiff, mean, na.rm=TRUE)
-					randAbsDiffUpper[iter, ] <- sapply(randAbsDiff, quantile, oneTailUpper, na.rm=TRUE)
+					randAbsDiffUpper[iter, ] <- sapply(randAbsDiff, stats::quantile, oneTailUpper, na.rm=TRUE)
 				
 				} # next iteration
 			
@@ -410,7 +410,7 @@ localSpatialCorrForValues <- function(
 				
 			} # if any inter-point distances in the set being considered
 				
-			if (verbose) setTxtProgressBar(progress, countFocal)
+			if (verbose) utils::setTxtProgressBar(progress, countFocal)
 			
 		} # next "focals" site
 		

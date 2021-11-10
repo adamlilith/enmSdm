@@ -22,7 +22,7 @@ elimCellDups <- function(
 ) {
 
 	# check CRS of points and raster
-	if (is(x, 'SpatialPoints') | is(x, 'SpatialPointsDataFrame')) {
+	if (inherits(x, c('SpatialPoints', 'SpatialPointsDataFrame'))) {
 		if (is.na(raster::projection(r))) {
 			warning('Raster will be assumed to have same coordinate reference system as points.', .immediate=TRUE)
 			raster::projection(r) <- raster::projection(x)
@@ -65,7 +65,7 @@ elimCellDups <- function(
 
 	# remove redundant points
 	if (length(removeThese) > 0) {
-		x <- if (is(x, 'matrix') | is(x, 'data.frame') | is(x, 'SpatialPointsDataFrame')) {
+		x <- if (inherits(x, c('matrix', 'data.frame', 'SpatialPointsDataFrame'))) {
 			x[-removeThese, ]
 		} else {
 			x[-removeThese]

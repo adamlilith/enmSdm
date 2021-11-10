@@ -6,9 +6,7 @@
 #' @param maxentFun Either \code{'dismo'} in which case a Maxent model is predicted using the default \code{predict} function from the \pkg{dismo} package, or \code{'enmSdm'} in which case the function \code{\link[enmSdm]{predictMaxEnt}} function from the \pkg{enmSdm} package is used.
 #' @param ... Arguments to pass to the algorithm-specific \code{predict} function.
 #' @return Numeric.
-#' @seealso \code{\link[stats]{predict}} from the stats package, \code{\link[dismo]{predict}} from the dismo package, \code{\link[raster]{predict}} fromm the raster package
-#' @examples
-#'
+#' @seealso \code{\link[stats]{predict}} from the stats package, \code{\link[dismo]{predict}} from the dismo package, \code{\link[raster]{predict}} from the raster package
 #' @export
 
 predictEnmSdm <- function(
@@ -20,21 +18,19 @@ predictEnmSdm <- function(
 
 	dots <- list(...)
 
-	modelClass <- class(model)
-	dataClass <- class(newdata)
-	dataType <- if (any(c('matrix', 'data.frame') %in% dataClass)) {
+	dataType <- if (inherits(newdata, c('matrix', 'data.frame'))) {
 		'table'
-	} else if (any(c('RasterLayer', 'RasterStack', 'RasterBrick') %in% dataClass)) {
+	} else if (inherits(newdata, c('RasterLayer', 'RasterStack', 'RasterBrick'))) {
 		'raster'
 	}
 
 	# GAM
-	if ('gam' %in% modelClass) {
+	if (inherits(model, 'gam')) {
 
 		out <- mgcv::predict.gam(model, newdata, type='response', ...)
 
 	# GLM
-	} else if ('glm' %in% modelClass) {
+	} else if (inherits(model, 'glm')) {
 
 		out <- if (dataType == 'table') {
 			stats::predict.glm(model, newdata, type='response', ...)
@@ -43,17 +39,17 @@ predictEnmSdm <- function(
 		}
 
 	# LM
-	} else if ('lm' %in% modelClass) {
+	} else if (inherits(model, 'lm')) {
 
 		out <- stats::predict.lm(model, newdata, ...)
 
 	# BRT
-	} else if ('gbm' %in% modelClass) {
+	} else if (inherits(model, 'gbm')) {
 
 		out <- gbm::predict.gbm(model, newdata, n.trees=model$gbm.call$n.trees, type='response', ...)
 
 	# Maxent
-	} else if ('MaxEnt' %in% modelClass) {
+	} else if (inherits(model, 'MaxEnt')) {
 
 		out <- if (maxentFun == 'dismo') {
 			dismo::predict(model, newdata, ...)
@@ -62,24 +58,24 @@ predictEnmSdm <- function(
 		}
 
 	# MaxNet
-	} else if ('maxnet' %in% modelClass) {
+	} else if (inherits(model, 'maxnet')) {
 
 		out <- if (any('type' %in% names(dots))) {
-			predict(model, newdata, ...)[ , 1]
+			stats::predict(model, newdata, ...)[ , 1]
 		} else {
-			predict(model, newdata, type='cloglog', ...)[ , 1]
+			stats::predict(model, newdata, type='cloglog', ...)[ , 1]
 		}
 
 	# random forest in party package
-	} else if ('RandomForest' %in% modelClass) {
+	} else if (inherits(model, 'RandomForest')) {
 
-		out <- predict(model, newdata, type='prob', ...)
+		out <- randomForest::predict.randomForest(model, newdata, type='prob', ...)
 		out <- unlist(out)
 
 	# anything else!
 	} else {
 
-		out <- predict(model, newdata, type='response', ...)
+		out <- do.call('predict', args=list(object=model, newdata=newdata, type='response', ...))
 
 	}
 

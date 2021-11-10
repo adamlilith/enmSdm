@@ -104,8 +104,8 @@ compareResponse <- function(
 				x <- seq(min(x, na.rm=TRUE), max(x, na.rm=TRUE), length.out=smoothN)
 			}
 
-			pred1 <- predict(smooth1, newdata=x)
-			pred2 <- predict(smooth2, newdata=x)
+			pred1 <- stats::predict(smooth1, newdata=x)
+			pred2 <- stats::predict(smooth2, newdata=x)
 
 			# force to user-specified range
 			if (!is.null(smoothRange)) {
@@ -182,22 +182,22 @@ compareResponse <- function(
 		### plot
 		if (graph) {
 
-			par(mfrow=c(1, 2), ask=TRUE)
+			graphics::par(mfrow=c(1, 2), ask=TRUE)
 
 			lims <- c(min(pred1, pred2, origPred1, origPred2, na.rm=TRUE), max(pred1, pred2, origPred1, origPred2, na.rm=TRUE))
 
 			### predictions #1 vs predictions #2
 			plot(pred1, pred2, col='white', main=paste0('Model 1 vs Model 2 for ', thisPred), xlab=paste('Model 1 Prediction', ifelse(adjust, '(Adjusted)', '')), ylab=paste('Model 2 Prediction', ifelse(adjust, '(Adjusted)', '')), xlim=lims, ylim=lims)
-			abline(0, 1, col='gray')
+			graphics::abline(0, 1, col='gray')
 
 			# original predictions
-			if (smooth) points(origPred1, origPred2, pch=16, cex=0.8, col=scales::alpha('black', 0.2))
+			if (smooth) graphics::points(origPred1, origPred2, pch=16, cex=0.8, col=scales::alpha('black', 0.2))
 
 			# pred1 vs pred2
-			points(pred1, pred2, col='darkgreen')
+			graphics::points(pred1, pred2, col='darkgreen')
 
 			# fake legend (stats)
-			legend('bottomright', inset=0.01, bty='n', lwd=NA, pch=NA,
+			graphics::legend('bottomright', inset=0.01, bty='n', lwd=NA, pch=NA,
 				legend=c(
 					paste0('cor = ', format(round(sim['cor'], 2), nsmall=2)),
 					paste0('rankCor = ', format(round(sim['rankCor'], 2), nsmall=2))
@@ -211,24 +211,24 @@ compareResponse <- function(
 			if (smooth) {
 				# origPred1 <- origPred1[order(x)]
 				# origPred2 <- origPred2[order(x)]
-				points(origX, origPred1, pch=16, cex=0.8, col=scales::alpha('blue', 0.5))
-				points(origX, origPred2, pch=16, cex=0.8, col=scales::alpha('red', 0.3))
+				graphics::points(origX, origPred1, pch=16, cex=0.8, col=scales::alpha('blue', 0.5))
+				graphics::points(origX, origPred2, pch=16, cex=0.8, col=scales::alpha('red', 0.3))
 			}
 
 			# plot areal difference between curves
-			polygon(x=c(x, rev(x)), y=c(pred1, rev(pred2)), border=NA, col=scales::alpha('black', 0.3))
+			graphics::polygon(x=c(x, rev(x)), y=c(pred1, rev(pred2)), border=NA, col=scales::alpha('black', 0.3))
 
-			lines(x, pred1, type='l', col='blue')
-			lines(x, pred2, type='l', col='red')
-			rug(x, ticksize=0.01)
-			rug(origPred1, ticksize=0.01, side=2, col='blue')
-			rug(origPred2, ticksize=0.01, side=4, col='red')
+			graphics::lines(x, pred1, type='l', col='blue')
+			graphics::lines(x, pred2, type='l', col='red')
+			graphics::rug(x, ticksize=0.01)
+			graphics::rug(origPred1, ticksize=0.01, side=2, col='blue')
+			graphics::rug(origPred2, ticksize=0.01, side=4, col='red')
 
 			# real legend
-			legend('topright', inset=0.01, bty='n', pch=NA, col=c('blue', 'red', NA), fill=c(NA, NA, 'gray70'), border=c(NA, NA, 'black'), legend=c('model 1', 'model 2', 'areaAbsDiff'), lwd=2)
+			graphics::legend('topright', inset=0.01, bty='n', pch=NA, col=c('blue', 'red', NA), fill=c(NA, NA, 'gray70'), border=c(NA, NA, 'black'), legend=c('model 1', 'model 2', 'areaAbsDiff'), lwd=2)
 
 			# fake legend (stats)
-			legend('bottomright', inset=0.01, bty='n', lwd=NA, pch=NA,
+			graphics::legend('bottomright', inset=0.01, bty='n', lwd=NA, pch=NA,
 				legend=c(
 					paste0('meanDiff = ', format(round(sim['meanDiff'], 2), nsmall=2)),
 					paste0('meanAbsDiff = ', format(round(sim['meanAbsDiff'], 2), nsmall=2)),

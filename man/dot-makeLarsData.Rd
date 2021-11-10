@@ -51,10 +51,12 @@ This function adds columns to a data matrix representing quadratic, cubic, 2-way
 If \code{scale} is \code{TRUE} then predictors with zero variance will be removed from the data before creating higher-order terms.
 }
 \examples{
+\dontrun{
 set.seed(123)
 x <- data.frame(y=c(rep(1, 10), rep(0, 10)), x1=1:10, x2=runif(20) * 1:20, x3=rnorm(20) - 1:20)
 out <- .makeLarsData(x, resp='y', preds=c('x1', 'x2', 'x3'))
 str(out)
+}
 }
 \seealso{
 \code{\link{trainLars}}, \code{\link{predictLars}}

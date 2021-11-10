@@ -22,7 +22,7 @@
 #' @param verbose Logical. If \code{TRUE} then display intermediate results on the display device.
 #' @param ... Arguments to pass to \code{glm}.
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' library(brglm2)
 #'
 #' ### model red-bellied lemurs
@@ -164,11 +164,11 @@ trainGlm <- function(
 		for (thisPred in preds) { # for each predictor test single-variable terms
 
 			# train model
-			# thisModel <- glm(formula=as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method)
-			thisModel <- glm(formula=as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method, ...)
+			# thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method)
+			thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method, ...)
 
 			# get AICc
-			thisAic <- AIC(thisModel)
+			thisAic <- MuMIn::AICc(thisModel)
 			k <- length(thisModel$coefficients)
 
 			aicc <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
@@ -200,18 +200,18 @@ trainGlm <- function(
 					term <- paste0(thisPred, ' + I(', thisPred, '^2)')
 
 					# train model
-					# thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method)
-					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
+					# thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method)
+					thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 					# get AICc
-					thisAic <- AIC(thisModel)
+					thisAic <- MuMIn::AICc(thisModel)
 					k <- length(thisModel$coefficients)
 
 					aicc <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 					# remember if coefficients were stable
-					if (all(!is.na(coef(thisModel)))) {
-						if (all(abs(coef(thisModel)) < tooBig | anyway)) {
+					if (all(!is.na(stats::coef(thisModel)))) {
+						if (all(abs(stats::coef(thisModel)) < tooBig | anyway)) {
 							tuning <- rbind(tuning, data.frame(type='quadratic', term=term, aicc=aicc, terms=2))
 						}
 					}
@@ -234,17 +234,17 @@ trainGlm <- function(
 					# term <- paste0(thisPred, ' + I(', thisPred, '^2) + I(', thisPred, '^3)')
 
 					# # train model
-					# thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
+					# thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 					# # get AICc
-					# thisAic <- AIC(thisModel)
+					# thisAic <- MuMIn::AICc(thisModel)
 					# k <- length(thisModel$coefficients)
 
 					# aicc <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 					# # remember if coefficients were stable
-					# if (all(!is.na(coef(thisModel)))) {
-						# if (all(abs(coef(thisModel)) < tooBig | anyway)) {
+					# if (all(!is.na(stats::coef(thisModel)))) {
+						# if (all(abs(stats::coef(thisModel)) < tooBig | anyway)) {
 							# tuning <- rbind(tuning, data.frame(type='cubic', term=term, aicc=aicc, terms=3))
 						# }
 					# }
@@ -269,18 +269,18 @@ trainGlm <- function(
 					term <- paste0(thisPred, ' + ', thatPred, ' + ', thisPred, ':', thatPred)
 
 					# train model
-					# thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method)
-					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
+					# thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method)
+					thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 					# get AICc
-					thisAic <- AIC(thisModel)
+					thisAic <- MuMIn::AICc(thisModel)
 					k <- length(thisModel$coefficients)
 
 					aicc <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 					# remember if coefficients were stable
-					if (all(!is.na(coef(thisModel)))) {
-						if (all(abs(coef(thisModel)) < tooBig | anyway)) {
+					if (all(!is.na(stats::coef(thisModel)))) {
+						if (all(abs(stats::coef(thisModel)) < tooBig | anyway)) {
 							tuning <- rbind(tuning, data.frame(type='interaction', term=term, aicc=aicc, terms=3))
 						}
 					}
@@ -308,17 +308,17 @@ trainGlm <- function(
 					# if (!is.na(term)) {
 
 						# # train model
-						# thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
+						# thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 						# # get aicc
-						# thisAic <- AIC(thisModel)
+						# thisAic <- MuMIn::AICc(thisModel)
 						# k <- length(thisModel$coefficients)
 
 						# thisAic <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 						# # remember if coefficients were stable
-						# if (all(!is.na(coef(thisModel)))) {
-							# if (all(abs(coef(thisModel)) < tooBig | anyway)) {
+						# if (all(!is.na(stats::coef(thisModel)))) {
+							# if (all(abs(stats::coef(thisModel)) < tooBig | anyway)) {
 								# tuning <- rbind(tuning, data.frame(type='interaction-quadratic', term=term, AICc=thisAic, terms=4))
 							# }
 						# }
@@ -347,7 +347,7 @@ trainGlm <- function(
 		tuning <<- tuning
 		form <- paste0(resp, ' ~ 1 + ', tuning$term[1]) # add first term
 
-		numTerms <- length(colnames(attr(terms(as.formula(form)), 'factors')))
+		numTerms <- length(colnames(attr(stats::terms(stats::as.formula(form)), 'factors')))
 
 		# if there are more presence sites than required per term in model and if terms in model are fewer than specified limit
 		if ((sampleSize / numTerms) > presPerTermInitial & numTerms < initialTerms) {
@@ -359,8 +359,8 @@ trainGlm <- function(
 			while ((sampleSize / numTerms) > presPerTermInitial & numTerms < initialTerms & glmFrameRow <= nrow(tuning)) {
 
 				# make trial formula
-				trialForm <- as.formula(paste0(form, ' + ', tuning$term[glmFrameRow]))
-				termsInTrial <- length(colnames(attr(terms(as.formula(trialForm)), 'factors')))
+				trialForm <- stats::as.formula(paste0(form, ' + ', tuning$term[glmFrameRow]))
+				termsInTrial <- length(colnames(attr(stats::terms(stats::as.formula(trialForm)), 'factors')))
 
 				# update formula if there are enough presences per term
 				if (sampleSize / termsInTrial >= presPerTermInitial & termsInTrial <= initialTerms) {
@@ -368,7 +368,7 @@ trainGlm <- function(
 				}
 
 				# get number of unique terms that would be added
-				numTerms <- length(colnames(attr(terms(as.formula(form)), 'factors')))
+				numTerms <- length(colnames(attr(stats::terms(stats::as.formula(form)), 'factors')))
 
 				# look at next row of tuning
 				glmFrameRow <- glmFrameRow + 1
@@ -414,7 +414,7 @@ trainGlm <- function(
 	} # if not doing automated model construction
 
 	# convert to formula
-	form <- as.formula(form)
+	form <- stats::as.formula(form)
 
 	## MODEL SELECTION
 	##################
@@ -422,12 +422,12 @@ trainGlm <- function(
 	if (!select) {
 
 		# train (starting) GLM model
-		model <- glm(form, family=family, data=data, weights=w, method=method, ...)
+		model <- stats::glm(form, family=family, data=data, weights=w, method=method, ...)
 
 		if (verbose) {
 			omnibus::say('Full model:', pre=1);
 			print(summary(model))
-			flush.console()
+			utils::flush.console()
 		}
 
 	} else {
@@ -461,11 +461,11 @@ trainGlm <- function(
 		# evaluate each model
 		for (i in seq_along(forms)) {
 
-			form <- as.formula(forms[[i]])
+			form <- stats::as.formula(forms[[i]])
 
-			# models[[i]] <- glm(form, family=family, data=data, weights=w, method=method)
-			models[[i]] <- glm(form, family=family, data=data, weights=w, method=method, ...)
-			ll <- logLik(models[[i]])
+			# models[[i]] <- stats::glm(form, family=family, data=data, weights=w, method=method)
+			models[[i]] <- stats::glm(form, family=family, data=data, weights=w, method=method, ...)
+			ll <- stats::logLik(models[[i]])
 			aicc <- MuMIn::AICc(models[[i]])
 			models[[i]]$aicc <- aicc
 
@@ -504,7 +504,7 @@ trainGlm <- function(
 				}
 				
 			} else {
-				warning('The best model had unstable coefficients (> "tooBig").', immediate=.TRUE)
+				warning('The best model had unstable coefficients (> "tooBig").', immediate.=TRUE)
 				model <- NULL
 			}
 

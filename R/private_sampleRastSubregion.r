@@ -27,7 +27,7 @@
 		# random circle center
 		if (is.null(circleCent)) {
 			circleCent <- enmSdm::sampleRast(rast, 1, prob=FALSE)
-			circleCent <- SpatialPoints(circleCent, sp::CRS(crs))
+			circleCent <- sp::SpatialPoints(circleCent, sp::CRS(crs))
 		}
 
 		# rasterize the restricted area
@@ -40,7 +40,7 @@
 	
 	}
 
-	n <- if (raster::ncell(rast) > n) { ncell(rast) } else { n }
+	n <- if (raster::ncell(rast) > n) { raster::ncell(rast) } else { n }
 	randPoints <- dismo::randomPoints(rast, n)
 	randPoints <- sp::SpatialPoints(randPoints, sp::CRS(crs))
 	

@@ -20,9 +20,6 @@ Data frame of lemur occurrences
 data(lemurs)
 lemurs
 }
-\references{
-
-}
 \keyword{Madagascar}
 \keyword{datasets,}
 \keyword{lemurs,}
