@@ -71,7 +71,7 @@ If \code{out = 'model'} this function returns an object of class \code{gbm}. If 
 This function is a wrapper for \code{\link[dismo]{gbm.step}}. It returns the model with best combination of learning rate, tree depth, and bag fraction based on cross-validated deviance. It can also return a table with deviance of different combinations of tuning parameters that were tested, and all of the models tested. See Elith, J., J.R. Leathwick, and T. Hastie. 2008. A working guide to boosted regression trees. \emph{Journal of Animal Ecology} 77:802-813.
 }
 \examples{
-\donttest{
+\dontrun{
 ### model red-bellied lemurs
 data(mad0)
 data(lemurs)

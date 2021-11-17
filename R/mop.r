@@ -80,7 +80,7 @@ mop <- function(
 			apply(dists[ , thisNearest2, drop=FALSE], 2, mean)
 		)
 
-		thisStats <- matrix(c(p[i], min(theseDists), quantile(theseDists, 0.025), mean(theseDists), median(theseDists), quantile(theseDists, 0.975), max(theseDists), sd(theseDists), length(thisNearest1), length(thisNearest2)), ncol=10)
+		thisStats <- matrix(c(p[i], min(theseDists), stats::quantile(theseDists, 0.025), mean(theseDists), stats::median(theseDists), stats::quantile(theseDists, 0.975), max(theseDists), stats::sd(theseDists), length(thisNearest1), length(thisNearest2)), ncol=10)
 		if (exists('stats', where=out, inherits=FALSE)) {
 			out$stats <- rbind(out$stats, thisStats)
 		} else {

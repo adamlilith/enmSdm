@@ -113,7 +113,6 @@ trainByCrossValid <- function(
 	trainFx = enmSdm::trainGlm,
 	...,
 	metrics = c('logLoss', 'cbi', 'auc', 'fpb', 'tss', 'msss', 'mdss', 'orss', 'sedi', 'minTrainPres', 'trainSe95', 'trainSe90'),
-	sensitivity = 0.9,
 	weightEvalTrain = TRUE,
 	weightEvalTest = TRUE,
 	na.rm = FALSE,
@@ -133,7 +132,7 @@ trainByCrossValid <- function(
 	if (any(c('matrix', 'data.frame') %in% foldsClass)) {
 	
 		foldsType <- 'custom'
-		foldCodes <- na.omit(sort(unique(c(as.matrix(folds)))))
+		foldCodes <- stats::na.omit(sort(unique(c(as.matrix(folds)))))
 		if (length(foldCodes) != 2) stop('"folds" matrix must have two unique values (aside from NAs).')
 		numFolds <- ncol(folds)
 
@@ -143,7 +142,7 @@ trainByCrossValid <- function(
 
 	} else {
 		foldsType <- 'simple'
-		foldCodes <- na.omit(sort(unique(folds)))
+		foldCodes <- stats::na.omit(sort(unique(folds)))
 		numFolds <- length(foldCodes)
 	}
 
@@ -227,7 +226,7 @@ trainByCrossValid <- function(
 			
 			}
 
-			args <- modifyList(ellipses, list(data=trainData, resp=resp, preds=preds, w=trainWeights, verbose=verbose > 2, out=c('models', 'tuning')))
+			args <- utils::modifyList(ellipses, list(data=trainData, resp=resp, preds=preds, w=trainWeights, verbose=verbose > 2, out=c('models', 'tuning')))
 			
 		### train model
 		###############
@@ -272,10 +271,10 @@ trainByCrossValid <- function(
 			}	
 
 			insert <- data.frame(
-				numTrainPres = if (na.rm) { length(na.omit(whichTrainPres)) } else { length(whichTrainPres) },
-				numTrainContrast = if (na.rm) { length(na.omit(whichTrainContrast)) } else { length(whichTrainContrast) },
-				numTestPres = if (na.rm) { length(na.omit(whichTestPres)) } else { length(whichTestPres) },
-				numTestContrast = if (na.rm) { length(na.omit(whichTestContrast)) } else { length(whichTestContrast) },
+				numTrainPres = if (na.rm) { length(stats::na.omit(whichTrainPres)) } else { length(whichTrainPres) },
+				numTrainContrast = if (na.rm) { length(stats::na.omit(whichTrainContrast)) } else { length(whichTrainContrast) },
+				numTestPres = if (na.rm) { length(stats::na.omit(whichTestPres)) } else { length(whichTestPres) },
+				numTestContrast = if (na.rm) { length(stats::na.omit(whichTestContrast)) } else { length(whichTestContrast) },
 				trainPresWeights = sum(trainPresWeights, na.rm=na.rm),
 				trainContrastWeights = sum(trainContrastWeights, na.rm=na.rm),
 				testPresWeights = sum(testPresWeights, na.rm=na.rm),
@@ -298,7 +297,7 @@ trainByCrossValid <- function(
 				
 					nonConvergedModels <- rbind(
 						nonConvergedModels,
-						insertCol(
+						omnibus::insertCol(
 							data.frame(modelNumber = countModel),
 							into=kTuning[countModel, ],
 							at='k',

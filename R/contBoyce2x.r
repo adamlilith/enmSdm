@@ -115,11 +115,11 @@ contBoyce2x <- function(
 
 	# plot
 	if (graph) {
-		par(mfrow=c(1, 2))
+		graphics::par(mfrow=c(1, 2))
 		plot(E, P, col='white', xlab='Expected', ylab='Predicted', main='P/E\n(letters from lowest to highest class)')
-		text(E, P, labels=letters[1:numClasses], col='red')
+		graphics::text(E, P, labels=letters[1:numClasses], col='red')
 		plot(1:numClasses, PE, type='l', xlab='Bin', ylab='P/E Ratio', main='CBI\n(letters from lowest to highest class)')
-		text(1:numClasses, PE, labels=letters[1:numClasses], col='red')
+		graphics::text(1:numClasses, PE, labels=letters[1:numClasses], col='red')
 	}
 
 	# calculate continuous Boyce index (cbi)

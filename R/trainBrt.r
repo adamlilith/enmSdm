@@ -26,7 +26,7 @@
 #' @return If \code{out = 'model'} this function returns an object of class \code{gbm}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters and cross-validation deviance for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{gbm} object and the data frame. Note that if a model does not converge or does not meet sufficiency criteria (i.e., the number of optimal trees is < \code{minTrees}, then the model is not returned (a \code{NULL} value is returned for \code{'model'} and models are simply missing from the \code{tuning} and \code{models} output.
 #' @seealso \code{\link[dismo]{gbm.step}}
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' ### model red-bellied lemurs
 #' data(mad0)
 #' data(lemurs)
@@ -298,7 +298,7 @@ trainBrt <- function(
 		if (numTries > 1 && !is.null(tryBy)) {
 
 			if ('learningRate' %in% tryBy) tempLr <- tempLr / 10
-			if ('treeComplexity' %in% tryBy) tempTc <- max(1, tempTc + ifelse(runif(1) > 0.5, 1, -1))
+			if ('treeComplexity' %in% tryBy) tempTc <- max(1, tempTc + ifelse(stats::runif(1) > 0.5, 1, -1))
 			if ('maxTrees' %in% tryBy) tempMaxTrees <- round(1.2 * tempMaxTrees)
 			if ('stepSize' %in% tryBy) tempStepSize <- round(0.8 * tempStepSize)
 

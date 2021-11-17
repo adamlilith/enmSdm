@@ -10,8 +10,6 @@
 #'
 #' @keywords datasets, Madagascar
 #'
-#' @references
-#'
 #' @source www.gadm.org
 #' 
 #' @examples

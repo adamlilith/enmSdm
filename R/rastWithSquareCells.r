@@ -30,7 +30,7 @@
 #'
 #' @export
 
-rastWithSquareCells <- function(x, numCells = NULL, res = NULL, vals = runif(101), ...) {
+rastWithSquareCells <- function(x, numCells = NULL, res = NULL, vals = 1:101) {
 
 	if (is.null(numCells) & is.null(res)) stop('Either "numCells" or "res" must be specified.')
 	if (!is.null(numCells) & !is.null(res)) warning('Both "numCells" and "res" are specified. Ignoring argument "res".')
@@ -60,7 +60,7 @@ rastWithSquareCells <- function(x, numCells = NULL, res = NULL, vals = runif(101
 	)
 	
 	ext <- raster::extent(ext)
-	out <- raster(ext, nrows=numRows, ncols=numCols, crs=raster::projection(x))
+	out <- raster::raster(ext, nrows=numRows, ncols=numCols, crs=raster::projection(x))
 	numCells <- raster::ncell(out)
 	vals <- if (length(vals) > numCells) {
 		vals[1:numCells]

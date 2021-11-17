@@ -12,7 +12,7 @@
 #' The function \code{spatialCorrForPointsWeight} calculates weights for a set of points based on the characteristic scale of spatial autocorrelation.
 #' @seealso \code{\link[enmSdm]{spatialCorrForPoints}}, \code{\link[enmSdm]{spatialCorrForPointsPlot}}, \code{\link[enmSdm]{spatialCorrForPointsWeight}}
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # create raster of Madagascar
 #' data(mad0)
 #' rast <- raster::raster(mad0, res=c(1/12, 1/12))
@@ -71,7 +71,7 @@ spatialCorrForPointsSummary <- function(
 	obs <- x[ , 'observedProportion']
 	nullCols <- which(grepl(colnames(x), pattern='randProportion'))
 	nulls <- x[ , nullCols]
-	nullUpper <- apply(nulls, 1, quantile, probs=perc / 100)
+	nullUpper <- apply(nulls, 1, stats::quantile, probs=perc / 100)
 
 	firstInsigIndex <- which.max(obs <= nullUpper)
 

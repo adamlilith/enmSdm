@@ -10,8 +10,6 @@
 #'
 #' @keywords datasets, lemurs, Madagascar
 #'
-#' @references
-#'
 #' @source www.gbif.org
 #' 
 #' @examples

@@ -19,11 +19,11 @@
 #' @param method Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.
 #' @param out Character. Indicates type of value returned. If \code{model} (default) then returns an object of class \code{brglm2}/\code{glm}. If \code{table} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
 #' @param verbose Logical. If \code{TRUE} then display intermediate results on the display device.
-#' @param ... Arguments to pass to \code{brglm()} or \code{dredge()}.
+#' @param ... Arguments to pass to \code{brstats::glm()} or \code{dredge()}.
 #' @return If \code{out = 'model'} this function returns an object of class \code{glm}. If \code{out = 'table'} this function returns a data frame with tuning parameters and AICc for each model tried. If \code{out = c('model', 'table'} then it returns a list object with the \code{glm} object and the data frame.
 #' @seealso \code{\link[enmSdm]{trainGlm}}, \code{\link[stats]{glm}} in the \pkg{stats} package, \code{\link[brglm2]{brglmFit}} in the \pkg{brglm2} package
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' set.seed(123)
 #' x <- matrix(rnorm(n = 6*100), ncol = 6)
 #' # true variables will be #1, #2, #5, and #6, plus
@@ -112,10 +112,10 @@ trainGlmDredge <- function(
 		for (thisPred in preds) { # for each predictor test single-variable terms
 
 			# train model
-			thisModel <- glm(formula=as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method, ...)
+			thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method, ...)
 
 			# get AICc
-			thisAic <- AIC(thisModel)
+			thisAic <- MuMIn::AICc(thisModel)
 			k <- length(thisModel$coefficients)
 
 			thisAic <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
@@ -146,17 +146,17 @@ trainGlmDredge <- function(
 					term <- paste0(thisPred, ' + I(', thisPred, '^2)')
 
 					# train model
-					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
+					thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 					# get AICc
-					thisAic <- AIC(thisModel)
+					thisAic <- MuMIn::AICc(thisModel)
 					k <- length(thisModel$coefficients)
 
 					thisAic <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 					# remember if coefficients were stable
-					if (all(!is.na(coef(thisModel)))) {
-						if (all(abs(coef(thisModel)) < tooBig)) {
+					if (all(!is.na(stats::coef(thisModel)))) {
+						if (all(abs(stats::coef(thisModel)) < tooBig)) {
 							tuning <- rbind(tuning, data.frame(type='quadratic', term=term, AICc=thisAic, terms=2))
 						}
 					}
@@ -179,17 +179,17 @@ trainGlmDredge <- function(
 					term <- paste0(thisPred, ' + I(', thisPred, '^2) + I(', thisPred, '^3)')
 
 					# train model
-					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
+					thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 					# get AICc
-					thisAic <- AIC(thisModel)
+					thisAic <- MuMIn::AICc(thisModel)
 					k <- length(thisModel$coefficients)
 
 					thisAic <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 					# remember if coefficients were stable
-					if (all(!is.na(coef(thisModel)))) {
-						if (all(abs(coef(thisModel)) < tooBig)) {
+					if (all(!is.na(stats::coef(thisModel)))) {
+						if (all(abs(stats::coef(thisModel)) < tooBig)) {
 							tuning <- rbind(tuning, data.frame(type='cubic', term=term, AICc=thisAic, terms=3))
 						}
 					}
@@ -214,17 +214,17 @@ trainGlmDredge <- function(
 					term <- paste0(thisPred, ' + ', thatPred, ' + ', thisPred, ':', thatPred)
 
 					# train model
-					thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
+					thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
-					# get AICc
-					thisAic <- AIC(thisModel)
+					# get as.formula(c
+					thisAic <- MuMIn::AICc(thisModel)
 					k <- length(thisModel$coefficients)
 
 					thisAic <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 					# remember if coefficients were stable
-					if (all(!is.na(coef(thisModel)))) {
-						if (all(abs(coef(thisModel)) < tooBig)) {
+					if (all(!is.na(stats::coef(thisModel)))) {
+						if (all(abs(stats::coef(thisModel)) < tooBig)) {
 							tuning <- rbind(tuning, data.frame(type='interaction', term=term, AICc=thisAic, terms=3))
 						}
 					}
@@ -252,17 +252,17 @@ trainGlmDredge <- function(
 					if (!is.na(term)) {
 
 						# train model
-						thisModel <- glm(formula=as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
+						thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', term)), family=family, data=data, weights=w, method=method, ...)
 
 						# get AICc
-						thisAic <- AIC(thisModel)
+						thisAic <- MuMIn::AICc(thisModel)
 						k <- length(thisModel$coefficients)
 
 						thisAic <- thisAic + (2 * k * (k + 1)) / (sampleSize - k - 1)
 
 						# remember if coefficients were stable
-						if (all(!is.na(coef(thisModel)))) {
-							if (all(abs(coef(thisModel)) < tooBig)) {
+						if (all(!is.na(stats::coef(thisModel)))) {
+							if (all(abs(stats::coef(thisModel)) < tooBig)) {
 								tuning <- rbind(tuning, data.frame(type='interaction-quadratic', term=term, AICc=thisAic, terms=4))
 							}
 						}
@@ -290,7 +290,7 @@ trainGlmDredge <- function(
 		## construct final model
 		form <- paste0(resp, ' ~ 1 + ', tuning$term[1]) # add first term
 
-		numTerms <- length(colnames(attr(terms(as.formula(form)), 'factors')))
+		numTerms <- length(colnames(attr(stats::terms(stats::as.formula(form)), 'factors')))
 
 		# if there are more presence sites than required per term in model and if terms in model are fewer than specified limit
 		if ((sampleSize / numTerms) > presPerTermInitial & numTerms < initialTerms) {
@@ -302,8 +302,8 @@ trainGlmDredge <- function(
 			while ((sampleSize / numTerms) > presPerTermInitial & numTerms < initialTerms & glmFrameRow <= nrow(tuning)) {
 
 				# make trial formula
-				trialForm <- as.formula(paste0(form, ' + ', tuning$term[glmFrameRow]))
-				termsInTrial <- length(colnames(attr(terms(as.formula(trialForm)), 'factors')))
+				trialForm <- stats::as.formula(paste0(form, ' + ', tuning$term[glmFrameRow]))
+				termsInTrial <- length(colnames(attr(stats::terms(stats::as.formula(trialForm)), 'factors')))
 
 				# update formula if there are enough presences per term
 				if (sampleSize / termsInTrial >= presPerTermInitial & termsInTrial <= initialTerms) {
@@ -311,7 +311,7 @@ trainGlmDredge <- function(
 				}
 
 				# get number of unique terms that would be added
-				numTerms <- length(colnames(attr(terms(as.formula(form)), 'factors')))
+				numTerms <- length(colnames(attr(stats::terms(stats::as.formula(form)), 'factors')))
 
 				# look at next row of tuning
 				glmFrameRow <- glmFrameRow + 1
@@ -357,19 +357,19 @@ trainGlmDredge <- function(
 	} # if not doing automated model construction
 
 	# convert to formula
-	form <- as.formula(form)
+	form <- stats::as.formula(form)
 
 	##################
 	## train model ###
 	##################
 
 	# train (starting) GLM model
-	model <- glm(formula=form, family=family, data=data, weights=w, na.action=stats::na.fail, method=method, ...)
+	model <- stats::glm(formula=form, family=family, data=data, weights=w, na.action=stats::na.fail, method=method, ...)
 
 	if (verbose) {
 		omnibus::say('Full model:', pre=1);
 		print(summary(model))
-		flush.console()
+		utils::flush.console()
 	}
 
 	########################################################################################
@@ -393,7 +393,7 @@ trainGlmDredge <- function(
 		### remove any models with wild coefficients
 		############################################
 
-		coeffOk <- abs(coefficients(tuning)) < tooBig
+		coeffOk <- abs(stats::coef(tuning)) < tooBig
 		coeffOk <- apply(coeffOk, 1, function(y) all(y, na.rm=TRUE))
 		tuning <- subset(tuning, coeffOk, recalc.weights=TRUE, recalc.delta=TRUE)
 
@@ -402,7 +402,7 @@ trainGlmDredge <- function(
 
 		allModelsDf <- as.data.frame(tuning)
 
-		modTerms <- terms(tuning)
+		modTerms <- stats::terms(tuning)
 		modTerms <- sort(modTerms[!(modTerms %in% '(Intercept)')])
 
 		for (countTerm in seq_along(modTerms)) {

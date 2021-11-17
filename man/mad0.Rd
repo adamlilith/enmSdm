@@ -21,8 +21,5 @@ data(mad0)
 mad0
 plot(mad0)
 }
-\references{
-
-}
 \keyword{Madagascar}
 \keyword{datasets,}

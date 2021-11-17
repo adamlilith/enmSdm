@@ -72,7 +72,7 @@ trainGlm(
 This function constructs a GLM piece-by-piece by first calculating AICc for all models with univariate, quadratic, and 2-way-interaction terms. It then creates a "full" model with the highest-ranked uni/bivariate terms. Finally, it implements an all-subsets model selection routine using AICc. Its output is any or all of: a table with AICc for all possible models, all possible models (after model construction), and/or the model with the lowest AICc.
 }
 \examples{
-\donttest{
+\dontrun{
 library(brglm2)
 
 ### model red-bellied lemurs

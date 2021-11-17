@@ -28,7 +28,7 @@ Alternatively, one can specify a set of points using the \code{fixed} argument. 
 The function \code{spatialCorrForPointsWeight} calculates weights for a set of points based on the characteristic scale of spatial autocorrelation.
 }
 \examples{
-\donttest{
+\dontrun{
 # create raster of Madagascar
 data(mad0)
 rast <- raster::raster(mad0, res=c(1/12, 1/12))

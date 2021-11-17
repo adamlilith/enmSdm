@@ -8,6 +8,7 @@
 #' @param tol2 As \code{tol1} but for \code{x2}.
 #' @param tol12 As \code{tol1} but for the root-mean-square deviation between points in \code{x1} and \code{x2}.
 #' @param distFunct Either a function or \code{NULL}. If \code{NULL} then \code{\link[geosphere]{distGeo}} is used to calculate distances.  Other "dist" functions (e.g., \code{\link[geosphere]{distGeo}}) can be used.  Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.
+#' @param restrict Logical, if \code{TRUE} (default), then select random points from any non-\code{NA} cell in a restricted area. If \code{FALSE}, then select from any non-\code{NA} cell on the raster. If \code{FALSE}, then random sites are selected from across the entire raster.
 #' @param keepData Logical, if \code{TRUE} then the original data in \code{x1} and \code{x1} (i.e., columns that do not represent coordinates) will be retained in the output but the coordinates will be shuffled. If \code{FALSE} (default) then the returned values will have just shuffled coordinates.
 #' @param verbose Logical, if \code{FALSE} (default) show no progress indicator. If \code{TRUE} then display updates and graph.
 #' @param ... Arguments to pass to \code{distGeo} or \code{\link[enmSdm]{sampleRast}}. Note that if \code{x} is a matrix or data frame a coordinate reference system may be passed using \code{crs = <proj4 string code>} or \code{crs = <object of class CRS>} (see \pkg{sp} package). Otherwise the coordinates are assumed to be unprojected (WGS84).
@@ -20,7 +21,7 @@
 #' data(lemurs, package='enmSdm')
 #' longLat <- c('decimalLongitude', 'decimalLatitude')
 #' 
-#' mad- <- raster::getData('GADM', country='MDG', level=0)
+#' mad <- raster::getData('GADM', country='MDG', level=0)
 #' elev <- raster::getData('alt', country='MDG', mask=TRUE, res=2.5)
 #' 
 #' # plot data as-is
@@ -95,7 +96,7 @@
 #' 	pt.bg=c('cornflowerblue', 'cornflowerblue', NA, NA))
 #' 
 #' ### batch mode
-#' \donttest{
+#' \dontrun{
 #' 
 #' # download climate data
 #' clim <- raster::getData('worldclim', var='bio', res=2.5)
@@ -202,8 +203,8 @@ randPointsRespectingSelfOther2 <- function(
 	out2 <- x2
 
 	# convert SpatialPointsDataFrame to SpatialPoints
-	if (class(x1) == 'SpatialPointsDataFrame') x1 <- sp::SpatialPoints(coordinates(x1), proj4string=CRS(raster::projection(x1)))
-	if (class(x2) == 'SpatialPointsDataFrame') x2 <- sp::SpatialPoints(coordinates(x2), proj4string=CRS(raster::projection(x2)))
+	if (class(x1) == 'SpatialPointsDataFrame') x1 <- sp::SpatialPoints(sp::coordinates(x1), proj4string=sp::CRS(raster::projection(x1)))
+	if (class(x2) == 'SpatialPointsDataFrame') x2 <- sp::SpatialPoints(sp::coordinates(x2), proj4string=sp::CRS(raster::projection(x2)))
 
 	# convert matrix/data frame to SpatialPoints
 	if (class(x1) %in% c('matrix', 'data.frame')) {

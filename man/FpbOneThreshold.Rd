@@ -24,7 +24,7 @@ fpbOneThreshold(
 
 \item{bgWeight}{Numeric same length as \code{bg}. Weights for background predictions.}
 
-\item{ttr}{Same as \code{threshold} but deprecated. Included for backwards compatability.}
+\item{tr}{Same as \code{threshold} but deprecated. Included for backwards compatibility.}
 }
 \value{
 Numeric.

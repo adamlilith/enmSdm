@@ -76,7 +76,7 @@ nicheOverlap <- compiler::cmpfun(function(
 	if (!('princomp' %in% class(env))) {
 		env <- as.data.frame(env)
 		env <- env[ , vars]
-		pca <- princomp(env, cor=TRUE)
+		pca <- stats::princomp(env, cor=TRUE)
 	} else {
 		pca <- env
 	}
@@ -92,8 +92,8 @@ nicheOverlap <- compiler::cmpfun(function(
 	x2 <- x2[ , vars]
 
 	# convert environment to PC axes
-	x1 <- predict(pca, x1)
-	x2 <- predict(pca, x2)
+	x1 <- stats::predict(pca, x1)
+	x2 <- stats::predict(pca, x2)
 
 	x1 <- x1[ , 1:2]
 	x2 <- x2[ , 1:2]

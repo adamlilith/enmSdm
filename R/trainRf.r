@@ -11,7 +11,7 @@
 #' @return Object of class \code{\link[randomForest]{randomForest}}.
 #' @seealso \code{\link[randomForest]{randomForest}}, \code{\link{trainCrf}}
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' ### model red-bellied lemurs
 #' data(mad0)
 #' data(lemurs)

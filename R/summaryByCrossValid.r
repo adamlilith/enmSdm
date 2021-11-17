@@ -126,10 +126,10 @@ summaryByCrossValid <- function(
 		
 			out <- rbind(
 				apply(params, 2, min, na.rm=TRUE),
-				apply(params, 2, quantile, 0.25, na.rm=TRUE),
+				apply(params, 2, stats::quantile, 0.25, na.rm=TRUE),
 				apply(params, 2, mean, na.rm=TRUE),
-				apply(params, 2, median, na.rm=TRUE),
-				apply(params, 2, quantile, 0.75, na.rm=TRUE),
+				apply(params, 2, stats::median, na.rm=TRUE),
+				apply(params, 2, stats::quantile, 0.75, na.rm=TRUE),
 				apply(params, 2, max, na.rm=TRUE)
 			)
 			
@@ -201,7 +201,7 @@ summaryByCrossValid <- function(
 		simpleFeats <- c('l', 'p', 'q', 'h')
 		featCombos <- vector('list', length(simpleFeats))
 		for (i in seq_along(simpleFeats)) {
-			featCombos[[i]] <- combn(simpleFeats, i, paste, collapse = '')
+			featCombos[[i]] <- utils::combn(simpleFeats, i, paste, collapse = '')
 		}
 		
 		featCombos <- unique(unlist(featCombos))
@@ -311,10 +311,10 @@ summaryByCrossValid <- function(
 				term=pred,
 				frequencyInBestModels=sum(!is.na(subOut[ , pred])),
 				minDf=min(subOut[ , pred], na.rm=TRUE),
-				quantile25thDf=quantile(subOut[ , pred], 0.25, na.rm=TRUE),
+				quantile25thDf=stats::quantile(subOut[ , pred], 0.25, na.rm=TRUE),
 				meanDf=mean(subOut[ , pred], na.rm=TRUE),
-				medianDf=median(subOut[ , pred], na.rm=TRUE),
-				quantile7thDf=quantile(subOut[ , pred], 0.75, na.rm=TRUE),
+				medianDf=stats::median(subOut[ , pred], na.rm=TRUE),
+				quantile7thDf=stats::quantile(subOut[ , pred], 0.75, na.rm=TRUE),
 				maxDf=max(subOut[ , pred], na.rm=TRUE)
 			)
 			

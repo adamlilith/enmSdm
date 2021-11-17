@@ -1,4 +1,4 @@
-.makeLarsData <- .makeLarsData <- function (data, resp, preds, scale = TRUE, quadratic = TRUE, 
+.makeLarsData <- function (data, resp, preds, scale = TRUE, quadratic = TRUE, 
      cubic = TRUE, interaction = TRUE, interQuad = TRUE, na.rm = FALSE) {
     
 	if (cubic & !quadratic) {

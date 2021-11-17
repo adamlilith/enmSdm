@@ -1,7 +1,7 @@
 #' Interpolate a stack of rasters
 #'
 #' This function returns a stack of rasters interpolated from a stack of rasters. For example, the input might represent rasters of a process measured at times t, t + 1, and t + 4. The rasters at t + 2 and t + 3 could be interpolated based on the values in the other rasters. Note that this function can take a lot of time and memory, even for relatively small rasters.
-#' @param rasts Raster stack or brick.
+#' @param rasts A "stack" of \code{SpatRaster}s.
 #' @param interpFrom Numeric vector, one value per raster in \code{rasts}. Values represent "distance" along the set of rasters rasters (e.g., time).
 #' @param interpTo Numeric vector, values of "distances" at which to interpolate the rasters.
 #' @param type Character. The type of model used to do the interpolation. Note that some of these (the first few) are guaranteed to go through every point being interpolated from. The second set, however, are effectively regressions so are not guaranteed to do through \emph{any} of the points. Note that some methods cannot handle cases where at least some series of cells have < a given number of non-\code{NA} values (e.g., smooth splines will not work if there are < 4 cells with non-\code{NA} values).
@@ -23,10 +23,10 @@
 #' @details This function can be very memory-intensive for large rasters.  It may speed things up (and make them possible) to do interpolations piece by piece (e.g., instead of interpolating between times t0, t1, t2, t3, ..., interpolate between t0 and t1, then t1 and t2, etc. This may give results that differ from using the entire set, however. Note that using linear and splines will often yield very similar results except that in a small number of cases splines may produce very extreme interpolated values.
 #' @seealso \code{\link[raster]{approxNA}}, \code{\link[stats]{approxfun}}, \code{\link[stats]{splinefun}}, \code{\link{trainNs}}, \code{\link{glm}}, , \code{\link[splines]{bs}}, \code{\link{smooth.spline}}.
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' interpFrom <- c(1, 3, 4, 8, 10, 11, 15)
 #' interpTo <- 1:15
-#' rx <- raster(nrows=10, ncols=10)
+#' rx <- rast(nrows=10, ncols=10)
 #' r1 <- setValues(rx, rnorm(100, 1))
 #' r3 <- setValues(rx, rnorm(100, 3))
 #' r4 <- setValues(rx, rnorm(100, 5))
@@ -34,7 +34,7 @@
 #' r10 <- setValues(rx, rnorm(100, 3))
 #' r11 <- setValues(rx, rnorm(100, 5))
 #' r15 <- setValues(rx, rnorm(100, 13))
-#' rasts <- stack(r1, r3, r4, r8, r10, r11, r15)
+#' rasts <- c(r1, r3, r4, r8, r10, r11, r15)
 #' names(rasts) <- paste0('rasts', interpFrom)
 #' 
 #' linear <- interpolateRasters(rasts, interpFrom, interpTo)
@@ -43,17 +43,18 @@
 #' ns <- interpolateRasters(rasts, interpFrom, interpTo, type='ns', onFail='linear', verbose=FALSE)
 #' poly <- interpolateRasters(rasts, interpFrom, interpTo, type='poly', onFail='linear')
 #' bs <- interpolateRasters(rasts, interpFrom, interpTo, type='bs', onFail='linear')
-#' ss <- interpolateRasters(rasts, interpFrom, interpTo, type='smooth.spline', onFail='linear', verbose=FALSE)
+#' ss <- interpolateRasters(rasts, interpFrom, interpTo, type='smooth.spline', onFail='linear',
+#' verbose=FALSE)
 #' 
 #' # examine trends for a particular point on the landscape
 #' pts <- rbind(c(-9, 13))
-#' linearExt <- c(extract(linear, pts))
-#' splineExt <- c(extract(spline, pts))
-#' gamExt <- c(extract(gam, pts))
-#' nsExt <- c(extract(ns, pts))
-#' polyExt <- c(extract(poly, pts))
-#' bsExt <- c(extract(bs, pts))
-#' ssExt <- c(extract(ss, pts))
+#' linearExt <- unlist(raster::extract(linear, pts))
+#' splineExt <- unlist(raster::extract(spline, pts))
+#' gamExt <- unlist(raster::extract(gam, pts))
+#' nsExt <- unlist(raster::extract(ns, pts))
+#' polyExt <- unlist(raster::extract(poly, pts))
+#' bsExt <- unlist(raster::extract(bs, pts))
+#' ssExt <- unlist(raster::extract(ss, pts))
 #' 
 #' mins <- min(linearExt, splineExt, gamExt, nsExt, polyExt, bsExt, ssExt)
 #' maxs <- max(linearExt, splineExt, gamExt, nsExt, polyExt, bsExt, ssExt)
@@ -111,14 +112,14 @@ interpolateRasters <- function(
 
 		thisOut <- array(NA, dim=c(rows, cols, numInterps))
 		if (useRasts) {
-			out <- raster::brick(thisOut, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax, crs=proj4)
+			out <- raster::raster(thisOut, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax, crs=proj4)
 			rm(thisOut); gc()
 		}
 		
 	### interpolate each cell
 	#########################
 		
-		if (verbose) progress <- txtProgressBar(min=1, max=raster::ncell(rasts), style=3, width=min(64, getOption('width')))
+		if (verbose) progress <- utils::txtProgressBar(min=1, max=raster::ncell(rasts), style=3, width=min(64, getOption('width')))
 
 		countCell <- 1
 		for (countRow in 1:nrow(rasts)) {
@@ -145,7 +146,7 @@ interpolateRasters <- function(
 				} else {
 					
 					dataFrom <- data.frame(y=y, x=interpFrom)
-					dataFrom <- dataFrom[complete.cases(dataFrom), ]
+					dataFrom <- dataFrom[stats::complete.cases(dataFrom), ]
 				
 					dataTo <- data.frame(x=interpTo)
 					
@@ -185,9 +186,9 @@ interpolateRasters <- function(
 						for (degree in degrees) {
 						
 							form <- paste0('y ~ poly(x, degree=', degree, ')')
-							form <- as.formula(form)
+							form <- stats::as.formula(form)
 							thisArgs <- c(args, formula=form)
-							tryModel <- tryCatch(do.call(glm, thisArgs), error=function(err) FALSE)
+							tryModel <- tryCatch(do.call('glm', thisArgs), error=function(err) FALSE)
 							if (!is.logical(tryModel)) {
 								models[[length(models) + 1]] <- tryModel
 								k <- c(k, length(tryModel$coefficients))
@@ -197,11 +198,11 @@ interpolateRasters <- function(
 						
 						form <- y ~ 1
 						thisArgs <- c(args, form=form)
-						model <- do.call(glm, args=thisArgs)
+						model <- do.call('glm', args=thisArgs)
 						models[[length(models) + 1]] <- model
 						k <- c(k, length(model$coefficients))
 						
-						aic <- sapply(models, AIC)
+						aic <- sapply(models, MuMIn::AICc)
 						aicc <- aic + (2 * k^2 + 2 * k) / (nrow(dataFrom) - k - 1)
 						interpModel <- models[[which.min(aicc)]]
 
@@ -217,9 +218,9 @@ interpolateRasters <- function(
 							degree <- degrees[i]
 						
 							form <- paste0('y ~ splines::bs(x, df=', degree, ')')
-							form <- as.formula(form)
+							form <- stats::as.formula(form)
 							thisArgs <- c(args, formula=form)
-							tryModel <- tryCatch(do.call(glm, thisArgs), error=function(err) FALSE)
+							tryModel <- tryCatch(do.call('glm', thisArgs), error=function(err) FALSE)
 							if (!is.logical(tryModel)) {
 								models[[length(models) + 1]] <- tryModel
 								k <- c(k, length(tryModel$coefficients))
@@ -229,11 +230,11 @@ interpolateRasters <- function(
 						
 						form <- y ~ 1
 						thisArgs <- c(args, form=form)
-						model <- do.call(glm, args=thisArgs)
+						model <- do.call('glm', args=thisArgs)
 						models[[length(models) + 1]] <- model
 						k <- c(k, length(model$coefficients))
 						
-						aic <- sapply(models, AIC)
+						aic <- sapply(models, MuMIn::AICc)
 						aicc <- aic + (2 * k^2 + 2 * k) / (nrow(dataFrom) - k - 1)
 						interpModel <- models[[which.min(aicc)]]
 
@@ -241,7 +242,7 @@ interpolateRasters <- function(
 
 						if (nrow(dataFrom) < 4 & is.na(onFail)) stop('At least one set of cells has fewer than 4 unique values. Cannot use interpolation function "smooth.spline".')
 					
-						interpModel <- tryCatch(smooth.spline(x=dataFrom$x, y=dataFrom$y, keep.data=FALSE, cv=TRUE, control.spar=list(trace=FALSE), ...), error=function(err) FALSE)
+						interpModel <- tryCatch(stats::smooth.spline(x=dataFrom$x, y=dataFrom$y, keep.data=FALSE, cv=TRUE, control.spar=list(trace=FALSE), ...), error=function(err) FALSE)
 
 					}
 
@@ -250,7 +251,7 @@ interpolateRasters <- function(
 					
 					if (!is.logical(interpModel)) {
 					
-						cellInterpol <- predict(interpModel, dataTo, type='response')
+						cellInterpol <- do.call('predict', args=list(object=interpModel, newdata=dataTo, type='response'))
 						if (type == 'smooth.spline') cellInterpol <- cellInterpol$y$x
 					
 					### if model failed, try simpler models
@@ -273,9 +274,9 @@ interpolateRasters <- function(
 							for (degree in degrees) {
 							
 								form <- paste0('y ~ poly(x, degree=', degree, ')')
-								form <- as.formula(form)
+								form <- stats::as.formula(form)
 								thisArgs <- c(args, formula=form)
-								tryModel <- tryCatch(do.call(glm, thisArgs), error=function(err) FALSE)
+								tryModel <- tryCatch(do.call('glm', thisArgs), error=function(err) FALSE)
 								if (!is.logical(tryModel)) {
 									models[[length(models) + 1]] <- tryModel
 									k <- c(k, length(tryModel$coefficients))
@@ -285,11 +286,11 @@ interpolateRasters <- function(
 							
 							form <- y ~ 1
 							thisArgs <- c(args, form=form)
-							model <- do.call(glm, args=thisArgs)
+							model <- do.call('glm', args=thisArgs)
 							models[[length(models) + 1]] <- model
 							k <- c(k, length(model$coefficients))
 							
-							aic <- sapply(models, AIC)
+							aic <- sapply(models, MuMIn::AICc)
 							aicc <- aic + (2 * k^2 + 2 * k) / (nrow(dataFrom) - k - 1)
 							interpModel <- models[[which.min(aicc)]]
 							
@@ -312,7 +313,7 @@ interpolateRasters <- function(
 				
 				countCell <- countCell + 1
 				
-				if (verbose) setTxtProgressBar(progress, value=countCell)
+				if (verbose) utils::setTxtProgressBar(progress, value=countCell)
 				
 			} # next column
 
@@ -323,7 +324,7 @@ interpolateRasters <- function(
 	### reconfigure back to raster format
 	#####################################
 
-		if (!useRasts) out <- raster::brick(thisOut, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax, crs=proj4)
+		if (!useRasts) out <- raster::raster(thisOut, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax, crs=proj4)
 
 		interpToNames <- gsub(interpTo, pattern='-', replacement='Neg')
 		interpToNames <- gsub(interpToNames, pattern='\\.', replacement='p')

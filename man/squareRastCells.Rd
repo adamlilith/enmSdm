@@ -26,7 +26,7 @@ This function resamples a raster so that cells are "square" (have the same linea
 }
 }
 \examples{
-\donttest{
+\dontrun{
 # get WORLDCLIM elevation data
 elev <- raster::getData('worldclim', var='alt', res=10)
 

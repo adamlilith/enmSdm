@@ -10,7 +10,7 @@
 #' @return Object of class \code{RandomForest}.
 #' @seealso \code{\link[party]{cforest}}, \code{\link[enmSdm]{trainRf}}
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' ### model red-bellied lemurs
 #' data(mad0)
 #' data(lemurs)
@@ -103,7 +103,7 @@ trainCrf <- function(
 	}
 
 	# formula
-	form <- as.formula(paste(resp, '~ .'))
+	form <- stats::as.formula(paste(resp, '~ .'))
 
 	# train model
 	model <- party::cforest(

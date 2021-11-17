@@ -13,7 +13,7 @@
 #' @return Raster object.
 #' @seealso \code{\link{rastWithSquareCells}}, \code{\link[raster]{resample}}, \code{\link[raster]{aggregate}}
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # get WORLDCLIM elevation data
 #' elev <- raster::getData('worldclim', var='alt', res=10)
 #' 
@@ -45,7 +45,7 @@ squareRastCells <- function(x, keepWidth = TRUE, ...) {
 	if (keepWidth) {
 		
 		# pad extent so it can accommodate all necessary rows
-		width <- res(x)[1]
+		width <- raster::res(x)[1]
 		northSouth <- ext[4] - ext[3]
 		ncols <- ncol(x)
 
@@ -62,7 +62,7 @@ squareRastCells <- function(x, keepWidth = TRUE, ...) {
 	} else if (!keepWidth) {
 	
 		# pad extent so it can accommodate all necessary columns
-		height <- res(x)[2]
+		height <- raster::res(x)[2]
 		eastWest <- ext[2] - ext[1]
 		nrows <- nrow(x)
 

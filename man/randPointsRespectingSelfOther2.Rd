@@ -33,6 +33,8 @@ randPointsRespectingSelfOther2(
 
 \item{distFunct}{Either a function or \code{NULL}. If \code{NULL} then \code{\link[geosphere]{distGeo}} is used to calculate distances.  Other "dist" functions (e.g., \code{\link[geosphere]{distGeo}}) can be used.  Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.}
 
+\item{restrict}{Logical, if \code{TRUE} (default), then select random points from any non-\code{NA} cell in a restricted area. If \code{FALSE}, then select from any non-\code{NA} cell on the raster. If \code{FALSE}, then random sites are selected from across the entire raster.}
+
 \item{keepData}{Logical, if \code{TRUE} then the original data in \code{x1} and \code{x1} (i.e., columns that do not represent coordinates) will be retained in the output but the coordinates will be shuffled. If \code{FALSE} (default) then the returned values will have just shuffled coordinates.}
 
 \item{verbose}{Logical, if \code{FALSE} (default) show no progress indicator. If \code{TRUE} then display updates and graph.}
@@ -52,7 +54,7 @@ library(raster)
 data(lemurs, package='enmSdm')
 longLat <- c('decimalLongitude', 'decimalLatitude')
 
-mad- <- raster::getData('GADM', country='MDG', level=0)
+mad <- raster::getData('GADM', country='MDG', level=0)
 elev <- raster::getData('alt', country='MDG', mask=TRUE, res=2.5)
 
 # plot data as-is
@@ -127,7 +129,7 @@ legend('bottomleft', legend=c(species1, species2,
 	pt.bg=c('cornflowerblue', 'cornflowerblue', NA, NA))
 
 ### batch mode
-\donttest{
+\dontrun{
 
 # download climate data
 clim <- raster::getData('worldclim', var='bio', res=2.5)

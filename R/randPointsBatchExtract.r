@@ -13,7 +13,7 @@
 #' data(lemurs, package='enmSdm')
 #' longLat <- c('decimalLongitude', 'decimalLatitude')
 #' 
-#' mad- <- raster::getData('GADM', country='MDG', level=0)
+#' mad <- raster::getData('GADM', country='MDG', level=0)
 #' elev <- raster::getData('alt', country='MDG', mask=TRUE, res=2.5)
 #' 
 #' # plot data as-is
@@ -88,7 +88,7 @@
 #' 	pt.bg=c('cornflowerblue', 'cornflowerblue', NA, NA))
 #' 
 #' ### batch mode
-#' \donttest{
+#' \dontrun{
 #' 
 #' # download climate data
 #' clim <- raster::getData('worldclim', var='bio', res=2.5)
@@ -192,7 +192,7 @@ randPointsBatchExtract <- function(rands, rast, verbose = FALSE) {
 			}
 			
 			env <- raster::extract(rast, coords)
-			if (class(rands[[i]]) == 'SpatialPoints') rands[[i]] <- as(rands[[i]], 'SpatialPointsDataFrame')
+			if (class(rands[[i]]) == 'SpatialPoints') rands[[i]] <- methods::as(rands[[i]], 'SpatialPointsDataFrame')
 			rands[[i]] <- cbind(rands[[i]], env)
 		
 			if (verbose) utils::setTxtProgressBar(prog, i)
@@ -222,14 +222,14 @@ randPointsBatchExtract <- function(rands, rast, verbose = FALSE) {
 			env2 <- raster::extract(rast, coords2)
 			
 			if (class(rands[[i]]$x1rand) == 'SpatialPoints') {
-				rands[[i]]$x1rand <- as(rands[[i]]$x1rand, 'SpatialPointsDataFrame')
+				rands[[i]]$x1rand <- methods::as(rands[[i]]$x1rand, 'SpatialPointsDataFrame')
 				rands[[i]]$x1rand@data <- as.data.frame(env1)
 			} else {
 				rands[[i]]$x1rand <- cbind(rands[[i]]$x1rand, env1)
 			}
 			
 			if (class(rands[[i]]$x2rand) == 'SpatialPoints') {
-				rands[[i]]$x2rand <- as(rands[[i]]$x2rand, 'SpatialPointsDataFrame')
+				rands[[i]]$x2rand <- methods::as(rands[[i]]$x2rand, 'SpatialPointsDataFrame')
 				rands[[i]]$x2rand@data <- as.data.frame(env2)
 			} else {
 				rands[[i]]$x2rand <- cbind(rands[[i]]$x2rand, env2)

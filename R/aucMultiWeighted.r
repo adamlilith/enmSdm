@@ -71,7 +71,7 @@ aucMultiWeighted <- function(
 
 		for (i in seq_along(cases)) {
 			
-			cases[[i]] <- cases[[i]][complete.cases(cases[[i]]), ]
+			cases[[i]] <- cases[[i]][stats::complete.cases(cases[[i]]), ]
 			
 		}
 

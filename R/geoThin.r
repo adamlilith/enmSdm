@@ -128,7 +128,7 @@ geoThin <- function(
 					if (length(removeThis) > 1) {
 
 						# break ties by removing point with least median distance to all other points (even if > minDist away)
-						distToAllPoints <- apply(dists[ , removeThis], 2, median, na.rm=TRUE)
+						distToAllPoints <- apply(dists[ , removeThis], 2, stats::median, na.rm=TRUE)
 						minMedianDistToAllPoints <- min(distToAllPoints)
 						removeThis <- removeThis[which(distToAllPoints == minMedianDistToAllPoints)]
 

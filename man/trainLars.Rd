@@ -54,7 +54,7 @@ This function calculates the least angle regression (LARS) using possibly overla
 If \code{scale} is \code{TRUE} then predictors with zero variance will be removed from the data before the model is trained.
 }
 \examples{
-\donttest{
+\dontrun{
 ### model red-bellied lemurs
 data(mad0)
 data(lemurs)
@@ -123,5 +123,5 @@ abline(0, 1)
 }
 }
 \seealso{
-\code{\link{.makeLarsData}}, \code{\link{predictLars}}, \code{\link[grpreg]{grpreg}}, \code{\link[grpregOverlap]{grpregOverlap}}, \code{\link[grpregOverlap]{cv.grpregOverlap}}
+\code{\link{predictLars}}, \code{\link[grpreg]{grpreg}}, \code{\link[grpregOverlap]{grpregOverlap}}, \code{\link[grpregOverlap]{cv.grpregOverlap}}
 }

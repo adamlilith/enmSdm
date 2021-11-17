@@ -57,7 +57,7 @@ If \code{out = 'model'} this function returns an object of class \code{gam}. If 
 This function constructs a natural-spline model piece-by-piece by first calculating AICc for all models with univariate and bivariate (interaction) terms. It then creates a "full" model with the highest-ranked uni/bivariate terms then implements an all-subsets model selection routine.
 }
 \examples{
-\donttest{
+\dontrun{
 library(brglm2)
 
 ### model red-bellied lemurs

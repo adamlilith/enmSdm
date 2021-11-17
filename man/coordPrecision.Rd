@@ -68,7 +68,7 @@ decimal <- cbind(longDec, latDec)
 coordPrecision(decimal)
 coordPrecision(decimal, dms=TRUE)
 
-\donttest{
+\dontrun{
 # known error when longitude is negative and latitude is -90
 long <- -45
 lat <- -90

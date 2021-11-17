@@ -143,7 +143,7 @@ geoFold <- function(
 			interPointDists <- geosphere::distm(xy, fun=distFunct)
 			diag(interPointDists) <- NA
 			interPointDists <- interPointDists[which(folds %in% kToDo), which(folds %in% kToDo)]
-			interPointDists <- as.dist(interPointDists)
+			interPointDists <- stats::as.dist(interPointDists)
 			tempFolds[!(tempFolds %in% kToDo)] <- NA
 			tempFolds[!is.na(tempFolds)] <- as.integer(cluster::pam(x=interPointDists, k=length(kToDo), diss=TRUE, do.swap=TRUE, cluster.only=TRUE))
 

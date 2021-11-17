@@ -194,7 +194,11 @@ predictMaxEnt <- function(
 	feats$lambda <- as.numeric(substr(feats$feature, start=commaPos[seq(1, 3 * nrow(feats), by=3)] + 2, stop=commaPos[seq(2, 3 * nrow(feats), by=3)] - 1))
 
 	## get values
-	value1 <- t(data[ , feats$var1])
+	value1 <- if (nrow(data) > 1) {
+		t(data[ , feats$var1])
+	} else {
+		cbind(data[ , feats$var1])
+	}
 	rownames(value1) <- paste0('feat', 1:nrow(feats))
 	value2 <- value1 * NA
 		

@@ -58,5 +58,5 @@ for (count in 1:3) {
 }
 }
 \seealso{
-\code{\link[ENMEval]{thin.algorithm}}, \code{\link[geosphere]{distGeo}}, \code{\link{geoThin}}
+\code{\link[geosphere]{distGeo}}, \code{\link{geoThin}}
 }

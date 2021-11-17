@@ -36,7 +36,7 @@ Object of class \code{\link[randomForest]{randomForest}}.
 This function trains a random forest model. It first finds the optimal value for \code{mtry} (number of variables sampled as candidates at each split). It then calls the function  \code{\link[randomForest]{randomForest}} from the \pkg{randomForest} package.
 }
 \examples{
-\donttest{
+\dontrun{
 ### model red-bellied lemurs
 data(mad0)
 data(lemurs)

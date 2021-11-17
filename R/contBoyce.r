@@ -29,7 +29,7 @@
 #' presWeight <- c(rep(1, 10), rep(0.5, 90))
 #' contBoyce(pres, contrast, presWeight=presWeight)
 #' contBoyce2x(pres, contrast, presWeight=presWeight)
-#' \donttest{
+#' \dontrun{
 #' # compare stability of CBI calculated with ecospat.boyce() in ecospat package
 #' library(ecospat)
 #' set.seed(123)
@@ -182,12 +182,12 @@ contBoyce <- function(
 
 	# plot
 	if (graph) {
-		par(mfrow=c(1, 2))
+		graphics::par(mfrow=c(1, 2))
 		lims <- c(0, max(P, E, na.rm=TRUE))
 		plot(E, P, col='white', xlab='Expected', ylab='Predicted', main='P/E\nNumbered from lowest to highest class', xlim=lims, ylim=lims)
-		text(E, P, labels=1:numBins, col=1:20)
+		graphics::text(E, P, labels=1:numBins, col=1:20)
 		plot(meanPred, PE, type='l', xlab='Mean Prediction in Bin', ylab='P/E Ratio', main='CBI\nNumbered from lowest to highest class')
-		text(meanPred, PE, labels=1:numBins, col='blue')
+		graphics::text(meanPred, PE, labels=1:numBins, col='blue')
 	}
 
 	# remove NAs
