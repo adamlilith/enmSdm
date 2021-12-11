@@ -86,6 +86,7 @@ Create an issue on \href{https://github.com/adamlilith/enmSdm/issues}{GitHub}.
 
 		\code{\link{convertTropicosCoords}} Convert coordinates from the TROPICOS database \cr
 		\code{\link{coordPrecision}} Calculate maximum possible coordinate precision \cr
+	\code{\link{createPlotPoly}} Create a `SpatialPolygon` the same size as a plot region \cr
 		\code{\link{decimalToDms}} Convert decimal coordinate to degrees-minutes-seconds \cr
 		\code{\link{dmsToDecimal}} Convert degrees-minutes-seconds coordinate to decimal \cr
 		\code{\link{getCRS}} Return a proj4string (coordinate reference system string) using a nickname \cr

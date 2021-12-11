@@ -1069,7 +1069,7 @@ bioticVelocity <- function(
 						naNonNaCells <- c(raster::as.matrix(x1x2ones))
 					}
 
-					sims <- compareNiches(x1vect, x2vect, w=naNonNaCells, na.rm=TRUE)
+					sims <- enmSdm::compareNiches(x1vect, x2vect, w=naNonNaCells, na.rm=TRUE)
 
 					thisOut <- cbind(
 						thisOut,
