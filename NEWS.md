@@ -1,3 +1,6 @@
+enmSdm 0.6.1 2021-12-10
+Added createPlotPoly()
+
 enmSdm 0.6.0 2021-11-10
 Fixing R CMD check issues
 
