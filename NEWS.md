@@ -1,3 +1,7 @@
+enmSdm 0.7.0 2021-12-15
+sampleRast() randomly places sites within cells (not just cell centers)
+trainNs() does not call brglmFit2 by default anymore
+
 enmSdm 0.6.1 2021-12-10
 Added createPlotPoly()
 
