@@ -59,8 +59,21 @@ sampleRast <- function(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE) {
 
 	probs <- probs[!is.na(val)]
 
+
+	# centers of cell
 	sites <- sample(cellNum, size=n, replace=replace, prob=probs)
 	xy <- raster::xyFromCell(x, sites)
+	
+	# move within cells
+	from <- -0.5 * res(x)[1]
+	to <- 0.5 * res(x)[1]
+	rands1 <- runif(n, from, to)
+	from <- -0.5 * res(x)[2]
+	to <- 0.5 * res(x)[2]
+	rands2 <- runif(n, from, to)
+
+	xy[ , 'x'] <- xy[ , 'x'] + rands1
+	xy[ , 'y'] <- xy[ , 'y'] + rands2
 
 	xy
 

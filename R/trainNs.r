@@ -162,7 +162,7 @@ trainNs <- function(
 
 				thisThisForm <- paste0(form, ' + ', term)
 
-				thisModel <- stats::glm(stats::as.formula(thisThisForm), family=family, data=data, weights=w, method='brglmFit', ...)
+				thisModel <- stats::glm(stats::as.formula(thisThisForm), family=family, data=data, weights=w, ...)
 				thisAic <- stats::AIC(thisModel)
 
 				# remember
@@ -225,7 +225,7 @@ trainNs <- function(
 	###########################################################################
 
 	# get GLM model... using automated scale selection with weights so influence of absences equals influence of presences... using tryCatch because sometimes for variables with too little variation the default df of the basis is too high, in which case it is reduced and attempted again (for univariate and bivariate models only)
-	model <- stats::glm(stats::as.formula(form), family=family, data=data, weights=w, na.action='na.fail', method='brglmFit', ...)
+	model <- stats::glm(stats::as.formula(form), family=family, data=data, weights=w, na.action='na.fail', ...)
 
 	if (verbose) {
 
