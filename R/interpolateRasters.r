@@ -1,7 +1,7 @@
 #' Interpolate a stack of rasters
 #'
 #' This function returns a stack of rasters interpolated from a stack of rasters. For example, the input might represent rasters of a process measured at times t, t + 1, and t + 4. The rasters at t + 2 and t + 3 could be interpolated based on the values in the other rasters. Note that this function can take a lot of time and memory, even for relatively small rasters.
-#' @param rasts A "stack" of \code{SpatRaster}s.
+#' @param rasts A "stack" of \code{raster}s.
 #' @param interpFrom Numeric vector, one value per raster in \code{rasts}. Values represent "distance" along the set of rasters rasters (e.g., time).
 #' @param interpTo Numeric vector, values of "distances" at which to interpolate the rasters.
 #' @param type Character. The type of model used to do the interpolation. Note that some of these (the first few) are guaranteed to go through every point being interpolated from. The second set, however, are effectively regressions so are not guaranteed to do through \emph{any} of the points. Note that some methods cannot handle cases where at least some series of cells have < a given number of non-\code{NA} values (e.g., smooth splines will not work if there are < 4 cells with non-\code{NA} values).
@@ -9,6 +9,7 @@
 #' \item \code{linear}: A model based on linear segments "fastened" at each value of \code{interpFrom}. The segments will intersect each value being interpolated from.
 #' \item \code{spline}: A natural splines-based model. Splines will intersect each value being interpolated from.
 #' \item \code{gam}: A generalized additive model. Note that the GAM is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link[mgcv]{gam}} can be supplied via \code{...}. Especially note the \code{family} argument! You can use the \code{onFail} argument with this method since in some cases \code{\link[mgcv]{gam}} if there are too few data points.
+#' \item \code{glm}: A generalized linear model. Note that the GLM is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link[mgcv]{gam}} can be supplied via \code{...}. Especially note the \code{family} argument (the main reason for why you would use a GLM versus just linear interpolation)! You can use the \code{onFail} argument with this method since in some cases \code{\link[stats]{glm}} if there are too few data points.
 #' \item \code{ns}: A natural splines model. Note that the NS is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link{trainNs}} can be supplied via \code{...}. Especially note the \code{family} argument and the \code{df} argument! If \code{df} is not supplied, then the number of splines attempted will be equal to \code{1:(length(interpFrom) - 1)}. You can use the \code{onFail} argument with this method.
 #' \item \code{poly}: A polynomial model. This method constructs an \emph{n}-degree polynomial where \emph{n} = \code{length(interpFrom) - 1}. The most parsimonious model is then selected from all possible subsets of models (including an intercept-only model) using AICc. This method is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link{glm}} can be supplied via \code{...}. Especially note the \code{family} argument! If \code{family} is not supplied, then the response is assumed to have a Gaussian distribution. You can use the \code{onFail} argument with this method.
 #' \item \code{bs}: A basis-spline model. This method constructs a series of models with \emph{n}-degree basis-spline model where \emph{n} ranges from 3 to \code{length(interpFrom) - 1}. The most parsimonious model is then selected from all possible subsets of models (including an intercept-only model) using AICc. This method is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link{glm}} can be supplied via \code{...}. Especially note the \code{family} argument! If \code{family} is not supplied, then the response is assumed to have a Gaussian distribution. You can use the \code{onFail} argument with this method.
@@ -142,7 +143,7 @@ interpolateRasters <- function(
 				} else if (type == 'spline') {
 					# stats::spline(x=interpFrom, y=y, xout=interpTo, ...)$y
 					cellInterpol <- stats::spline(x=interpFrom, y=y, xout=interpTo, method='natural', ...)$y
-					# stats::spline(x=interpFrom, y=y, xout=interpTo)$y
+					# stats::spline(x=interpFrom, y=y, xout=interpTo, method='natural')$y
 				} else {
 					
 					dataFrom <- data.frame(y=y, x=interpFrom)
@@ -152,6 +153,7 @@ interpolateRasters <- function(
 					
 					dots <- list(...)
 					args <- c(list(data=dataFrom), dots)
+					# args <- list(data=dataFrom)
 					
 					if (type == 'gam') {
 
@@ -159,6 +161,12 @@ interpolateRasters <- function(
 						form <- y ~ s(x, bs='cs', k=k)
 						thisArgs <- c(args, formula=form)
 						interpModel <- tryCatch(do.call(mgcv::gam, thisArgs), error=function(err) FALSE)
+						
+					} else if (type == 'glm') {
+
+						form <- y ~ x
+						thisArgs <- c(args, formula=form)
+						interpModel <- tryCatch(do.call(stats::glm, thisArgs), error=function(err) FALSE)
 						
 					} else if (type == 'ns') {
 					
@@ -242,7 +250,8 @@ interpolateRasters <- function(
 
 						if (nrow(dataFrom) < 4 & is.na(onFail)) stop('At least one set of cells has fewer than 4 unique values. Cannot use interpolation function "smooth.spline".')
 					
-						interpModel <- tryCatch(stats::smooth.spline(x=dataFrom$x, y=dataFrom$y, keep.data=FALSE, cv=TRUE, control.spar=list(trace=FALSE), ...), error=function(err) FALSE)
+						# interpModel <- tryCatch(stats::smooth.spline(x=dataFrom$x, y=dataFrom$y, keep.data=FALSE, cv=TRUE, control.spar=list(trace=FALSE), ...), error=function(err) FALSE)
+						interpModel <- tryCatch(stats::smooth.spline(x=dataFrom$x, y=dataFrom$y, keep.data=FALSE, cv=TRUE, control.spar=list(trace=FALSE)), error=function(err) FALSE)
 
 					}
 
@@ -324,7 +333,19 @@ interpolateRasters <- function(
 	### reconfigure back to raster format
 	#####################################
 
-		if (!useRasts) out <- raster::raster(thisOut, xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax, crs=proj4)
+		if (!useRasts) {
+			if (verbose) omnibus::say('Compiling rasters...')
+			out <- raster::raster(thisOut[ , , 1], xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax, crs=proj4)
+			dims <- dim(thisOut)[3]
+			if (dims > 1) {
+				for (i in 2:dims) {
+					out <- stack(
+						out,
+						raster::raster(thisOut[ , , i], xmn=xmin, xmx=xmax, ymn=ymin, ymx=ymax, crs=proj4)
+					)
+				}
+			}
+		}
 
 		interpToNames <- gsub(interpTo, pattern='-', replacement='Neg')
 		interpToNames <- gsub(interpToNames, pattern='\\.', replacement='p')
