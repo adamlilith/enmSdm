@@ -1,11 +1,11 @@
 #' Sample random points from a raster with/out replacement
 #'
 #' This function returns coordinates randomly located on a raster where cells can be sampled more than once if desired (sampled with replacement) and where the probability of selection is proportionate to the cell value (plus maybe cell area--both if desired).
-#' @param x Raster* object.
+#' @param x \code{Raster}* or \code{SpatRaster} object.
 #' @param n Positive integer. Number of points to draw.
 #' @param adjArea Logical. If \code{TRUE} then adjust probabilities so sampling accounts for cell area.
 #' @param replace Logical. If \code{TRUE} then sample with replacement.
-#' @param prob Logical. If TRUE then sample cells with probabilities proportional to cell values. If \code{adjArea} is also \code{TRUE} then probabilities are drawn proportional to the product of cell area * the value of the cell.
+#' @param prob Logical. If \code{TRUE} then sample cells with probabilities proportional to cell values. If \code{adjArea} is also \code{TRUE} then probabilities are drawn proportional to the product of cell area * the value of the cell.
 #' @return 2-column matrix with longitude and latitude of random points. Points will be located at cell centers.
 #' @seealso \code{\link[dismo]{randomPoints}}, \code{\link{sampleRastStrat}}
 #' @examples
@@ -30,12 +30,15 @@
 
 sampleRast <- function(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE) {
 
+	x <- rast(x)
 	val <- as.vector(x[[1]])
 
 	# adjust probabilities for cell area and/or cell values
 	if (adjArea) {
 
-		areas <- raster::area(x[[1]], na.rm=TRUE)
+		areas <- terra::cellSize(x, mask=TRUE)
+		areas <- areas * (x * 0 + 1) # because "mask" argument does not work as documented 2021-12-26
+
 		areas <- as.vector(areas)
 		probs <- if (prob) {
 			val * areas
@@ -54,15 +57,13 @@ sampleRast <- function(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE) {
 
 	}
 
-	cellNum <- 1:raster::ncell(x)
+	cellNum <- 1:terra::ncell(x)
 	cellNum <- cellNum[!is.na(val)]
-
 	probs <- probs[!is.na(val)]
-
 
 	# centers of cell
 	sites <- sample(cellNum, size=n, replace=replace, prob=probs)
-	xy <- raster::xyFromCell(x, sites)
+	xy <- terra::xyFromCell(x, sites)
 	
 	# move within cells
 	from <- -0.5 * res(x)[1]
