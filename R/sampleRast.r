@@ -30,8 +30,8 @@
 
 sampleRast <- function(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE) {
 
-	x <- rast(x)
-	val <- as.vector(x[[1]])
+	if (!inherits(x, 'SpatRaster')) x <- terra::rast(x)
+	val <- c(as.matrix(x))
 
 	# adjust probabilities for cell area and/or cell values
 	if (adjArea) {
@@ -48,7 +48,7 @@ sampleRast <- function(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE) {
 
 	} else if (!adjArea & prob) {
 
-		if (any(probs < 0)) warning('Some probabilities are < 0.', .immediate=TRUE)
+		if (any(val < 0, na.rm=TRUE)) warning('Some probabilities are < 0.', .immediate=TRUE)
 		probs <- val
 
 	} else if (!adjArea & !prob) {
@@ -66,11 +66,11 @@ sampleRast <- function(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE) {
 	xy <- terra::xyFromCell(x, sites)
 	
 	# move within cells
-	from <- -0.5 * res(x)[1]
-	to <- 0.5 * res(x)[1]
+	from <- -0.5 * terra::res(x)[1]
+	to <- 0.5 * terra::res(x)[1]
 	rands1 <- runif(n, from, to)
-	from <- -0.5 * res(x)[2]
-	to <- 0.5 * res(x)[2]
+	from <- -0.5 * terra::res(x)[2]
+	to <- 0.5 * terra::res(x)[2]
 	rands2 <- runif(n, from, to)
 
 	xy[ , 'x'] <- xy[ , 'x'] + rands1

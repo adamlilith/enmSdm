@@ -7,7 +7,7 @@
 sampleRast(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE)
 }
 \arguments{
-\item{x}{Raster* object.}
+\item{x}{\code{Raster}* or \code{SpatRaster} object.}
 
 \item{n}{Positive integer. Number of points to draw.}
 
@@ -15,7 +15,7 @@ sampleRast(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE)
 
 \item{replace}{Logical. If \code{TRUE} then sample with replacement.}
 
-\item{prob}{Logical. If TRUE then sample cells with probabilities proportional to cell values. If \code{adjArea} is also \code{TRUE} then probabilities are drawn proportional to the product of cell area * the value of the cell.}
+\item{prob}{Logical. If \code{TRUE} then sample cells with probabilities proportional to cell values. If \code{adjArea} is also \code{TRUE} then probabilities are drawn proportional to the product of cell area * the value of the cell.}
 }
 \value{
 2-column matrix with longitude and latitude of random points. Points will be located at cell centers.

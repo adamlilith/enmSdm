@@ -10,6 +10,7 @@ getCRS(x, asCRS = FALSE)
 \item{x}{Character. Name of proj4 string to return. Possible values include:
 \itemize{
 \item \code{albersNA} Albers equal-area conic for North America: \code{+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs}
+\item \code{albersEur} Albers equal-area conic for Europe: \code{+proj=aea +lat_1=43 +lat_2=62 +lat_0=30 +lon_0=10 +x_0=0 +y_0=0 +ellps=intl +units=m +no_defs}
 \item \code{madAlbers} Albers equal-area conic for Madagascar: \code{+proj=aea +lat_1=-14 +lat_2=-24 +lat_0=-19 +lon_0=47 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84}
 \item \code{climateNA} ClimateNA dataset: \code{+proj=lcc +lat_1=49 +lat_2=77 +lat_0=0 +lon_0=-95 +x_0=0 +y_0=0 +datum=WGS84 +units=m +no_defs +ellps=WGS84}
 \item \code{chelsa} CHELSA climate dataset (actually WGS84): or \code{+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84}

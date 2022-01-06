@@ -17,7 +17,7 @@ interpolateRasters(
 )
 }
 \arguments{
-\item{rasts}{A "stack" of \code{SpatRaster}s.}
+\item{rasts}{A "stack" of \code{raster}s.}
 
 \item{interpFrom}{Numeric vector, one value per raster in \code{rasts}. Values represent "distance" along the set of rasters rasters (e.g., time).}
 
@@ -28,6 +28,7 @@ interpolateRasters(
 \item \code{linear}: A model based on linear segments "fastened" at each value of \code{interpFrom}. The segments will intersect each value being interpolated from.
 \item \code{spline}: A natural splines-based model. Splines will intersect each value being interpolated from.
 \item \code{gam}: A generalized additive model. Note that the GAM is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link[mgcv]{gam}} can be supplied via \code{...}. Especially note the \code{family} argument! You can use the \code{onFail} argument with this method since in some cases \code{\link[mgcv]{gam}} if there are too few data points.
+\item \code{glm}: A generalized linear model. Note that the GLM is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link[mgcv]{gam}} can be supplied via \code{...}. Especially note the \code{family} argument (the main reason for why you would use a GLM versus just linear interpolation)! You can use the \code{onFail} argument with this method since in some cases \code{\link[stats]{glm}} if there are too few data points.
 \item \code{ns}: A natural splines model. Note that the NS is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link{trainNs}} can be supplied via \code{...}. Especially note the \code{family} argument and the \code{df} argument! If \code{df} is not supplied, then the number of splines attempted will be equal to \code{1:(length(interpFrom) - 1)}. You can use the \code{onFail} argument with this method.
 \item \code{poly}: A polynomial model. This method constructs an \emph{n}-degree polynomial where \emph{n} = \code{length(interpFrom) - 1}. The most parsimonious model is then selected from all possible subsets of models (including an intercept-only model) using AICc. This method is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link{glm}} can be supplied via \code{...}. Especially note the \code{family} argument! If \code{family} is not supplied, then the response is assumed to have a Gaussian distribution. You can use the \code{onFail} argument with this method.
 \item \code{bs}: A basis-spline model. This method constructs a series of models with \emph{n}-degree basis-spline model where \emph{n} ranges from 3 to \code{length(interpFrom) - 1}. The most parsimonious model is then selected from all possible subsets of models (including an intercept-only model) using AICc. This method is \emph{not} guaranteed to intersect each value being interpolated from. Arguments to \code{\link{glm}} can be supplied via \code{...}. Especially note the \code{family} argument! If \code{family} is not supplied, then the response is assumed to have a Gaussian distribution. You can use the \code{onFail} argument with this method.
