@@ -40,7 +40,7 @@ sampleRast <- function(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE) {
 		areas <- areas * (x * 0 + 1) # because "mask" argument does not work as documented 2021-12-26
 
 		areas <- as.vector(areas)
-		probs <- if (prob) {
+		prob <- if (prob) {
 			val * areas
 		} else {
 			areas
@@ -49,20 +49,20 @@ sampleRast <- function(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE) {
 	} else if (!adjArea & prob) {
 
 		if (any(val < 0, na.rm=TRUE)) warning('Some probabilities are < 0.', .immediate=TRUE)
-		probs <- val
+		prob <- val
 
 	} else if (!adjArea & !prob) {
 
-		probs <- rep(1, length(val))
+		prob <- rep(1, length(val))
 
 	}
 
 	cellNum <- 1:terra::ncell(x)
 	cellNum <- cellNum[!is.na(val)]
-	probs <- probs[!is.na(val)]
+	prob <- prob[!is.na(val)]
 
 	# centers of cell
-	sites <- sample(cellNum, size=n, replace=replace, prob=probs)
+	sites <- sample(cellNum, size=n, replace=replace, prob=prob)
 	xy <- terra::xyFromCell(x, sites)
 	
 	# move within cells
