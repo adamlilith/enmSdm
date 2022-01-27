@@ -31,7 +31,7 @@
 sampleRast <- function(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE) {
 
 	if (!inherits(x, 'SpatRaster')) x <- terra::rast(x)
-	val <- c(as.matrix(x))
+	val <- as.vector(x)
 
 	# adjust probabilities for cell area and/or cell values
 	if (adjArea) {
