@@ -7,7 +7,7 @@
 sampleRast(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE)
 }
 \arguments{
-\item{x}{Raster* object.}
+\item{x}{\code{Raster}* or \code{SpatRaster} object.}
 
 \item{n}{Positive integer. Number of points to draw.}
 
@@ -15,7 +15,7 @@ sampleRast(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE)
 
 \item{replace}{Logical. If \code{TRUE} then sample with replacement.}
 
-\item{prob}{Logical. If TRUE then sample cells with probabilities proportional to cell values. If \code{adjArea} is also \code{TRUE} then probabilities are drawn proportional to the product of cell area * the value of the cell.}
+\item{prob}{Logical. If \code{TRUE} then sample cells with probabilities proportional to cell values. If \code{adjArea} is also \code{TRUE} then probabilities are drawn proportional to the product of cell area * the value of the cell.}
 }
 \value{
 2-column matrix with longitude and latitude of random points. Points will be located at cell centers.
@@ -24,9 +24,9 @@ sampleRast(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE)
 This function returns coordinates randomly located on a raster where cells can be sampled more than once if desired (sampled with replacement) and where the probability of selection is proportionate to the cell value (plus maybe cell area--both if desired).
 }
 \examples{
-
-r <- raster::raster()
-nc <- raster::ncell(r)
+library(raster)
+r <- raster()
+nc <- ncell(r)
 r[] <- 1:nc
 rands1 <- sampleRast(r, 10000)
 rands2 <- sampleRast(r, 10000, adjArea=FALSE)
