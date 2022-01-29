@@ -24,9 +24,9 @@ sampleRast(x, n, adjArea = TRUE, replace = TRUE, prob = TRUE)
 This function returns coordinates randomly located on a raster where cells can be sampled more than once if desired (sampled with replacement) and where the probability of selection is proportionate to the cell value (plus maybe cell area--both if desired).
 }
 \examples{
-
-r <- raster::raster()
-nc <- raster::ncell(r)
+library(raster)
+r <- raster()
+nc <- ncell(r)
 r[] <- 1:nc
 rands1 <- sampleRast(r, 10000)
 rands2 <- sampleRast(r, 10000, adjArea=FALSE)

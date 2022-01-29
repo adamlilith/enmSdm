@@ -9,9 +9,9 @@
 #' @return 2-column matrix with longitude and latitude of random points. Points will be located at cell centers.
 #' @seealso \code{\link[dismo]{randomPoints}}, \code{\link{sampleRastStrat}}
 #' @examples
-#'
-#' r <- raster::raster()
-#' nc <- raster::ncell(r)
+#' library(raster)
+#' r <- raster()
+#' nc <- ncell(r)
 #' r[] <- 1:nc
 #' rands1 <- sampleRast(r, 10000)
 #' rands2 <- sampleRast(r, 10000, adjArea=FALSE)
