@@ -44,7 +44,7 @@ Suggests:
 	grpregOverlap,
     knitr,
     rmarkdown
-License: GPL (>=3) + file LICENSE
+License: GPL (>=3)
 LazyData: true
 LazyLoad: yes
 URL: http://www.earthSkySea.org

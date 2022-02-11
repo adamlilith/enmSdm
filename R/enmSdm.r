@@ -32,6 +32,7 @@
 #' 		\code{\link{thresholdStats}} Model performance statistics based on thresholded predictions (with/out site weights) \cr
 #' 		\code{\link{tssWeighted}} True Skill Statistic (TSS) (with/out site weights) \cr
 #' 		\code{\link{modelSize}} Number of response values in a model object \cr
+#'
 #' @section Niche overlap:
 #' 		\code{\link{compareNiches}} Niche overlap metrics \cr
 #' 		\code{\link{compareResponse}} Compare niche model responses to a single variable \cr
@@ -51,6 +52,7 @@
 #'
 #' @section Functions for rasters:
 #' 		\code{\link{bioticVelocity}} Velocity of movement across a series of rasters \cr
+#'		\code{\link{getCores}} Get number of processor cores \cr
 #' 		\code{\link{interpolateRasters}} Interpolate a stack of rasters \cr
 #' 		\code{\link{longLatRasters}} Generate rasters with values of longitude/latitude for cell values \cr
 #' 		\code{\link{rastWithSquareCells}} Create a raster with square cells \cr
@@ -70,6 +72,7 @@
 #' 		\code{\link{getCRS}} Return a proj4string (coordinate reference system string) using a nickname \cr
 #' 		\code{\link{getEPSG}} Return a EPSG code0 (coordinate reference system code) using a nickname \cr
 #' 		\code{\link{pointDist}} Geographic distance between set(s) of points \cr
+#'		\code{\link{svToSpatial}} Convert \code{SpatVector} object to a \code{Spatial}* object. \cr
 #' 		\code{\link{xToCoords}} Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object \cr
 #' @section Data:
 #' 		\code{\link{lemurs}}: Lemur occurrences \cr

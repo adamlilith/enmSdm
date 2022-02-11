@@ -98,10 +98,9 @@ trainGlm <- function(
 	resp = names(data)[1],
 	preds = names(data)[2:ncol(data)],
 	family = 'binomial',
-	tooBig = 10E6,
-	anyway = FALSE,
 	construct = TRUE,
 	select = TRUE,
+	anyway = FALSE,
 	quadratic = TRUE,
 	interaction = TRUE,
 	verboten = NULL,
@@ -112,9 +111,35 @@ trainGlm <- function(
 	w = TRUE,
 	method = 'glm.fit',
 	out = 'model',
+	tooBig = 10E6,
 	verbose = FALSE,
 	...
 ) {
+
+	#####################
+	### for debugging ###
+	#####################
+
+	if (FALSE) {
+	
+		family <- 'binomial'
+		construct <- TRUE
+		select <- TRUE
+		anyway <- FALSE
+		quadratic <- TRUE
+		interaction <- TRUE
+		verboten <- NULL
+		verbotenCombos <- NULL
+		presPerTermInitial <- 10
+		presPerTermFinal <- 20
+		initialTerms <- 10
+		w <- TRUE
+		method <- 'glm.fit'
+		out <- 'model'
+		tooBig <- 10E6
+		verbose <- TRUE
+		
+	}
 
 	#############
 	### setup ###
@@ -148,7 +173,7 @@ trainGlm <- function(
 		w <- data[ , w]
 	}
 
-	w <<- w / max(w) # declare to global because dredge() has problems if it is not
+	w <- w / max(w) # declare to global because dredge() has problems if it is not
 
 	## MODEL CONSTRUCTION
 	#####################
@@ -332,7 +357,7 @@ trainGlm <- function(
 		# } # if there are more than desired number of presences per term and initial model can have more than 1 term
 
 		# sort by AIC
-		tuning <<- tuning[order(tuning$aicc), ]
+		tuning <- tuning[order(tuning$aicc), ]
 
 		if (verbose) {
 			omnibus::say('GLM construction results for each term tested:');
@@ -344,7 +369,6 @@ trainGlm <- function(
 		####################################################
 
 		## construct final model
-		tuning <<- tuning
 		form <- paste0(resp, ' ~ 1 + ', tuning$term[1]) # add first term
 
 		numTerms <- length(colnames(attr(stats::terms(stats::as.formula(form)), 'factors')))
