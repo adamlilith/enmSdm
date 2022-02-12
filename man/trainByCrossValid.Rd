@@ -11,8 +11,8 @@ trainByCrossValid(
   folds = dismo::kfold(data),
   trainFx = enmSdm::trainGlm,
   ...,
-  metrics = c("logLoss", "cbi", "auc", "fpb", "tss", "msss", "mdss", "orss", "sedi",
-    "minTrainPres", "trainSe95", "trainSe90"),
+  metrics = c("logLoss", "cbi", "auc", "fpb", "tss", "msss", "mdss", "minTrainPres",
+    "trainSe95", "trainSe90"),
   weightEvalTrain = TRUE,
   weightEvalTest = TRUE,
   na.rm = FALSE,
@@ -45,8 +45,6 @@ trainByCrossValid(
     \item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
     \item \code{'msss'}: Sensitivity and specificity calculated at the threshold that maximizes sensitivity (true presence prediction rate) plus specificity (true absence prediction rate).
     \item \code{'mdss'}: Sensitivity (se) and specificity (sp) calculated at the threshold that minimizes the difference between sensitivity and specificity.
-    \item \code{'orss'}: Maximum odds ratio skill score (Wunderlich et al. 2019).
-    \item \code{'sedi'}: Maximum of symmetrical extremal dependence index (Wunderlich et al. 2019).
     \item \code{'minTrainPres'}: Sensitivity and specificity at the greatest threshold at which all training presences are classified as "present".
     \item \code{'trainSe95'} and/or \code{'trainSe90'}: Sensitivity at the threshold that ensures either 95 or 90 percent of all training presences are classified as "present" (training sensitivity = 0.95 or 0.9).
 }}

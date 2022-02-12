@@ -9,20 +9,20 @@ trainGlm(
   resp = names(data)[1],
   preds = names(data)[2:ncol(data)],
   family = "binomial",
-  tooBig = 1e+07,
-  anyway = FALSE,
   construct = TRUE,
   select = TRUE,
+  anyway = FALSE,
   quadratic = TRUE,
   interaction = TRUE,
   verboten = NULL,
   verbotenCombos = NULL,
   presPerTermInitial = 10,
-  presPerTermFinal = 20,
+  presPerTermFinal = 10,
   initialTerms = 10,
   w = TRUE,
   method = "glm.fit",
   out = "model",
+  tooBig = 1e+07,
   verbose = FALSE,
   ...
 )
@@ -36,13 +36,11 @@ trainGlm(
 
 \item{family}{Name of family for data error structure (see \code{\link[stats]{family}}). Default is to use the 'binomial' family.}
 
-\item{tooBig}{Numeric. Used to catch errors when fitting a model fit with the \code{brglmFit} function in the \pkg{brglm2} package. In some cases fitted coefficients are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.}
-
-\item{anyway}{Logical. If \code{FALSE} (default), then during model construction, if no univariate models have valid coefficients (< \code{tooBog}), then do not proceed and return \code{NULL}. If \code{TRUE}, then proceed with instable models (with a warning), but if teh final "best" model has unstable coefficients, then return \code{NULL} for the best model.}
-
 \item{construct}{Logical. If \code{TRUE} (default) then construct model from individual terms entered in order from lowest to highest AICc up to limits set by \code{presPerTermInitial} or \code{initialTerms} is met. If \code{FALSE} then the "full" model consists of all terms allowed by \code{quadratic} and \code{interaction}.}
 
 \item{select}{Logical. If \code{TRUE} (default) then calculate AICc for all possible subsets of models and return the model with the lowest AICc of these. This step if performed \emph{after} model construction (if any).}
+
+\item{anyway}{Logical. If \code{FALSE} (default), then during model construction, if no univariate models have valid coefficients (< \code{tooBog}), then do not proceed and return \code{NULL}. If \code{TRUE}, then proceed with instable models (with a warning), but if teh final "best" model has unstable coefficients, then return \code{NULL} for the best model.}
 
 \item{quadratic}{Logical. Used only if \code{construct} is \code{TRUE}. If \code{TRUE} (default) then include quadratic terms in model construction stage for non-factor predictors.}
 
@@ -54,7 +52,7 @@ trainGlm(
 
 \item{presPerTermInitial}{Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is TRUE.}
 
-\item{presPerTermFinal}{Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is TRUE.}
+\item{presPerTermFinal}{Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is \code{TRUE}.}
 
 \item{initialTerms}{Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is \code{TRUE}.}
 
@@ -63,6 +61,8 @@ trainGlm(
 \item{method}{Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.}
 
 \item{out}{Character. Indicates type of value returned. Values can be \code{'model'} (default; return model with lowest AICc), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with elements named "model", "models", and/or "tuning". The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{MaxEnt}, a list with objects of class \code{MaxEnt}, or a data frame.}
+
+\item{tooBig}{Numeric. Used to catch errors when fitting a model fit with the \code{brglmFit} function in the \pkg{brglm2} package. In some cases fitted coefficients are unstable and tend toward very high values, even if training data is standardized. Models with such coefficients will be discarded if any one coefficient is \code{> tooBig}. Set equal to \code{Inf} to keep all models.}
 
 \item{verbose}{Logical. If \code{TRUE} then display intermediate results on the display device.}
 
@@ -92,7 +92,7 @@ occsEnv <- raster::extract(clim, occs[ , c('longitude', 'latitude')])
 # background sites
 bg <- 2000 # too few cells to locate 10000 background points
 bgSites <- dismo::randomPoints(clim, 2000)
-bgEnv <- extract(clim, bgSites)
+bgEnv <- raster::extract(clim, bgSites)
 
 # collate
 presBg <- rep(c(1, 0), c(nrow(occs), nrow(bgSites)))

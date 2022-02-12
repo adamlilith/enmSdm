@@ -12,7 +12,7 @@ spatialCorrForPointsPlot(
   arrow = TRUE,
   leg = TRUE,
   xlab = "Distance",
-  ylab = "Proportion",
+  ylab = "Proportion of distances",
   ...
 )
 }
@@ -21,7 +21,7 @@ spatialCorrForPointsPlot(
 
 \item{perc}{Numeric value in the range [0, 100], indicates the upper quantile of randomized distance frequencies above which observed distance frequencies are considered significant. Default is 95.}
 
-\item{rescale}{Numeric, value by which to multiple distances. For example, if distances are in meters, but it is visually more appealing to display them in kilometers, then \code{rescale} should equal 0.001 (km / m). Default is 1 (no re-scaling).}
+\item{rescale}{Numeric, value by which to multiply distances. For example, if distances are in meters, but it is visually more appealing to display them in kilometers, then \code{rescale} should equal 0.001 (km / m). Default is 1 (no re-scaling).}
 
 \item{nullCol}{Character or non-negative integer indicating fill color for null distribution.}
 

@@ -19,8 +19,6 @@
 #' 	\item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
 #' 	\item \code{'msss'}: Sensitivity and specificity calculated at the threshold that maximizes sensitivity (true presence prediction rate) plus specificity (true absence prediction rate).
 #' 	\item \code{'mdss'}: Sensitivity (se) and specificity (sp) calculated at the threshold that minimizes the difference between sensitivity and specificity.
-#' 	\item \code{'orss'}: Maximum odds ratio skill score (Wunderlich et al. 2019).
-#' 	\item \code{'sedi'}: Maximum of symmetrical extremal dependence index (Wunderlich et al. 2019).
 #' 	\item \code{'minTrainPres'}: Sensitivity and specificity at the greatest threshold at which all training presences are classified as "present".
 #' 	\item \code{'trainSe95'} and/or \code{'trainSe90'}: Sensitivity at the threshold that ensures either 95 or 90 percent of all training presences are classified as "present" (training sensitivity = 0.95 or 0.9).
 #' }
@@ -55,26 +53,26 @@
 #' y <- y^3
 #' presAbs <- runif(n) < y
 #' data <- data.frame(presAbs=presAbs, x1=x1, x2=x2, x3=x3)
-#' 
+#'
 #' model <- trainGlm(data)
 #' summary(model)
-#' 
+#'
 #' folds <- dismo::kfold(data, 3)
 #' out <- trainByCrossValid(data, folds=folds, verbose=1)
-#' 
+#'
 #' str(out, 1)
 #' summaryByCrossValid(out)
-#' 
+#'
 #' str(out, 1)
 #' head(out$tuning[[1]])
 #' head(out$tuning[[2]])
 #' head(out$tuning[[3]])
-#' 
+#'
 #' # can do following for each fold (3 of them)
 #' lapply(out$models[[1]], coefficients)
 #' sapply(out$models[[1]], logLik)
 #' sapply(out$models[[1]], AIC)
-#' 
+#'
 #' # select model for k = 1 with greatest CBI
 #' top <- which.max(out$tuning[[1]]$cbiTest)
 #' summary(out$models[[1]][[top]])
@@ -98,7 +96,7 @@
 #' # for normal use)
 #' brt <- trainByCrossValid(data, folds=folds, verbose=2, trainFx=trainBrt,
 #' 	maxTrees=2000, treeComplexity=2, learningRate=c(0.01, 0.001))
-#' 
+#'
 #' # MaxEnt with "fast" set of settings (not recommended for normal use)
 #' mx <- trainByCrossValid(data, folds=folds, verbose=2, trainFx=trainMaxEnt,
 #' 	regMult=c(1, 2), classes='lp')
@@ -112,7 +110,7 @@ trainByCrossValid <- function(
 	folds = dismo::kfold(data),
 	trainFx = enmSdm::trainGlm,
 	...,
-	metrics = c('logLoss', 'cbi', 'auc', 'fpb', 'tss', 'msss', 'mdss', 'orss', 'sedi', 'minTrainPres', 'trainSe95', 'trainSe90'),
+	metrics = c('logLoss', 'cbi', 'auc', 'fpb', 'tss', 'msss', 'mdss', 'minTrainPres', 'trainSe95', 'trainSe90'),
 	weightEvalTrain = TRUE,
 	weightEvalTest = TRUE,
 	na.rm = FALSE,
@@ -124,16 +122,16 @@ trainByCrossValid <- function(
 	hasWeights <- ('w' %in% names(ellipses))
 
 	# response and predictors
-	if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
-	if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
+	if (inherits(resp, c('integer', 'numeric'))) resp <- names(data)[resp]
+	if (inherits(preds, c('integer', 'numeric'))) preds <- names(data)[preds]
 
 	# get info about folds
 	foldsClass <- class(folds)
-	if (any(c('matrix', 'data.frame') %in% foldsClass)) {
-	
+	if (inherits(foldsClass, c('matrix', 'data.frame'))) {
+
 		foldsType <- 'custom'
 		foldCodes <- stats::na.omit(sort(unique(c(as.matrix(folds)))))
-		if (length(foldCodes) != 2) stop('"folds" matrix must have two unique values (aside from NAs).')
+		if (length(foldCodes) != 2) stop('"folds" matrix must have at least two unique values (aside from NAs).')
 		numFolds <- ncol(folds)
 
 		# codes for train/test sets
@@ -158,16 +156,16 @@ trainByCrossValid <- function(
 
 	### by fold
 	###########
-	
+
 	# models and their evaluation statistics
 	tuning <- models <- list()
 
 	nonConvergedModels <- data.frame()
-	
+
 	for (k in 1:numFolds) {
-	
+
 		if (verbose > 0) omnibus::say('Modeling k = ', k, ' on ', date(), '...', post=ifelse(verbose > 1, 2, 1), pre=ifelse(verbose > 1, 2, 0))
-	
+
 		### get training/testing data according to type of folds being used
 		###################################################################
 
@@ -176,35 +174,35 @@ trainByCrossValid <- function(
 
 				# copy data
 				thisData <- data
-			
+
 				# drop NAs
 				nas <- which(is.na(folds))
 				if (length(nas) > 0) {
 					thisData <- thisData[-nas, , drop=FALSE]
 					if (hasWeights) w <- w[-nas]
 				}
-			
+
 				# train/test data
 				testCode <- foldCodes[k]
 				trainData <- data[folds != testCode, c(resp, preds), drop=FALSE]
 				testData <- data[folds == testCode, c(resp, preds), drop=FALSE]
 				if (hasWeights) {
-					trainWeights <- w[folds != testCode]
-					testWeights <- w[folds == testCode]
+					trainWeights <- ellipses$w[folds != testCode]
+					testWeights <- ellipses$w[folds == testCode]
 				} else {
 					trainWeights <- rep(1, nrow(trainData))
 					testWeights <- rep(1, nrow(testData))
 				}
-			
+
 			# CUSTOM folds
 			} else {
-			
+
 				# copy data and get folds codes
 				thisData <- data[ , c(resp, preds)]
 				thisFolds <- folds[ , k, drop=TRUE]
-			
+
 				if (hasWeights) thisWeights <- ellipses$w
-			
+
 				# drop NAs
 				nas <- which(is.na(thisFolds))
 				if (length(nas) > 0) {
@@ -212,7 +210,7 @@ trainByCrossValid <- function(
 					if (hasWeights) thisWeights <- thisWeights[-nas]
 					thisFolds <- thisFolds[-nas]
 				}
-			
+
 				# train/test data
 				trainData <- thisData[which(thisFolds == trainCode), , drop=FALSE]
 				testData <- thisData[which(thisFolds == testCode), , drop=FALSE]
@@ -223,16 +221,15 @@ trainByCrossValid <- function(
 					trainWeights <- rep(1, nrow(trainData))
 					testWeights <- rep(1, nrow(testData))
 				}
-			
+
 			}
 
 			args <- utils::modifyList(ellipses, list(data=trainData, resp=resp, preds=preds, w=trainWeights, verbose=verbose > 2, out=c('models', 'tuning')))
-			
+
 		### train model
 		###############
 
 			thisOut <- do.call(trainFx, args=args)
-			
 			kModels <- thisOut$models
 			kTuning <- thisOut$tuning
 
@@ -243,7 +240,7 @@ trainByCrossValid <- function(
 
 		### indices and weights for this fold
 		#####################################
-		
+
 			# training
 			whichTrainPres <- which(trainData[ , resp] == 1)
 			whichTrainContrast <- which(trainData[ , resp] == 0)
@@ -255,7 +252,7 @@ trainByCrossValid <- function(
 			} else {
 				trainPresWeights <- rep(1, length(whichTrainPres))
 				trainContrastWeights <- rep(1, length(whichTrainContrast))
-			}	
+			}
 
 			# testing
 			whichTestPres <- which(testData[ , resp] == 1)
@@ -268,7 +265,7 @@ trainByCrossValid <- function(
 			} else {
 				testPresWeights <- rep(1, length(whichTestPres))
 				testContrastWeights <- rep(1, length(whichTestContrast))
-			}	
+			}
 
 			insert <- data.frame(
 				numTrainPres = if (na.rm) { length(stats::na.omit(whichTrainPres)) } else { length(whichTrainPres) },
@@ -280,21 +277,21 @@ trainByCrossValid <- function(
 				testPresWeights = sum(testPresWeights, na.rm=na.rm),
 				testContrastWeights = sum(testContrastWeights, na.rm=na.rm)
 			)
-			
+
 			insert <- insert[rep(1, nrow(kTuning)), ]
-				
+
 			kTuning <- omnibus::insertCol(insert, kTuning, at='k', before=FALSE)
-				
+
 		### evaluate model vs training data
 		###################################
 
 			for (countModel in seq_along(kModels)) {
 
 				kModel <- kModels[[countModel]]
-			
+
 				# if model converged
 				if (is.null(kModel)) {
-				
+
 					nonConvergedModels <- rbind(
 						nonConvergedModels,
 						omnibus::insertCol(
@@ -306,32 +303,32 @@ trainByCrossValid <- function(
 					)
 
 				} else {
-				
+
 					# predict to training data
 					# predToTrain <- predictEnmSdm(model=kModel, newdata=trainData, ...)
 					predToTrain <- predictEnmSdm(model=kModel, newdata=trainData)
 					predToTrainPres <- predToTrain[whichTrainPres]
 					predToTrainContrast <- predToTrain[whichTrainContrast]
-					
+
 					# predict to testing data
 					# predToTest <- predictEnmSdm(model=kModel, newdata=testData, ...)
 					predToTest <- predictEnmSdm(model=kModel, newdata=testData)
 					predToTestPres <- predToTest[whichTestPres]
 					predToTestContrast <- predToTest[whichTestContrast]
-					
+
 					# log loss
 					if ('logLoss' %in% metrics) {
 
 						metricTrain <- -1 * mean(c(trainPresWeights * log(predToTrainPres), trainContrastWeights * log(1 - predToTrainContrast)), na.rm=na.rm)
 						metricTest <- -1 * mean(c(testPresWeights * log(predToTestPres), testContrastWeights * log(1 - predToTestContrast)), na.rm=na.rm)
-						
+
 						if (countModel == 1) kTuning$logLossDelta <- kTuning$logLossTest <- kTuning$logLossTrain <- NA
 						kTuning$logLossTrain[countModel] <- metricTrain
 						kTuning$logLossTest[countModel] <- metricTest
 						kTuning$logLossDelta[countModel] <- metricTrain - metricTest
-						
+
 					}
-					
+
 					# # # # log loss, equal total weight
 					# # # if ('logLossEqualWeight' %in% metrics) {
 
@@ -367,116 +364,116 @@ trainByCrossValid <- function(
 						# # # # log loss
 						# # # metricTrain <- -1 * mean(c(thisTrainPresWeights * log(predToTrainPres), thisTrainContrastWeights * log(1 - predToTrainContrast)), na.rm=na.rm)
 						# # # metricTest <- -1 * mean(c(thisTestPresWeights * log(predToTestPres), thisTestContrastWeights * log(1 - predToTestContrast)), na.rm=na.rm)
-						
+
 						# # # if (countModel == 1) kTuning$logLossDeltaEqualWeight <- kTuning$logLossTestEqualWeight <- kTuning$logLossTrainEqualWeight <- NA
 						# # # kTuning$logLossTrainEqualWeight[countModel] <- metricTrain
 						# # # kTuning$logLossTestEqualWeight[countModel] <- metricTest
 						# # # kTuning$logLossDeltaEqualWeight[countModel] <- metricTrain - metricTest
-						
+
 					# # # }
-					
+
 					# CBI
 					if ('cbi' %in% metrics) {
-					
+
 						# metricTrain <- contBoyce(pres=predToTrainPres, bg=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm, ...)
 						# metricTest <- contBoyce(pres=predToTestPres, bg=predToTestContrast, presWeight=testPresWeights, contrastWeight=testContrastWeights, na.rm=na.rm, ...)
-						
+
 						metricTrain <- contBoyce(pres=predToTrainPres, bg=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm)
 						metricTest <- contBoyce(pres=predToTestPres, bg=predToTestContrast, presWeight=testPresWeights, contrastWeight=testContrastWeights, na.rm=na.rm)
-						
+
 						if (countModel == 1) kTuning$cbiDelta <- kTuning$cbiTest <- kTuning$cbiTrain <- NA
 						kTuning$cbiTrain[countModel] <- metricTrain
 						kTuning$cbiTest[countModel] <- metricTest
 						kTuning$cbiDelta[countModel] <- metricTrain - metricTest
-						
+
 					}
-					
+
 					# AUC
 					if ('auc' %in% metrics) {
-					
+
 						metricTrain <- aucWeighted(pres=predToTrainPres, contrast=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm)
 						metricTest <- aucWeighted(pres=predToTestPres, contrast=predToTestContrast, presWeight=testPresWeights, contrastWeight=testContrastWeights, na.rm=na.rm)
-						
+
 						if (countModel == 1) kTuning$aucDelta <- kTuning$aucTest <- kTuning$aucTrain <- NA
 						kTuning$aucTrain[countModel] <- metricTrain
 						kTuning$aucTest[countModel] <- metricTest
 						kTuning$aucDelta[countModel] <- metricTrain - metricTest
-						
+
 					}
-					
+
 					# # Fpb
 					# if ('fpb' %in% metrics) {
-					
+
 						# metricTrain <- fpb(pres=predToTrainPres, contrast=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm, ...)
 						# metricTest <- fpb(pres=predToTestPres, contrast=predToTestContrast, presWeight=testPresWeights, contrastWeight=testContrastWeights, na.rm=na.rm, ...)
-						
+
 						# metricTrain <- mean(metricTrain, na.rm=na.rm)
 						# metricTest <- mean(metricTest, na.rm=na.rm)
-						
+
 						# if (countModel == 1) kTuning$fpbDelta <- kTuning$fpbTest <- kTuning$fpbTrain <- NA
 						# kTuning$fpbTrain[countModel] <- metricTrain
 						# kTuning$fpbTest[countModel] <- metricTest
 						# kTuning$fpbDelta[countModel] <- metricTrain - metricTest
-						
+
 					# }
-					
+
 					# TSS
 					if ('tss' %in% metrics) {
-					
+
 						# metricTrain <- tssWeighted(pres=predToTrainPres, contrast=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm, ...)
 						# metricTest <- tssWeighted(pres=predToTestPres, contrast=predToTestContrast, presWeight=testPresWeights, contrastWeight=testContrastWeights, na.rm=na.rm, ...)
 
 						metricTrain <- tssWeighted(pres=predToTrainPres, contrast=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm)
 						metricTest <- tssWeighted(pres=predToTestPres, contrast=predToTestContrast, presWeight=testPresWeights, contrastWeight=testContrastWeights, na.rm=na.rm)
-						
+
 						if (countModel == 1) kTuning$tssDelta <- kTuning$tssTest <- kTuning$tssTrain <- NA
 						kTuning$tssTrain[countModel] <- metricTrain
 						kTuning$tssTest[countModel] <- metricTest
 						kTuning$tssDelta[countModel] <- metricTrain - metricTest
-						
+
 					}
-					
+
 					# ORSS
 					if ('orss' %in% metrics) {
-					
+
 						# metricTrain <- orssWeighted(pres=predToTrainPres, contrast=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm, ...)
 						# metricTest <- orssWeighted(pres=predToTestPres, contrast=predToTestContrast, presWeight=testPresWeights, contrastWeight=testContrastWeights, na.rm=na.rm, ...)
 
 						metricTrain <- orssWeighted(pres=predToTrainPres, contrast=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm)
 						metricTest <- orssWeighted(pres=predToTestPres, contrast=predToTestContrast, presWeight=testPresWeights, contrastWeight=testContrastWeights, na.rm=na.rm)
-						
+
 						metricTrain <- max(metricTrain, na.rm=TRUE)
 						metricTest <- max(metricTest, na.rm=TRUE)
-						
+
 						if (countModel == 1) kTuning$orssDelta <- kTuning$orssTest <- kTuning$orssTrain <- NA
 						kTuning$orssTrain[countModel] <- metricTrain
 						kTuning$orssTest[countModel] <- metricTest
 						kTuning$orssDelta[countModel] <- metricTrain - metricTest
-						
+
 					}
-					
+
 					# SEDI
 					if ('sedi' %in% metrics) {
-					
+
 						# metricTrain <- sediWeighted(pres=predToTrainPres, contrast=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm, ...)
 						# metricTest <- sediWeighted(pres=predToTestPres, contrast=predToTestContrast, presWeight=testPresWeights, contrastWeight=testContrastWeights, na.rm=na.rm, ...)
 
 						metricTrain <- sediWeighted(pres=predToTrainPres, contrast=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm)
 						metricTest <- sediWeighted(pres=predToTestPres, contrast=predToTestContrast, presWeight=testPresWeights, contrastWeight=testContrastWeights, na.rm=na.rm)
-						
+
 						metricTrain <- max(metricTrain, na.rm=TRUE)
 						metricTest <- max(metricTest, na.rm=TRUE)
-						
+
 						if (countModel == 1) kTuning$sediDelta <- kTuning$sediTest <- kTuning$sediTrain <- NA
 						kTuning$sediTrain[countModel] <- metricTrain
 						kTuning$sediTest[countModel] <- metricTest
 						kTuning$sediDelta[countModel] <- metricTrain - metricTest
-						
+
 					}
-					
+
 					# threshold-dependent
 					if (length(threshTypes) > 0) {
-						
+
 						for (thisThreshType in threshTypes) {
 
 							# threshold
@@ -493,7 +490,7 @@ trainByCrossValid <- function(
 								threshCode <- thisThreshType
 								sensitivity <- 0
 							}
-							
+
 							# get thresholds
 							# thresholds <- thresholdWeighted(pres=predToTrainPres, contrast=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm, ...)
 							thresholds <- thresholdWeighted(pres=predToTrainPres, contrast=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, sensitivity=sensitivity, na.rm=na.rm)
@@ -503,15 +500,15 @@ trainByCrossValid <- function(
 							# evaluate
 							trainEval <- thresholdStats(thold, pres=predToTrainPres, contrast=predToTrainContrast, presWeight=trainPresWeights, contrastWeight=trainContrastWeights, na.rm=na.rm)
 							testEval <- thresholdStats(thold, pres=predToTestPres, contrast=predToTestContrast, presWeight=testPresWeights, contrastWeight=testContrastWeights, na.rm=na.rm)
-						
+
 							# remember
 							if (countModel == 1) {
-							
+
 								kTuning$TEMP1 <- kTuning$TEMP2 <- kTuning$TEMP3 <- kTuning$TEMP4 <- kTuning$TEMP5 <- kTuning$TEMP6 <- kTuning$TEMP7 <- NA
 								names(kTuning)[(ncol(kTuning) - 6):ncol(kTuning)] <- paste0(thisThreshType, c('Thold', 'SeTrain', 'SeTest', 'SeDelta', 'SpTrain', 'SpTest', 'SpDelta'))
-								
+
 							}
-							
+
 							kTuning[countModel, paste0(thisThreshType, 'Thold')] <- thold
 							kTuning[countModel, paste0(thisThreshType, 'SeTrain')] <- trainEval[['sensitivity']]
 							kTuning[countModel, paste0(thisThreshType, 'SeTest')] <- testEval[['sensitivity']]
@@ -519,25 +516,27 @@ trainByCrossValid <- function(
 							kTuning[countModel, paste0(thisThreshType, 'SpTrain')] <- trainEval[['specificity']]
 							kTuning[countModel, paste0(thisThreshType, 'SpTest')] <- testEval[['specificity']]
 							kTuning[countModel, paste0(thisThreshType, 'SpDelta')] <- trainEval[['specificity']] - testEval[['specificity']]
-							
+
 						} # next threshold-dependent evaluation metric!
-						
-					} # threshold-specific metrics
+
+					} else { # threshold-specific metrics
+						sensitivity <- NA
+					}
 
 				} # if model converged
-					
+
 			} # next model in this k-fold
-		
+
 		if ('tuning' %in% out) tuning[[k]] <- kTuning
 		if ('models' %in% out) models[[k]] <- kModels
 		gc()
-		
+
 	} # next fold
-	
+
 	### return
 	##########
 	output <- list()
-	
+
 	# meta data
 	meta <- list(
 		resp = resp,
@@ -547,24 +546,24 @@ trainByCrossValid <- function(
 		weightEvalTrain = weightEvalTrain,
 		weightEvalTest = weightEvalTest,
 		na.rm = na.rm,
-		out = c('models', 'tuning'),
+		out = out,
 		nonConvergedModels = nonConvergedModels
 	)
-	
+
 	if (length(ellipses) > 0) {
 		for (i in seq_along(ellipses)) {
 			meta <- c(meta, ellipses[i])
 		}
 	}
-	
+
 	output$meta <- meta
 	output$folds <- folds
-	
+
 	# models and tuning
 	if ('models' %in% out) output$models <- models
 	if ('tuning' %in% out) output$tuning <- tuning
 
-	class(output) <- c('crossValid', class(output))
+	# class(output) <- c(class(output), 'crossValid')
 	output
-	
+
 }

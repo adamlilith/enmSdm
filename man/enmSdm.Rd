@@ -69,6 +69,7 @@ Create an issue on \href{https://github.com/adamlilith/enmSdm/issues}{GitHub}.
 \section{Functions for rasters}{
 
 		\code{\link{bioticVelocity}} Velocity of movement across a series of rasters \cr
+	\code{\link{getCores}} Get number of processor cores \cr
 		\code{\link{interpolateRasters}} Interpolate a stack of rasters \cr
 		\code{\link{longLatRasters}} Generate rasters with values of longitude/latitude for cell values \cr
 		\code{\link{rastWithSquareCells}} Create a raster with square cells \cr
@@ -92,6 +93,7 @@ Create an issue on \href{https://github.com/adamlilith/enmSdm/issues}{GitHub}.
 		\code{\link{getCRS}} Return a proj4string (coordinate reference system string) using a nickname \cr
 		\code{\link{getEPSG}} Return a EPSG code0 (coordinate reference system code) using a nickname \cr
 		\code{\link{pointDist}} Geographic distance between set(s) of points \cr
+	\code{\link{svToSpatial}} Convert \code{SpatVector} object to a \code{Spatial}* object. \cr
 		\code{\link{xToCoords}} Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object \cr
 }
 

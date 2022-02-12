@@ -21,7 +21,6 @@
 #' max(orssWeighted(pres, contrast), na.rm=TRUE)
 #' presWeight <- c(rep(1, 50), rep(0.5, 50))
 #' max(orssWeighted(pres, contrast, presWeight=presWeight), na.rm=TRUE)
-#' @export
 
 orssWeighted <- function(
 	pres,
@@ -42,7 +41,7 @@ orssWeighted <- function(
 	# catch errors
 	if (length(presWeight) != length(pres)) stop('You must have the same number of presence predictions and presence weights ("pres" and "presWeight").')
 	if (length(contrastWeight) != length(contrast)) stop('You must have the same number of absence/background predictions and absence/background weights ("contrast" and "contrastWeight").')
-	
+
 	# remove NAs
 	if (na.rm) {
 
@@ -58,72 +57,72 @@ orssWeighted <- function(
 
 	sumPresWeights <- sum(presWeight)
 	sumContrastWeights <- sum(contrastWeight)
-	
+
 	# ORSS, true positive rate, true negative rate, false negative rate
 	orss <- tpr <- tnr <- fnr <- rep(NA, length(thresholds))
-	
+
 	for (i in seq_along(thresholds)) {
-	
+
 		thisThresh <- thresholds[i]
-	
+
 		# which presences/contrast sites are CORRECTLY predicted at this threshold
 		whichCorrectPres <- which(pres >= thisThresh)
 		whichCorrectContrast <- which(contrast < thisThresh)
-		
+
 		numCorrectPres <- length(whichCorrectPres)
 		numCorrectContrast <- length(whichCorrectContrast)
-		
+
 		anyCorrectPres <- (numCorrectPres > 0)
 		anyCorrectContrast <- (numCorrectContrast > 0)
-		
+
 		# which presences/contrast sites are INCORRECTLY predicted at this threshold
 		whichIncorrectPres <- which(pres < thisThresh)
 		whichIncorrectContrast <- which(contrast >= thisThresh)
-		
+
 		numIncorrectPres <- length(whichIncorrectPres)
 		numIncorrectContrast <- length(whichIncorrectContrast)
-		
+
 		anyIncorrectPres <- (numIncorrectPres > 0)
 		anyIncorrectContrast <- (numIncorrectContrast > 0)
-		
+
 		# weights of CORRECTLY predicted predictions
 		correctPresWeights <- if (anyCorrectPres) {
 			sum(presWeight[whichCorrectPres])
 		} else {
 			0
 		}
-		
+
 		correctContrastWeights <- if (anyCorrectContrast) {
 			sum(contrastWeight[whichCorrectContrast])
 		} else {
 			0
 		}
-		
+
 		# weights of INCORRECTLY predicted predictions
 		incorrectPresWeights <- if (anyIncorrectPres) {
 			sum(presWeight[whichIncorrectPres])
 		} else {
 			0
 		}
-		
+
 		incorrectContrastWeights <- if (anyIncorrectContrast) {
 			sum(contrastWeight[whichIncorrectContrast])
 		} else {
 			0
 		}
-		
+
 		# true positive/negative rates
 		tpr[i] <- correctPresWeights / sumPresWeights
 		tnr[i] <- correctContrastWeights / sumContrastWeights
-	
+
 		# false positive/negative rates
 		fnr[i] <- incorrectContrastWeights / sumContrastWeights
-	
+
 		# ORSS
 		orss[i] <- (correctPresWeights * correctContrastWeights - incorrectPresWeights * incorrectContrastWeights) / (correctPresWeights * correctContrastWeights + incorrectPresWeights * incorrectContrastWeights)
-		
+
 	} # next threshold
-	
+
 	orss
-	
+
 }

@@ -13,5 +13,5 @@ areaFromPointsOrPoly(x)
 Numeric (area in km2).
 }
 \description{
-This function returns the area of a SpatialPolygon or SpatialPolygonsDataFrame object \emph{or} of the minimum convex polygon of a set of points. Input can be a set of coordinates or a polygon.
+This function returns the area of a SpatialPolygon or SpatialPolygonsDataFrame object, \emph{or} of the minimum convex polygon of a set of points. Input can be a set of coordinates or a polygon.
 }

@@ -11,8 +11,6 @@
 #' 	\item \code{'tss'}: Maximum value of the True Skill Statistic. Calculated with \code{\link[enmSdm]{tssWeighted}}.
 #' 	\item \code{'msss'}: Sensitivity and specificity calculated at the threshold that maximizes sensitivity (true presence prediction rate) plus specificity (true absence prediction rate).
 #' 	\item \code{'mdss'}: Sensitivity (se) and specificity (sp) calculated at the threshold that minimizes the difference between sensitivity and specificity.
-#' 	\item \code{'orss'}: Maximum odds ratio skill score (Wunderlich et al. 2019).
-#' 	\item \code{'sedi'}: Maximum of symmetrical extremal dependence index (Wunderlich et al. 2019).
 #' 	\item \code{'minTrainPres'}: Sensitivity and specificity at the greatest threshold at which all training presences are classified as "present".
 #' 	\item \code{'trainSe95'} and/or \code{'trainSe90'}: Sensitivity at the threshold that ensures either 95% or 90% of all training presences are classified as "present" (training sensitivity = 0.95 or 0.9).
 #' }
@@ -39,25 +37,25 @@
 #' y <- y^3
 #' presAbs <- runif(n) < y
 #' data <- data.frame(presAbs=presAbs, x1=x1, x2=x2, x3=x3)
-#' 
+#'
 #' model <- trainGlm(data)
 #' summary(model)
-#' 
+#'
 #' folds <- dismo::kfold(data, 3)
 #' out <- trainByCrossValid(data, folds=folds, verbose=1)
-#' 
+#'
 #' summaryByCrossValid(out)
-#' 
+#'
 #' str(out, 1)
 #' head(out$tuning[[1]])
 #' head(out$tuning[[2]])
 #' head(out$tuning[[3]])
-#' 
+#'
 #' # can do following for each fold (3 of them)
 #' lapply(out$models[[1]], coefficients)
 #' sapply(out$models[[1]], logLik)
 #' sapply(out$models[[1]], AIC)
-#' 
+#'
 #' # select model for k = 1 with greatest CBI
 #' top <- which.max(out$tuning[[1]]$cbiTest)
 #' summary(out$models[[1]][[top]])
@@ -90,23 +88,23 @@ summaryByCrossValid <- function(
 
 	### order each tuning attempt by performance
 	for (k in seq_along(tuning)) {
-	
+
 		tuningOrder <- order(tuning[[k]][ , metric], decreasing=decreasing)
 		tuning[[k]] <- tuning[[k]][tuningOrder, ]
-		
+
 	}
-	
+
 	### BRT
 	#######
 	if (trainFxName == tolower('trainBrt')) {
-	
+
 		# get list of terms in best models
 		params <- data.frame()
 		for (k in seq_along(tuning)) {
-		
+
 			thisTuning <- tuning[[k]]
 			if (thisTuning$converged[1]) {
-				
+
 				params <- rbind(
 					params,
 					data.frame(
@@ -116,14 +114,14 @@ summaryByCrossValid <- function(
 						nTrees = thisTuning$nTrees[1]
 					)
 				)
-						
+
 			}
-			
+
 		}
 
 		# summarize best models
 		if (nrow(params) > 0) {
-		
+
 			out <- rbind(
 				apply(params, 2, min, na.rm=TRUE),
 				apply(params, 2, stats::quantile, 0.25, na.rm=TRUE),
@@ -132,87 +130,87 @@ summaryByCrossValid <- function(
 				apply(params, 2, stats::quantile, 0.75, na.rm=TRUE),
 				apply(params, 2, max, na.rm=TRUE)
 			)
-			
+
 			out <- as.data.frame(out)
 			out$treeComplexity <- max(1, round(out$treeComplexity))
 			out$nTrees <- round(out$nTrees)
-			
+
 			value <- data.frame(value=c('min', '25th percent quantile', 'mean', 'median', '75th percent quantile', 'max'))
 			out <- omnibus::insertCol(value, out, 1)
-			
+
 		} else {
 			out <- data.frame()
 		}
-		
+
 
 	} else if (trainFxName == tolower('trainGlm')) {
-	
+
 		# get list of terms in best models
 		term <- character()
 		for (k in seq_along(tuning)) {
-		
+
 			thisTuning <- tuning[[k]]
-			
+
 			thisTerm <- thisTuning$model[1]
 			thisTerm <- strsplit(thisTerm, ' ')[[1]]
 			thisTerm <- thisTerm[3:length(thisTerm)]
 			if (any(thisTerm == '1')) thisTerm <- thisTerm[-which(thisTerm == '1')]
 			if (any(thisTerm == '+')) thisTerm <- thisTerm[-which(thisTerm == '+')]
 			if (any(thisTerm == '-')) thisTerm <- thisTerm[-which(thisTerm == '-')]
-		
+
 			term <- c(term, thisTerm)
-		
+
 		}
-		
+
 		term <- unique(term)
 		out <- data.frame(term)
 		out$frequency <- 0
-	
+
 		# tally usage of best term(s)
 		for (k in seq_along(tuning)) {
-		
+
 			thisTuning <- tuning[[k]]
-			
+
 			thisTerm <- thisTuning$model[1]
 			thisTerm <- strsplit(thisTerm, ' ')[[1]]
 			thisTerm <- thisTerm[3:length(thisTerm)]
 			if (any(thisTerm == '1')) thisTerm <- thisTerm[-which(thisTerm == '1')]
 			if (any(thisTerm == '+')) thisTerm <- thisTerm[-which(thisTerm == '+')]
 			if (any(thisTerm == '-')) thisTerm <- thisTerm[-which(thisTerm == '-')]
-		
+
 			for (countTerm in seq_along(thisTerm)) {
 				whichTerm <- which(out$term == thisTerm[countTerm])
 				out$frequency[whichTerm] <- out$frequency[whichTerm] + 1
 			}
-		
+
 		}
-		
+
 		out <- out[order(out$frequency, decreasing = TRUE), ]
 		out$proportionOfModels <- out$frequency / length(x$tuning)
 
 	### MAXENT
 	##########
-	
+
 	} else if (trainFxName == tolower('trainMaxEnt')) {
-	
+
 		## tally frequency of feature class combinations across best models and mean regularization associated with each set of features
-		
+
 		# make vector of all possible feature combinations
 		simpleFeats <- c('l', 'p', 'q', 'h')
 		featCombos <- vector('list', length(simpleFeats))
 		for (i in seq_along(simpleFeats)) {
 			featCombos[[i]] <- utils::combn(simpleFeats, i, paste, collapse = '')
 		}
-		
+
 		featCombos <- unique(unlist(featCombos))
-		
+
 		featFreqs <- featRegMultSums <- rep(0, length(featCombos))
 		names(featFreqs) <- names(featRegMultSums) <- featCombos
-		
+
 		# tally number of times each feature combination used in top models
 		targetFeatLengths <- nchar(featCombos)
 		for (k in seq_along(tuning)) {
-		
+
 			thisModelFeats <- tuning[[k]]$classes[1]
 			thisModelFeats <- strsplit(thisModelFeats, '')[[1]]
 			modelFeatLength <- length(thisModelFeats)
@@ -220,19 +218,19 @@ summaryByCrossValid <- function(
 			modelFeatInTarget <- rep(TRUE, length(featCombos)) # flags if potential features are *all* used in model
 			names(modelFeatInTarget) <- featCombos
 			for (countModelFeat in seq_along(thisModelFeats)) {
-			
+
 				thisModelFeatInTarget <- grepl(pattern=thisModelFeats[countModelFeat], featCombos)
 				modelFeatInTarget <- (modelFeatInTarget & thisModelFeatInTarget)
-			
+
 			}
-			
+
 			modelFeatInTarget <- modelFeatInTarget & (modelFeatLength == targetFeatLengths)
-			
+
 			featFreqs[modelFeatInTarget] <- featFreqs[modelFeatInTarget] + 1
 			featRegMultSums[modelFeatInTarget] <- featRegMultSums[modelFeatInTarget] + tuning[[k]]$regMult[1]
 
 		}
-		
+
 		featRegMultMeans <- featRegMultSums / featFreqs
 		# featFreqs <- featFreqs / sum(featFreqs)
 
@@ -244,9 +242,9 @@ summaryByCrossValid <- function(
 
 	### NS
 	######
-	
+
 	} else if (trainFxName == tolower('trainNs')) {
-		
+
 		# get predictor names
 		strings <- colnames(tuning[[1]])
 		strings <- strings[grepl(strings, pattern='splines::ns')]
@@ -259,7 +257,7 @@ summaryByCrossValid <- function(
 		}
 
 		preds <- sort(unique(preds))
-		
+
 		# create table to hold information on degrees of freedom for each top model
 		subOut <- data.frame(DUMMY=NA)
 		colnames(subOut) <- preds[1]
@@ -270,14 +268,14 @@ summaryByCrossValid <- function(
 			}
 		}
 		subOut <- subOut[rep(1, length(tuning)), ]
-		
+
 		# find df for each predictor
 		for (k in seq_along(tuning)) {
-		
+
 			thisTuning <- tuning[[k]]
 
 			for (pred in preds) {
-			
+
 				colPattern <- paste0('splines::ns\\(', pred, ', df')
 				cols <- colnames(thisTuning)[grepl(colnames(thisTuning), pattern=colPattern)]
 
@@ -291,7 +289,7 @@ summaryByCrossValid <- function(
 					thisDf <- as.numeric(thisDf)
 					dfs <- c(dfs, thisDf)
 				}
-				
+
 				vals <- thisTuning[1, cols, drop=FALSE]
 				bestDf <- c(!apply(vals, 1, FUN=is.na))
 				bestDf <- if (all(!bestDf)) {
@@ -299,13 +297,13 @@ summaryByCrossValid <- function(
 				} else {
 					max(dfs[bestDf])
 				}
-				
+
 				subOut[k, pred] <- bestDf
-				
-			} # next predictor	
-				
+
+			} # next predictor
+
 		} # next model
-	
+
 		for (pred in preds) {
 			thisPredOut <- data.frame(
 				term=pred,
@@ -317,18 +315,18 @@ summaryByCrossValid <- function(
 				quantile7thDf=stats::quantile(subOut[ , pred], 0.75, na.rm=TRUE),
 				maxDf=max(subOut[ , pred], na.rm=TRUE)
 			)
-			
+
 			out <- if (exists('out', inherits=FALSE)) {
 				out <- rbind(out, thisPredOut)
 			} else {
 				thisPredOut
 			}
 		}
-	
-		
+
+
 	} # NSs
-	
-	rownames(out) <- 1:nrow(out)
+
+	rownames(out) <- NULL
 	out
-	
+
 }

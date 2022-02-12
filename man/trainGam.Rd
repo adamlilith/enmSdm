@@ -13,7 +13,7 @@ trainGam(
   construct = TRUE,
   select = TRUE,
   presPerTermInitial = 10,
-  presPerTermFinal = 20,
+  presPerTermFinal = 10,
   initialTerms = 8,
   interaction = "te",
   w = TRUE,
@@ -39,7 +39,7 @@ trainGam(
 
 \item{presPerTermInitial}{Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only if \code{construct} is \code{TRUE}.}
 
-\item{presPerTermFinal}{Positive integer. Minimum number of presence sites per term in initial starting model; used only if \code{select} is TRUE.}
+\item{presPerTermFinal}{Positive integer. Minimum number of presence sites per term in initial starting model; used only if \code{select} is \code{TRUE}.}
 
 \item{initialTerms}{Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is TRUE. The maximum that can be handled by \code{dredge()} is 31, so if this number is >31 and \code{select} is \code{TRUE} then it is forced to 31 with a warning. Note that the number of coefficients for factors is not calculated correctly, so if the predictors contain factors then this number might have to be reduced even more.}
 
