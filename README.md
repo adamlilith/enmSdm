@@ -59,6 +59,7 @@ Note: If for some reason these commands don't work, you can install the package(
 
 ### Functions for rasters ###
 * `bioticVelocity`: Velocity of movement across a series of rasters
+* `getCores`: Get number of processor cores
 * `interpolateRasters`: Interpolate a stack of rasters
 * `longLatRasters`: Generate rasters with values of longitude/latitude for cell values
 * `rastWithSquareCells`: Create a raster with square cells from an object with an extent
@@ -78,6 +79,7 @@ Note: If for some reason these commands don't work, you can install the package(
 * `getCRS`: Return a proj4string (coordinate reference system string) using a nickname
 * `getEPSG`: Return a EPSG code (coordinate reference system codeg) using a nickname
 * `pointDist`: Geographic distance between set(s) of points
+* `svToSpatial`: Convert SpatVector object to a Spatial* object
 * `xToCoords`: Extract geographic coordinates from a data frame, matrix, or SpatialPoints* object
 
 ### Data

@@ -1,11 +1,17 @@
 Package: enmSdm
 Type: Package
-Title: Tools for modeling niches and distributions of species
-Version: 0.7.2
-Date: 2022-01-29
+Title: Tools for Modeling Niches and Distributions of Species
+Version: 0.8.0
+Date: 2022-02-12
 Author: Adam B. Smith <adam.smith@mobot.org>
 Maintainer: Adam B. Smith <adam.smith@mobot.org>
-Description: Better modeling of niches and distributions.
+Description: This package provides tools for implementing species distribution
+	models (SDMs) and ecological niche models (ENMs). The heart of the package
+	is a set of "training" functions which automatically tune and parameterize
+	a models based on several popular algorithms (e.g., MaxEnt, GLMs, BRTs,
+	GAMs, etc.). Ancillary tools include estimation of spatial sampling bias,
+	model evaluation, and calculation of biotic velocity (speed and direction
+	at which a species' range moves through time).
 Depends:
 Imports:
 	adehabitatHR,
@@ -44,10 +50,10 @@ Suggests:
 	grpregOverlap,
     knitr,
     rmarkdown
-License: GPL (>=3) + file LICENSE
+License: GPL (>=3)
 LazyData: true
 LazyLoad: yes
-URL: http://www.earthSkySea.org
+URL: http://github.com/adamlilith/enmSdm
 Encoding: UTF-8
 RoxygenNote: 7.1.2
 VignetteBuilder: knitr

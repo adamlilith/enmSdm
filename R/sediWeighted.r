@@ -13,7 +13,7 @@
 #' @param ... Other arguments (unused).
 #' @return Numeric value.
 #' @references Wunderlich, R.F., Lin, Y-P., Anthony, J., and Petway, J.R.  2019.  Two alternative evaluation metrics to replace the true skill statistic in the assessment of species distribution models.  Nature Conservation 35:97-116.
-#' @seealso \code{\link[stats]{cor}}, \code{\link{fpb}}, \code{\link{aucWeighted}}, \code{link[enmSdm]{contBoyce}}, \code{link[enmSdm]{contBoyce2x}}, \code{link[enmSdm]{orssWeighted}}, \code{link[enmSdm]{thresholdWeighted}}, \code{link[enmSdm]{thresholdStats}}
+#' @seealso \code{\link[stats]{cor}}, \code{\link{fpb}}, \code{\link{aucWeighted}}, \code{link[enmSdm]{contBoyce}}, \code{link[enmSdm]{contBoyce2x}}, \code{link[enmSdm]{thresholdWeighted}}, \code{link[enmSdm]{thresholdStats}}
 #' @examples
 #' set.seed(123)
 #' pres <- sqrt(runif(100))
@@ -24,7 +24,6 @@
 #' # SEDI is fairly insensitive to weighting (as per Wunderlich et al. 2019)
 #' presWeight <- c(rep(1, 50), rep(1000, 50))
 #' max(sediWeighted(pres, contrast, presWeight=presWeight), na.rm=TRUE)
-#' @export
 
 sediWeighted <- function(
 	pres,
@@ -48,7 +47,7 @@ sediWeighted <- function(
 	# catch errors
 	if (length(presWeight) != length(pres)) stop('You must have the same number of presence predictions and presence weights ("pres" and "presWeight").')
 	if (length(contrastWeight) != length(contrast)) stop('You must have the same number of absence/background predictions and absence/background weights ("contrast" and "contrastWeight").')
-	
+
 	# remove NAs
 	if (na.rm) {
 
@@ -64,79 +63,79 @@ sediWeighted <- function(
 
 	sumPresWeights <- sum(presWeight)
 	sumContrastWeights <- sum(contrastWeight)
-	
+
 	# SEDI, true positive rate, true negative rate, false negative rate
 	sedi <- tpr <- tnr <- fnr <- rep(NA, length(thresholds))
-	
+
 	for (i in seq_along(thresholds)) {
-	
+
 		thisThresh <- thresholds[i]
-	
+
 		# which presences/contrast sites are CORRECTLY predicted at this threshold
 		whichCorrectPres <- which(pres >= thisThresh)
 		whichCorrectContrast <- which(contrast < thisThresh)
-		
+
 		numCorrectPres <- length(whichCorrectPres)
 		numCorrectContrast <- length(whichCorrectContrast)
-		
+
 		anyCorrectPres <- (numCorrectPres > 0)
 		anyCorrectContrast <- (numCorrectContrast > 0)
-		
+
 		# which presences/contrast sites are INCORRECTLY predicted at this threshold
 		whichIncorrectPres <- which(pres < thisThresh)
 		whichIncorrectContrast <- which(contrast >= thisThresh)
-		
+
 		numIncorrectPres <- length(whichIncorrectPres)
 		numIncorrectContrast <- length(whichIncorrectContrast)
-		
+
 		anyIncorrectPres <- (numIncorrectPres > 0)
 		anyIncorrectContrast <- (numIncorrectContrast > 0)
-		
+
 		# weights of CORRECTLY predicted predictions
 		correctPresWeights <- if (anyCorrectPres) {
 			sum(presWeight[whichCorrectPres])
 		} else {
 			0
 		}
-		
+
 		correctContrastWeights <- if (anyCorrectContrast) {
 			sum(contrastWeight[whichCorrectContrast])
 		} else {
 			0
 		}
-		
+
 		# weights of INCORRECTLY predicted predictions
 		incorrectPresWeights <- if (anyIncorrectPres) {
 			sum(presWeight[whichIncorrectPres])
 		} else {
 			0
 		}
-		
+
 		incorrectContrastWeights <- if (anyIncorrectContrast) {
 			sum(contrastWeight[whichIncorrectContrast])
 		} else {
 			0
 		}
-		
+
 		# true positive/negative rates
 		tpr[i] <- correctPresWeights / sumPresWeights
 		tnr[i] <- correctContrastWeights / sumContrastWeights
-	
+
 		# false positive/negative rates
 		fnr[i] <- incorrectContrastWeights / sumContrastWeights
-		
+
 	}
-	
+
 	# SEDI
 	if (any(tpr == 0)) tpr[tpr == 0] <- delta
 	if (any(fnr == 0)) fnr[fnr == 0] <- delta
 	if (any(tpr == 1)) tpr[tpr == 1] <- 1 - delta
 	if (any(fnr == 1)) fnr[fnr == 1] <- 1 - delta
-	
+
 	numer <- log10(fnr) - log10(tpr) - log10(1 - fnr) + log10(1 - tpr)
 	denom <- log10(fnr) + log10(tpr) + log10(1 - fnr) + log10(1 - tpr)
 	sedi <- numer / denom
-		
+
 	sedi
-	
+
 }

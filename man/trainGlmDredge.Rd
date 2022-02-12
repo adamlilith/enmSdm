@@ -17,7 +17,7 @@ trainGlmDredge(
   interaction = TRUE,
   interQuad = TRUE,
   presPerTermInitial = 10,
-  presPerTermFinal = 20,
+  presPerTermFinal = 10,
   initialTerms = 10,
   w = TRUE,
   method = "glm.fit",

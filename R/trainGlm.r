@@ -14,7 +14,7 @@
 #' @param verboten Either \code{NULL} (default) in which case \code{forms} is returned without any manipulation. Alternatively, this is a character list of terms that are not allowed to appear in any model in \code{forms}. Models with these terms are removed from \code{forms}. Note that the order of variables in interaction terms does not matter (e.g., \code{x1:x2} will cause the removal of models with this term verbatim as well as \code{x2:x1}). All possible permutations of three-way interaction terms are treated similarly.
 #' @param verbotenCombos Either \code{NULL} or a list of lists. This argument allows excluding particular combinations of variables using exact matches (i.e., a variable appears exactly as stated) or general matches (i.e., a variable appears in any term). Please see the \emph{Details} section of \code{\link[statisfactory]{makeFormulae}} for more information on how to use this argument. The default is \code{NULL} in which case any combination of variables is allowed.
 #' @param presPerTermInitial Positive integer. Minimum number of presences needed per model term for a term to be included in the model construction stage. Used only is \code{construct} is TRUE.
-#' @param presPerTermFinal Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is TRUE.
+#' @param presPerTermFinal Positive integer. Minimum number of presence sites per term in initial starting model. Used only if \code{select} is \code{TRUE}.
 #' @param initialTerms Positive integer. Maximum number of terms to be used in an initial model. Used only if \code{construct} is \code{TRUE}.
 #' @param w Either logical in which case \code{TRUE} causes the total weight of presences to equal the total weight of absences (if \code{family='binomial'}) OR a numeric list of weights, one per row in \code{data} OR the name of the column in \code{data} that contains site weights. The default is to assign equal total weights to presences and contrast sites (\code{TRUE}).
 #' @param method Character, name of function used to solve. This can be \code{'glm.fit'} (default), \code{'brglmFit'} (from the \pkg{brglm2} package), or another function.
@@ -42,7 +42,7 @@
 #' # background sites
 #' bg <- 2000 # too few cells to locate 10000 background points
 #' bgSites <- dismo::randomPoints(clim, 2000)
-#' bgEnv <- extract(clim, bgSites)
+#' bgEnv <- raster::extract(clim, bgSites)
 #' 
 #' # collate
 #' presBg <- rep(c(1, 0), c(nrow(occs), nrow(bgSites)))
@@ -98,23 +98,48 @@ trainGlm <- function(
 	resp = names(data)[1],
 	preds = names(data)[2:ncol(data)],
 	family = 'binomial',
-	tooBig = 10E6,
-	anyway = FALSE,
 	construct = TRUE,
 	select = TRUE,
+	anyway = FALSE,
 	quadratic = TRUE,
 	interaction = TRUE,
 	verboten = NULL,
 	verbotenCombos = NULL,
 	presPerTermInitial = 10,
-	presPerTermFinal = 20,
+	presPerTermFinal = 10,
 	initialTerms = 10,
 	w = TRUE,
 	method = 'glm.fit',
 	out = 'model',
+	tooBig = 10E6,
 	verbose = FALSE,
 	...
 ) {
+
+	#####################
+	### for debugging ###
+	#####################
+
+	if (FALSE) {
+	
+		family <- 'binomial'
+		construct <- TRUE
+		select <- TRUE
+		anyway <- FALSE
+		quadratic <- TRUE
+		interaction <- TRUE
+		verboten <- NULL
+		verbotenCombos <- NULL
+		presPerTermInitial <- 10
+		presPerTermFinal <- 20
+		initialTerms <- 10
+		w <- TRUE
+		method <- 'glm.fit'
+		out <- 'model'
+		tooBig <- 10E6
+		verbose <- TRUE
+		
+	}
 
 	#############
 	### setup ###
@@ -148,7 +173,7 @@ trainGlm <- function(
 		w <- data[ , w]
 	}
 
-	w <<- w / max(w) # declare to global because dredge() has problems if it is not
+	w <- w / max(w) # declare to global because dredge() has problems if it is not
 
 	## MODEL CONSTRUCTION
 	#####################
@@ -332,7 +357,7 @@ trainGlm <- function(
 		# } # if there are more than desired number of presences per term and initial model can have more than 1 term
 
 		# sort by AIC
-		tuning <<- tuning[order(tuning$aicc), ]
+		tuning <- tuning[order(tuning$aicc), ]
 
 		if (verbose) {
 			omnibus::say('GLM construction results for each term tested:');
@@ -344,7 +369,6 @@ trainGlm <- function(
 		####################################################
 
 		## construct final model
-		tuning <<- tuning
 		form <- paste0(resp, ' ~ 1 + ', tuning$term[1]) # add first term
 
 		numTerms <- length(colnames(attr(stats::terms(stats::as.formula(form)), 'factors')))
