@@ -62,6 +62,8 @@ geoFold <- function(
 	...
 ) {
 
+	if (inherits(x, 'SpatVector')) x <- svToSpatial(x)
+
 	############################
 	## functions and packages ##
 	############################
