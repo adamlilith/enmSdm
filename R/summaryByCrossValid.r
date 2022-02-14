@@ -154,9 +154,13 @@ summaryByCrossValid <- function(
 			thisTerm <- thisTuning$model[1]
 			thisTerm <- strsplit(thisTerm, ' ')[[1]]
 			thisTerm <- thisTerm[3:length(thisTerm)]
+			if (any(thisTerm == 'presBg')) thisTerm <- thisTerm[-which(thisTerm == 'presBg')]
+			if (any(thisTerm == '~')) thisTerm <- thisTerm[-which(thisTerm == '~')]
 			if (any(thisTerm == '1')) thisTerm <- thisTerm[-which(thisTerm == '1')]
 			if (any(thisTerm == '+')) thisTerm <- thisTerm[-which(thisTerm == '+')]
 			if (any(thisTerm == '-')) thisTerm <- thisTerm[-which(thisTerm == '-')]
+
+			if (length(thisTerm) == 0) thisTerm <- 1
 
 			term <- c(term, thisTerm)
 

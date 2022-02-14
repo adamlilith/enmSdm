@@ -1,3 +1,6 @@
+enmSdm 0.8.1 2022-02-14
+Fixed helo in trainByCrossValid()
+
 enmSdm 0.7.2 2022-01-29
 Fixed bug in sampleRast()
 

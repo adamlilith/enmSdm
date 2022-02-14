@@ -49,13 +49,12 @@
 #' x2 <- seq(10, 0, length.out=n) + rnorm(n)
 #' x3 <- rnorm(n)
 #' y <- 2 * x1 + x1^2 - 10 * x2 - x1 * x2
-#' y <- statisfactory::probitAdj(y, 0)
-#' y <- y^3
-#' presAbs <- runif(n) < y
+#' y <- statisfactory::invLogitAdj(y, 0.001)
+#' presAbs <- as.integer(runif(10000) > (1 - y))
 #' data <- data.frame(presAbs=presAbs, x1=x1, x2=x2, x3=x3)
 #'
-#' model <- trainGlm(data)
-#' summary(model)
+#' model <- trainGlm(data, verbose=TRUE)
+#' summary(model) # most parsimonious model
 #'
 #' folds <- dismo::kfold(data, 3)
 #' out <- trainByCrossValid(data, folds=folds, verbose=1)
@@ -78,7 +77,7 @@
 #' summary(out$models[[1]][[top]])
 #'
 #' # in fold k = 1, which models perform well but are not overfit?
-#' plot(out$tuning[[1]]$cbiTrain, out$tuning[[1]]$cbiTest, pch='.',
+#' plot(out$tuning[[1]]$cbiTrain, out$tuning[[1]]$cbiTest, col='white',
 #' 		main='Model Numbers for k = 1')
 #' abline(0, 1, col='red')
 #' numModels <- nrow(out$tuning[[1]])
@@ -305,14 +304,14 @@ trainByCrossValid <- function(
 				} else {
 
 					# predict to training data
-					# predToTrain <- predictEnmSdm(model=kModel, newdata=trainData, ...)
-					predToTrain <- predictEnmSdm(model=kModel, newdata=trainData)
+					predToTrain <- predictEnmSdm(model=kModel, newdata=trainData, ...)
+					# predToTrain <- predictEnmSdm(model=kModel, newdata=trainData)
 					predToTrainPres <- predToTrain[whichTrainPres]
 					predToTrainContrast <- predToTrain[whichTrainContrast]
 
 					# predict to testing data
-					# predToTest <- predictEnmSdm(model=kModel, newdata=testData, ...)
-					predToTest <- predictEnmSdm(model=kModel, newdata=testData)
+					predToTest <- predictEnmSdm(model=kModel, newdata=testData, ...)
+					# predToTest <- predictEnmSdm(model=kModel, newdata=testData)
 					predToTestPres <- predToTest[whichTestPres]
 					predToTestContrast <- predToTest[whichTestContrast]
 

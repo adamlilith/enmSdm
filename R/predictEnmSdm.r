@@ -21,7 +21,9 @@ predictEnmSdm <- function(
 	dataType <- if (inherits(newdata, c('matrix', 'data.frame'))) {
 		'table'
 	} else if (inherits(newdata, c('RasterLayer', 'RasterStack', 'RasterBrick'))) {
-		'raster'
+		'rasterRaster'
+	} else if (inherits(newdata, c('SpatRaster'))) {
+		'terraRaster'
 	}
 
 	# GAM
@@ -34,8 +36,10 @@ predictEnmSdm <- function(
 
 		out <- if (dataType == 'table') {
 			stats::predict.glm(model, newdata, type='response', ...)
-		} else if (dataType == 'raster') {
+		} else if (dataType == 'rasterRaster') {
 			raster::predict(newdata, model, type='response', ...)
+		} else if (dataType == 'terraRaster') {
+			terra::predict(newdata, model, type='response', ...)
 		}
 
 	# LM
