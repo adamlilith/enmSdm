@@ -17,7 +17,7 @@ xToCoords <- function(x, longLat = NULL, out = 'default') {
 
 	if (inherits(x, c('data.frame', 'matrix'))) {
 		if (is.null(longLat) & ncol(x) == 2) longLat <- 1:2
-		x <- x[ , longLat]
+		x <- x[ , longLat, drop=FALSE]
 		crs <- getCRS('wgs84', asCRS=(out == 'sp'))
 	} else if (inherits(x, 'Spatial')) {
 		crs <- sp::CRS(raster::projection(x))
