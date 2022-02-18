@@ -28,7 +28,7 @@ elimCellDups <- function(
 	if (inherits(rast, 'SpatRaster')) rast <- as(rast, 'Raster')
 
 	# get coordinates
-	xy <- xToCoords(x, longLat, sp=FALSE)
+	xy <- xToCoords(x, longLat)
 
 	# get cell numbers for each point and adjoin with data frame
 	cellNum <- raster::cellFromXY(rast, xy)

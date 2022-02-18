@@ -7,9 +7,9 @@
 pointDist(x, y = NULL, distFunct = NULL, longLat = NULL, ...)
 }
 \arguments{
-\item{x}{A data frame, matrix, \code{SpatialPoints}, or \code{SpatialPointsDataFrame} object. If a data frame or matrix then the coordinate reference system is assumed to be unprojected (WGS84).}
+\item{x}{A data frame, matrix, \code{SpatialPoints}, \code{SpatialPointsDataFrame}, or \code{SpatVector} object. If a data frame or matrix then the coordinate reference system is assumed to be unprojected (WGS84). Note that if you are using \pkg{terra} \code{SpatVector} objects, then the \code{distance} function in that package will be much faster for large sets of points.}
 
-\item{y}{If \code{NULL} then pairwise distances are calculated between all points in \code{x}. However, if \code{y} is a data frame, matrix, \code{SpatialPoints}, or \code{SpatialPointsDataFrame} object then distances are between all points in \code{x} and \code{y}.}
+\item{y}{If \code{NULL} then pairwise distances are calculated between all points in \code{x}. However, if \code{y} is a data frame, matrix, \code{SpatialPoints}, \code{SpatialPointsDataFrame}, or \code{SpatVector} object then distances are between all points in \code{x} and \code{y}.}
 
 \item{distFunct}{Either a function or \code{NULL}. If \code{NULL} then \code{\link[geosphere]{distCosine}}is used to calculate distances.  More accurate distances can be obtained by using other functions (see \code{\link[geosphere]{distHaversine}} and related "\code{dist}" functions). Alternatively, a custom function can be used so long as its first argument is a 2-column numeric matrix with one row for the x- and y-coordinates of a single point and its second argument is a two-column numeric matrix with one or more rows of other points.}
 
@@ -24,11 +24,13 @@ Matrix of values in units given by the coordinate reference system of \code{x} o
 This function calculates a distance matrix between points. It is similar to the \code{dist()} function except that it does its calculations in geographic space.
 }
 \examples{
+
 set.seed(17)
 # random points centered on long -90, lat 45
 x <- cbind(rnorm(5, -90), rnorm(5, 45))
 pointDist(x)
+
 }
 \seealso{
-\code{\link[geosphere]{distCosine}}, \code{\link[omnibus]{pairDist}}
+\code{\link[geosphere]{distCosine}}, \code{\link[omnibus]{pairDist}}, \code{\link[terra]{distance}}
 }

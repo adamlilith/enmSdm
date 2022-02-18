@@ -1,12 +1,14 @@
+enmSdm 0.8.3 2022-02-17
+Fixed bug in xToCoords()
+
 enmSdm 0.8.2 2022-02-14
-Fixed helo in trainByCrossValid()
+Fixed help in trainByCrossValid()
 
 enmSdm 0.7.2 2022-01-29
 Fixed bug in sampleRast()
 
 enmSdm 0.7.0 2021-12-15
-sampleRast() randomly places sites within cells (not
-   just cell centers)
+sampleRast() randomly places sites within cells (not just cell centers)
 trainNs() does not call brglmFit2 by default anymore
 
 enmSdm 0.6.1 2021-12-10
