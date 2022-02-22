@@ -39,8 +39,8 @@ An integer vector, one element for for of x, with values 1 through k indicating 
 This function assigns geographically-divided k-folds ("g-folds") using partitioning around mediods (PAM) algorithm. The user can specify the number of folds to create, and optionally, the minimum size of any fold plus the minimum number of sites NOT in any fold (good for ensuring each fold has enough sites for testing and training).
 }
 \examples{
-# Make three groups, one with one point and two with 20 points apiece.
-# Naturally these should group into 3 groups with 1, 20, and 20 point apiece.
+# Make three groups, one with two points and two with 20 points apiece.
+# Naturally these should group into 3 groups with 2, 20, and 20 point apiece.
 # By setting minIn and minOut to non-NULL values, we can increase/decrease
 # the size of the groups.
 # define plot function
@@ -67,13 +67,13 @@ pointPlot(sites, folds, main='Simple G-folds')
 
 # g-folds with minimum number of sites per fold
 folds <- geoFold(sites, k=3, minIn=5)
-pointPlot(sites, folds, main='G-folds with >=10 sites in each')
+pointPlot(sites, folds, main='G-folds with >=5 sites in each')
 
-# g-folds with minimum number of outside fold
+# g-folds with >= 10 sites in and out of each fold
 folds <- geoFold(sites, k=3, minIn=10, minOut=10)
 pointPlot(sites, folds, main='G-folds with >=10\nsites in/outside each')
 
-# g-folds with minimum number inside and of outside fold
+# g-folds with >=14 sites in and >= 20 sites out of each fold
 folds <- geoFold(sites, k=3, minIn=14, minOut=20)
 pointPlot(sites, folds, main='G-folds >=14 in\nand >=20 outside')
 }

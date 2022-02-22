@@ -1,8 +1,8 @@
 Package: enmSdm
 Type: Package
 Title: Tools for Modeling Niches and Distributions of Species
-Version: 0.8.3
-Date: 2022-02-17
+Version: 0.8.4
+Date: 2022-02-22
 Authors@R: 
 	c(
 		person(
@@ -51,7 +51,6 @@ Imports:
 	statisfactory,
 	stats
 Remotes:
-	github::adamlilith/omnibus,
 	github::adamlilith/statisfactory
 Suggests:
 	devtools,

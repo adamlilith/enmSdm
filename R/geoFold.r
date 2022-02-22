@@ -12,8 +12,8 @@
 #' @return An integer vector, one element for for of x, with values 1 through k indicating which fold a site is located in.
 #' @seealso \code{\link[geosphere]{distCosine}}, \code{\link[cluster]{pam}}
 #' @examples
-#' # Make three groups, one with one point and two with 20 points apiece.
-#' # Naturally these should group into 3 groups with 1, 20, and 20 point apiece.
+#' # Make three groups, one with two points and two with 20 points apiece.
+#' # Naturally these should group into 3 groups with 2, 20, and 20 point apiece.
 #' # By setting minIn and minOut to non-NULL values, we can increase/decrease
 #' # the size of the groups.
 #' # define plot function
@@ -38,15 +38,15 @@
 #' folds <- geoFold(sites, k=3)
 #' pointPlot(sites, folds, main='Simple G-folds')
 #'
-#' # g-folds with minimum number of sites per fold
+#' # g-folds with >= 5 sites per fold
 #' folds <- geoFold(sites, k=3, minIn=5)
-#' pointPlot(sites, folds, main='G-folds with >=10 sites in each')
+#' pointPlot(sites, folds, main='G-folds with >=5 sites in each')
 #'
-#' # g-folds with minimum number of outside fold
+#' # g-folds with >= 10 sites in and out of each fold
 #' folds <- geoFold(sites, k=3, minIn=10, minOut=10)
 #' pointPlot(sites, folds, main='G-folds with >=10\nsites in/outside each')
 #'
-#' # g-folds with minimum number inside and of outside fold
+#' # g-folds with >=14 sites in and >= 20 sites out of each fold
 #' folds <- geoFold(sites, k=3, minIn=14, minOut=20)
 #' pointPlot(sites, folds, main='G-folds >=14 in\nand >=20 outside')
 #' @export
@@ -70,26 +70,8 @@ geoFold <- function(
 
 	if (is.null(distFunct)) distFunct <- geosphere::distGeo
 
-	# count number of sites outside each fold
-	numOut <- function(folds) {
-
-		out <- rep(NA, k)
-		for (i in 1:k) out[i] <- sum(folds!=i, na.rm=T)
-		out
-
-	}
-
-	# count number of sites outside each fold
-	numIn <- function(folds) {
-
-		inFold <- rep(NA, k)
-		for (i in 1:k) inFold[i] <- sum(folds==i, na.rm=T)
-		inFold
-
-	}
-
 	# get coordinates
-	xy <- xToCoords(x, longLat)
+	xy <- xToCoords(x, longLat, out='sp')
 
 	# catch impossible arguments... numIn and numOut too large
 	if (!is.null(minIn) & !is.null(minOut)) if (k * minIn > length(xy)) stop('minOut must be <= k * minIn.')
@@ -133,7 +115,7 @@ geoFold <- function(
 		# counter for folds left to be handled
 		kToDo <- 1:k
 
-		while (any(numIn(folds) < minIn) | length(unique(folds)) < k) {
+		while (any(.numIn(folds, k) < minIn) | length(unique(folds)) < k) {
 
 			shuffled <- TRUE
 
@@ -166,7 +148,7 @@ geoFold <- function(
 			# find minimum distance to centroid across folds
 			closest <- rep(-Inf, k)
 			for (i in kToDo) closest[i] <- min(dists[folds==i], na.rm=T)
-			closest[numIn(folds) >= minIn] <- -Inf
+			closest[.numIn(folds, k) >= minIn] <- -Inf
 
 			# get fold with farthest minimum distance that also needs more sites added to it
 			focal <- which.max(closest)
@@ -210,28 +192,28 @@ geoFold <- function(
 			# counter for folds left to be handeled
 			kToDo <- 1:k
 
-			while (any(numOut(folds) < minOut) & length(kToDo) > 0) {
+			while (any(.numOut(folds, k) < minOut) & length(kToDo) > 0) {
 
 				shuffled <- TRUE
 
 				# identify fold to donate from ... break ties by closeness to total centroid
-				if (sum(numOut(folds)[kToDo]==min(numOut(folds)[kToDo])) == 1) {
+				if (sum(.numOut(folds, k)[kToDo]==min(.numOut(folds, k)[kToDo])) == 1) {
 
-					focal <- as.integer(names(which.max(numIn(folds)[kToDo])))
+					focal <- as.integer(names(which.max(.numIn(folds, k)[kToDo])))
 
 				} else {
 
 					centroid <- rgeos::gCentroid(xy)
 					dists <- rep(Inf, k)
 					for (i in kToDo) dists[i] <- distFunct(rgeos::gCentroid(xy[folds==i]), centroid, ...)
-					dists[numOut(folds)!=min(numOut(folds))] <- Inf
+					dists[.numOut(folds, k)!=min(.numOut(folds, k))] <- Inf
 
 					focal <- which.min(dists)
 
 				}
 
 				# for each point to donate
-				for (countPoints in 1:(minOut - numOut(folds)[focal])) {
+				for (countPoints in 1:(minOut - .numOut(folds, k)[focal])) {
 
 					# get distance between focal fold's points and centroids of other eligible folds
 					cents <- data.frame()
@@ -314,5 +296,23 @@ geoFold <- function(
 	#####################
 
 	folds
+
+}
+
+### count number of sites outside each fold
+.numOut <- function(folds, k) {
+
+	out <- rep(NA, k, k)
+	for (i in 1:k) out[i] <- sum(folds!=i, na.rm=T)
+	out
+
+}
+
+# count number of sites outside each fold
+.numIn <- function(folds, k) {
+
+	inFold <- rep(NA, k)
+	for (i in 1:k) inFold[i] <- sum(folds==i, na.rm=T)
+	inFold
 
 }
