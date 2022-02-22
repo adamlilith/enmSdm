@@ -65,7 +65,7 @@ sites <- rbind(group1, group2, group3)
 folds <- geoFold(sites, k=3)
 pointPlot(sites, folds, main='Simple G-folds')
 
-# g-folds with minimum number of sites per fold
+# g-folds with >= 5 sites per fold
 folds <- geoFold(sites, k=3, minIn=5)
 pointPlot(sites, folds, main='G-folds with >=5 sites in each')
 
