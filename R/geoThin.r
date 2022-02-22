@@ -72,7 +72,7 @@ geoThin <- function(
 	if (is.null(distFunct)) distFunct <- geosphere::distGeo
 
 	# get coordinates
-	xy <- xToCoords(x, longLat)
+	xy <- xToCoords(x, longLat, out='sp')
 	index <- seq_along(xy)
 
 	# pairwise point distances

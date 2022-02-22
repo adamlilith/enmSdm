@@ -45,7 +45,7 @@ geoThinApprox <- function(
 	if (is.null(distFunct)) distFunct <- geosphere::distGeo
 
 	# get coordinates
-	xy <- xToCoords(x, longLat)
+	xy <- xToCoords(x, longLat, out='sp')
 	index <- seq_along(xy)
 
 	if (verbose) omnibus::say('Calculating pairwise distances between points...')

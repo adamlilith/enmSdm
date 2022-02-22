@@ -1,3 +1,7 @@
+enmSdm 0.8.4 2022-02-22
+Fixed bug in other functions introduced by fixing
+  bug in xToCoords()!
+
 enmSdm 0.8.3 2022-02-17
 Fixed bug in xToCoords()
 
