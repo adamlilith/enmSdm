@@ -1,3 +1,7 @@
+enmSdm 0.8.5 2022-02-22
+Fixed bug in elimCellDups() introduced by fixing
+  bug in xToCoords()!
+
 enmSdm 0.8.4 2022-02-22
 Fixed bug in other functions introduced by fixing
   bug in xToCoords()!
