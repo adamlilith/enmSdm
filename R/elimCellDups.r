@@ -27,6 +27,8 @@ elimCellDups <- function(
 	if (inherits(x, 'SpatVector')) {
 		inWasVect <- TRUE
 		x <- as(x, 'Spatial')
+	} else {
+		inWasVect <- FALSE
 	}
 	if (inherits(rast, 'SpatRaster')) rast <- as(rast, 'Raster')
 
