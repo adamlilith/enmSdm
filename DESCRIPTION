@@ -1,8 +1,8 @@
 Package: enmSdm
 Type: Package
 Title: Tools for Modeling Niches and Distributions of Species
-Version: 0.8.4
-Date: 2022-02-22
+Version: 0.8.5
+Date: 2022-03-07
 Authors@R: 
 	c(
 		person(

@@ -24,7 +24,10 @@ elimCellDups <- function(
 ) {
 
 	# reformulate
-	if (inherits(x, 'SpatVector')) x <- as(x, 'Spatial')
+	if (inherits(x, 'SpatVector')) {
+		inWasVect <- TRUE
+		x <- as(x, 'Spatial')
+	}
 	if (inherits(rast, 'SpatRaster')) rast <- as(rast, 'Raster')
 
 	# get coordinates
@@ -34,10 +37,10 @@ elimCellDups <- function(
 	cellNum <- raster::cellFromXY(rast, xy)
 
 	# remember original row names
-	index <- 1:nrow(xy)
+	index <- 1:length(xy)
 
 	# define priority
-	if (is.null(priority)) priority <- 1:nrow(xy)
+	if (is.null(priority)) priority <- 1:length(xy)
 
 	# index of points to remove
 	removeThese <- integer()
@@ -67,6 +70,8 @@ elimCellDups <- function(
 			x[-removeThese]
 		}
 	}
+
+	if (inWasVect) x <- terra::vect(x)
 
 	x
 
