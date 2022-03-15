@@ -1,3 +1,6 @@
+enmSdm 0.8.6 2022-03-15
+Fixed bug in predictEnmSdm() when using maxnet
+
 enmSdm 0.8.5 2022-02-22
 Fixed bug in elimCellDups() introduced by fixing
   bug in xToCoords()!
