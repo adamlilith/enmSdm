@@ -65,9 +65,9 @@ predictEnmSdm <- function(
 	} else if (inherits(model, 'maxnet')) {
 
 		out <- if (any('type' %in% names(dots))) {
-			predict(newdata=newdata, model, ...)[ , 1]
+			predict(newdata=newdata, object=model, ...)[ , 1]
 		} else {
-			predict(newdata=newdata, model, type='cloglog', ...)[ , 1]
+			predict(newdata=newdata, object=model, type='cloglog', ...)[ , 1]
 		}
 
 	# random forest in party package
