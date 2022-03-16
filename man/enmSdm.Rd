@@ -25,10 +25,15 @@ Create an issue on \href{https://github.com/adamlilith/enmSdm/issues}{GitHub}.
 		\code{\link{trainGam}} Generalized additive models (GAMs) \cr
 		\code{\link{trainGlm}} Generalized linear models (GLMs) \cr
 		\code{\link{trainGlmDredge}} Generalized linear models (GLMs) \cr
-		\code{\link{trainLars}} Least-angle regression models (LARS) \cr
 		\code{\link{trainMaxEnt}} and \code{\link{trainMaxNet}} Maxent models \cr
 		\code{\link{trainNs}} Natural splines (NSs) \cr
 		\code{\link{trainRf}} Random forests (RFs) \cr
+}
+
+\section{Model prediction}{
+
+		\code{\link{predictEnmSdm}} Predict most model types using default settings \cr
+		\code{\link{predictMaxNet}} Predict MaxNet (MaxEnt) model \cr
 }
 
 \section{Model evaluation}{

@@ -1,3 +1,6 @@
+enmSdm 0.9.0 2022-03-15
+Added function predictMaxNet()
+
 enmSdm 0.8.6 2022-03-15
 Fixed bug in predictEnmSdm() when using maxnet
 

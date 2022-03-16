@@ -51,7 +51,7 @@ occsEnv <- raster::extract(clim, occs[ , c('longitude', 'latitude')])
 # background sites
 bg <- 2000 # too few cells to locate 10000 background points
 bgSites <- dismo::randomPoints(clim, 2000)
-bgEnv <- extract(clim, bgSites)
+bgEnv <- raster::extract(clim, bgSites)
 
 # collate
 presBg <- rep(c(1, 0), c(nrow(occs), nrow(bgSites)))
