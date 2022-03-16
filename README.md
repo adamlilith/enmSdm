@@ -9,7 +9,7 @@ You can install this package in R using these commands:
 
 `remotes::install_github('adamlilith/enmSdm', dependencies=TRUE)`  
 
-Note: If for some reason these commands don't work, you can install the package(s) by downloading the latest zip/tar file from the `zipTarFiles` directory and installing the package(s) manually. If you do this, you will also have to install the `omnibus`,  `statisfactory`, and `legendary` packages, which are on GitHub also under my account (`adamlilith`).
+Note: If for some reason these commands don't work, you can install the package(s) by downloading the latest zip/tar file from the `zipTarFiles` directory and installing the package(s) manually. If you do this, you will also have to install the `legendary` package, which is on GitHub under my account (`adamlilith`), as well as the `omnibus` and `statisfactory` packages on CRAN.
 
 ### Data preparation ###
 * `elimCellDups`: Eliminate duplicate points in each cell of a raster
@@ -23,10 +23,13 @@ Note: If for some reason these commands don't work, you can install the package(
 * `trainGam`: Generalized additive models (GAMs)
 * `trainGlm`: Generalized linear models (GLMs)
 * `trainGlmDredge`: Generalized linear models (GLMs)
-* `trainLars`: Least-angle regression models (LARS)
 * `trainMaxEnt` and `trainMaxNet`: Maxent models
 * `trainNs`: Natural splines (NSs)
 * `trainRf`: Random forests (RFs)  
+
+### Model prediction ###
+* `predictEnmSdm` Predict most model types using default settings
+* `predictMaxNet` Predict MaxNet (MaxEnt) model
 
 ### Model evaluation ###
 * `aucWeighted`: AUC (with/out site weights)
