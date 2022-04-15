@@ -45,6 +45,7 @@ Create an issue on \href{https://github.com/adamlilith/enmSdm/issues}{GitHub}.
 		\code{\link{fpb}} Fpb (with/out site weights) \cr
 		\code{\link{thresholdWeighted}} Thresholds to convert continuous predictions to binary predictions (with/out site weights) \cr
 		\code{\link{thresholdStats}} Model performance statistics based on thresholded predictions (with/out site weights) \cr
+		\code{\link{tjursR2Weighted}} Tjur's R2 (with/out site weights) \cr
 		\code{\link{tssWeighted}} True Skill Statistic (TSS) (with/out site weights) \cr
 		\code{\link{modelSize}} Number of response values in a model object \cr
 }
