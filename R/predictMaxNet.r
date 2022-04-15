@@ -27,9 +27,9 @@ predictMaxNet <- function(object, newdata, clamp=TRUE, type='cloglog', ...)
 {
 	
 	if (inherits(newdata, 'Raster')) {
-		out <- raster::predict(clim, object, fun=predictMaxNet, ...)
+		out <- raster::predict(newdata, object, fun=predictMaxNet, ...)
 	} else if (inherits(newdata, 'SpatRaster')) {
-		out <- terra::predict(clim, object, fun=predictMaxNet, ...)
+		out <- terra::predict(newdata, object, fun=predictMaxNet, ...)
 	} else {
 
 		if (clamp) {
