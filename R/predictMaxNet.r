@@ -27,9 +27,9 @@ predictMaxNet <- function(object, newdata, clamp=TRUE, type='cloglog', ...)
 {
 	
 	if (inherits(newdata, 'Raster')) {
-		out <- raster::predict(clim, object, fun=predictMaxNet, ...)
+		out <- raster::predict(newdata, object, fun=predictMaxNet, ...)
 	} else if (inherits(newdata, 'SpatRaster')) {
-		out <- terra::predict(clim, object, fun=predictMaxNet, ...)
+		out <- terra::predict(newdata, object, fun=predictMaxNet, ...)
 	} else {
 
 		if (clamp) {
@@ -37,9 +37,9 @@ predictMaxNet <- function(object, newdata, clamp=TRUE, type='cloglog', ...)
 				newdata[ , v] <- pmin(pmax(newdata[ , v], object$varmin[v]), object$varmax[v])
 			}
 		}
-		terms <- sub('hinge\\((.*)\\):(.*):(.*)$', 'hingeval(\\1,\\2,\\3)', names(object$betas))
-		terms <- sub('categorical\\((.*)\\):(.*)$', 'categoricalval(\\1,\'\\2\')', terms)
-		terms <- sub('thresholds\\((.*)\\):(.*)$', 'thresholdval(\\1,\\2)', terms)
+		terms <- sub('hinge\\((.*)\\):(.*):(.*)$', 'maxnet:::hingeval(\\1,\\2,\\3)', names(object$betas))
+		terms <- sub('categorical\\((.*)\\):(.*)$', 'maxnet:::categoricalval(\\1,\'\\2\')', terms)
+		terms <- sub('thresholds\\((.*)\\):(.*)$', 'maxnet:::thresholdval(\\1,\\2)', terms)
 		f <- formula(paste('~', paste(terms, collapse=' + '), '-1'))
 		mm <- model.matrix(f, data.frame(newdata))
 		if (clamp) mm <- t(pmin(pmax(t(mm), object$featuremins[names(object$betas)]), 

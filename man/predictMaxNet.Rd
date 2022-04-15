@@ -27,12 +27,12 @@ predictMaxNet(object, newdata, clamp = TRUE, type = "cloglog", ...)
 Numeric vector.
 }
 \description{
-This function is the same as the \code{predict} function in the \pkg{maxnet} package, except that it:
+This function is the same as the \code{predict} function in the \pkg{maxnet} package, except that:
 \itemize{
 	\item	If the input is a data frame, the output is a vector as output (not a single-column matrix);
-	\item	If the input is a \code{SpatRaster} or \code{Raster*}the output is of the same type;
-	\item	The default output is on a cloglog scale
-	\item   The function can be explicitly called (versus doing, say, \code{maxnet:::predict.maxnet}, which does not work).
+	\item	If the input is a \code{SpatRaster} or \code{Raster*}, the output is of the same type;
+	\item	The default output is on the cloglog scale
+	\item   The function can be explicitly called (versus doing, say, \code{maxnet:::predict.maxnet}, which does not work even when that would be really useful...).
 }
 }
 \seealso{

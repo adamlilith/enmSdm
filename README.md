@@ -39,6 +39,7 @@ Note: If for some reason these commands don't work, you can install the package(
 * `fpb`: Fpb measure of model discrimination capacity (with/out site weights)
 * `thresholdWeighted`: Thresholds to convert continuous predictions to binary predictions (with/out site weights)
 * `thresholdStats`: Model performance statistics based on thresholded predictions (with/out site weights)
+* `tjursR2Weighted`: Tjur's R2 (with/out site weights)
 * `tssWeighted`: True Skill Statistic (TSS) (with/out site weights)
 * `modelSize`: Number of response values in a model object
 

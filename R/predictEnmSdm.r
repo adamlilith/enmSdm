@@ -29,7 +29,13 @@ predictEnmSdm <- function(
 	# GAM
 	if (inherits(model, 'gam')) {
 
-		out <- mgcv::predict.gam(model, newdata, type='response', ...)
+		out <- if (dataType == 'table') {
+			mgcv::predict.gam(model, newdata, type='response', ...)
+		} else if (dataType == 'rasterRaster') {
+			raster::predict(newdata, model, type='response', ...)
+		} else if (dataType == 'terraRaster') {
+			terra::predict(newdata, model, type='response', ...)
+		}
 
 	# GLM
 	} else if (inherits(model, 'glm')) {

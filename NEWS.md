@@ -1,8 +1,11 @@
+enmSdm 0.9.1 2022-04-15
+Fixed bug in predictMaxNet()
+
 enmSdm 0.9.0 2022-03-15
 Added function predictMaxNet()
 
 enmSdm 0.8.6 2022-03-15
-Fixed bug in predictEnmSdm() when using maxnet
+Fixed bug in predictEnmSdm() when using maxnet()
 
 enmSdm 0.8.5 2022-02-22
 Fixed bug in elimCellDups() introduced by fixing
