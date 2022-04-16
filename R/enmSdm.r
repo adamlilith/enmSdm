@@ -56,6 +56,7 @@
 #'
 #' @section Functions for rasters:
 #' 		\code{\link{bioticVelocity}} Velocity of movement across a series of rasters \cr
+#'		\code{\link{extractLarge}} Like \code{extract()}, but for large-memory spatial objects \cr
 #'		\code{\link{getCores}} Get number of processor cores \cr
 #' 		\code{\link{interpolateRasters}} Interpolate a stack of rasters \cr
 #' 		\code{\link{longLatRasters}} Generate rasters with values of longitude/latitude for cell values \cr

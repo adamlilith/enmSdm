@@ -64,6 +64,7 @@ Note: If for some reason these commands don't work, you can install the package(
 ### Functions for rasters ###
 * `bioticVelocity`: Velocity of movement across a series of rasters
 * `getCores`: Get number of processor cores
+* `extractLarge`: Like `extract()`, but for large-memory spatial objects
 * `interpolateRasters`: Interpolate a stack of rasters
 * `longLatRasters`: Generate rasters with values of longitude/latitude for cell values
 * `rastWithSquareCells`: Create a raster with square cells from an object with an extent
