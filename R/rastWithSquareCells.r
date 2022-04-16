@@ -1,7 +1,7 @@
 #' Create a raster with square cells
 #' 
 #' This function creates a raster from an object with an extent (i.e., another raster or a Spatial object) with square cells. The user can specify cell resolution (linear dimension) \emph{or} the approximate number of cells desired.
-#' @param x An object with a spatial extent property (e.g., a raster, raster stack, raster brick, SpatialPoints*, SpatialLines*, or SpatialPolygons*).
+#' @param x An object with a spatial extent property (e.g., a \code{Raster}*, \code{SpatRaster}, or \code{Spatial}* object).
 #' @param numCells Positive integer, approximate number of cells desired. If this is specified, then \code{res} is ignored. If this number of cells cannot be fit into the desired extent exactly, then the actual number of cells will be larger.
 #' @param res Positive numeric. Size of a cell in the units of the projection of \code{x} (typically meters). Ignored if \code{numCells} is not \code{NULL}.
 #' @param vals Numeric, value to assign to cells. Note that if this is shorter than the number of cells in the output, then values will be recycled. If longer, then values will be truncated. The default is to generate random values in the range [0, 1].
@@ -35,11 +35,24 @@ rastWithSquareCells <- function(x, numCells = NULL, res = NULL, vals = 1:101) {
 	if (is.null(numCells) & is.null(res)) stop('Either "numCells" or "res" must be specified.')
 	if (!is.null(numCells) & !is.null(res)) warning('Both "numCells" and "res" are specified. Ignoring argument "res".')
 	
-	crs <- raster::projection(x)
-	ext <- raster::extent(x)
+	if (inherits(x, c('Raster', 'Spatial'))) {
+		
+		crs <- raster::projection(x)
+		ext <- raster::extent(x)
+		ext <- c(xmin=ext@xmin, xmax=ext@xmax, ymin=ext@ymin, ymax=ext@ymax)
+		pkg <- 'raster'
+		
+	} else if (inherits(x, c('SpatRaster', 'SpatVector'))) {
 	
-	longDist <- ext@xmax - ext@xmin
-	latDist <- ext@ymax - ext@ymin
+		crs <- terra::crs(x)
+		ext <- terra::ext(x)@ptr$vector
+		names(ext) <- c('xmin', 'xmax', 'ymin', 'ymax')
+		pkg <- 'terra'
+	
+	}
+		
+	longDist <- ext['xmax'] - ext['xmin']
+	latDist <- ext['ymax'] - ext['ymin']
 
 	# create raster with approximate number of desired cells
 	if (!is.null(numCells)) res <- sqrt((longDist * latDist) / numCells)
@@ -53,14 +66,14 @@ rastWithSquareCells <- function(x, numCells = NULL, res = NULL, vals = 1:101) {
 	padLong <- res * (numCols - (longDist / res)) / 2
 	
 	ext <- c(
-		ext@xmin - padLong,
-		ext@xmax + padLong,
-		ext@ymin - padLat,
-		ext@ymax + padLat
+		ext['xmin'] - padLong,
+		ext['xmax'] + padLong,
+		ext['ymin'] - padLat,
+		ext['ymax'] + padLat
 	)
 	
 	ext <- raster::extent(ext)
-	out <- raster::raster(ext, nrows=numRows, ncols=numCols, crs=raster::projection(x))
+	out <- raster::raster(ext, nrows=numRows, ncols=numCols, crs=crs)
 	numCells <- raster::ncell(out)
 	vals <- if (length(vals) > numCells) {
 		vals[1:numCells]
@@ -68,6 +81,7 @@ rastWithSquareCells <- function(x, numCells = NULL, res = NULL, vals = 1:101) {
 		rep(vals, length.out=numCells)
 	}
 	raster::values(out) <- vals
+	if (pkg == 'terra') out <- terra::rast(out)
 	out
 	
 }

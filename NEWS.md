@@ -1,4 +1,6 @@
 enmSdm 0.9.1 2022-04-15
+Added function extractLarge()
+rastWithSquareCells() and squareRastCells() now terra-compatible
 Fixed bug in predictMaxNet()
 
 enmSdm 0.9.0 2022-03-15

@@ -4,14 +4,14 @@
 #' \itemize{
 #' 	\item Cells will not really be square on the ground because, after all, the Earth is spherical and every projection distorts shape.
 #' 	\item If a raster is in an unprojected coordinate system (e.g., if it has WGS84 or NAD83), then the new cells (as the old cells) will have the same length/width dimensions in degrees, but cells will not actually be "square" on the ground because degrees of longitude represent smaller absolute distances at higher latitudes.
-#'	\item Since re-sizing cells typically means that ony a fractional cell can be fit at the edges of the extent, a template raster is created that has the same extent as the input raster is created. This is then extended by one cell in both directions in the dimension in which cells of the input raster are being expanded/contracted. The new raster is created by resampling to the extent and dimensions of this template raster. As a result, the new extent will be slightly larger than the old extent.
+#'	\item Since re-sizing cells typically means that ony a fractional cell can be fit at the edges of the extent, a template raster is created that has the same extent as the pkg raster is created. This is then extended by one cell in both directions in the dimension in which cells of the pkg raster are being expanded/contracted. The new raster is created by resampling to the extent and dimensions of this template raster. As a result, the new extent will be slightly larger than the old extent.
 #'  \item Owing to the preceding reason, rasters that have edges near a pole and/or the international date line may not yield workable results if the new cells extend the raster "over" the pole or date line.
 #' }
-#' @param x Raster.
+#' @param x \code{Raster} or \code{SpatRaster}.
 #' @param keepWidth Logical, if \code{TRUE}, then use the width (east-west direction) as the baseline distance and resample so that height (north-south distance) of a cell is the same. If \code{FALSE}, use height as the baseline.
-#' @param ... Arguments to send to \code{\link[raster]{resample}}.
+#' @param ... Arguments to send to \code{\link[raster]{resample}} (\pkg{raster} package) or \code{\link[terra]{resample}} (\pkg{terra} package).
 #' @return Raster object.
-#' @seealso \code{\link{rastWithSquareCells}}, \code{\link[raster]{resample}}, \code{\link[raster]{aggregate}}
+#' @seealso \code{\link{rastWithSquareCells}}, \code{\link[raster]{resample}} (\pkg{raster} package), \code{\link[terra]{resample}} (\pkg{terra} package), \code{\link[raster]{aggregate}} (\pkg{raster} package), \code{\link[terra]{aggregate}} (\pkg{terra} package)
 #' @examples
 #' \dontrun{
 #' # get WORLDCLIM elevation data
@@ -38,14 +38,28 @@
 
 squareRastCells <- function(x, keepWidth = TRUE, ...) {
 
-	crs <- raster::projection(x)
-	ext <- raster::extent(x)
-	ext <- c(ext@xmin, ext@xmax, ext@ymin, ext@ymax)
+	if (inherits(x, 'Raster')) {
+
+		crs <- raster::projection(x)
+		ext <- raster::extent(x)
+		ext <- c(ext@xmin, ext@xmax, ext@ymin, ext@ymax)
+		res <- raster::res(x)
+		pkg <- 'raster'
+		
+	} else if (inherits(x, 'SpatRaster')) {
+	
+		crs <- terra::crs(x)
+		ext <- terra::ext(x)
+		ext <- ext@ptr$vector
+		res <- terra::res(x)
+		pkg <- 'terra'
+	
+	}
 	
 	if (keepWidth) {
 		
 		# pad extent so it can accommodate all necessary rows
-		width <- raster::res(x)[1]
+		width <- res[1]
 		northSouth <- ext[4] - ext[3]
 		ncols <- ncol(x)
 
@@ -62,7 +76,7 @@ squareRastCells <- function(x, keepWidth = TRUE, ...) {
 	} else if (!keepWidth) {
 	
 		# pad extent so it can accommodate all necessary columns
-		height <- raster::res(x)[2]
+		height <- res[2]
 		eastWest <- ext[2] - ext[1]
 		nrows <- nrow(x)
 
@@ -81,7 +95,12 @@ squareRastCells <- function(x, keepWidth = TRUE, ...) {
 	ext <- raster::extent(ext)
 		
 	template <- raster::raster(ext, nrows=nrows, ncols=ncols, crs=crs)
-	rast <- raster::resample(x, template, ...)
+	if (input == 'terra') {
+		rast <- terra::rast(rast)
+		rast <- terra::resample(x, template, ...)
+	} else {
+		rast <- raster::resample(x, template, ...)
+	}
 	rast
 	
 }
