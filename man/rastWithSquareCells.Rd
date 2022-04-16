@@ -7,7 +7,7 @@
 rastWithSquareCells(x, numCells = NULL, res = NULL, vals = 1:101)
 }
 \arguments{
-\item{x}{An object with a spatial extent property (e.g., a raster, raster stack, raster brick, SpatialPoints*, SpatialLines*, or SpatialPolygons*).}
+\item{x}{An object with a spatial extent property (e.g., a \code{Raster}*, \code{SpatRaster}, or \code{Spatial}* object).}
 
 \item{numCells}{Positive integer, approximate number of cells desired. If this is specified, then \code{res} is ignored. If this number of cells cannot be fit into the desired extent exactly, then the actual number of cells will be larger.}
 
