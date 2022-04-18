@@ -7,13 +7,11 @@
 extractLarge(x, y, keep = NULL, atATime = 10000, verbose = TRUE, ...)
 }
 \arguments{
-\item{x}{\code{SpatRaster} or \code{SpatVector} from which data will be out.}
+\item{y}{\code{sf}, \code{Spatial}* or \code{SpatVector} with points/lines/polygons denoting locations where data will be extracted from.}
 
-\item{y}{\code{SpatVector} with points/lines/polygons denoting locations where data will be out.}
+\item{keep}{Names or indices of the fields or values in \code{x} to keep. If \code{NULL} (default), then all columns will be kept. If you are unsure of these, try just extracting a small number items from \code{y} and see what the names in the output are.}
 
-\item{keep}{Names or indices of the fields in \code{x} to keep. If \code{NULL} (default), then all columns will be kept and there will be very little advantage to using this function over just using \code{extract}.}
-
-\item{atATime}{Number of records in \code{y} to extract at one time.}
+\item{atATime}{Number of records in \code{y} to extract at one time. If the object \code{x} has just a few things you are extracting (e.g., a few layers for a raster set or a few fields from a polygon), you can probably use a larger number; maybe, say, 100000. If your raster set or polygon has a lot of fields, then a smaller number may be required.}
 
 \item{verbose}{Report progress (\code{TRUE}) or not (\code{FALSE}).}
 
@@ -23,8 +21,32 @@ extractLarge(x, y, keep = NULL, atATime = 10000, verbose = TRUE, ...)
 Data frame.
 }
 \description{
-This function is the same as the \code{\link[terra]{extract}} function in the \pkg{terra} package, except that it is built to better handle cases when the points/lines/polygons where the extractions are are very large in memory. Essentially, the function is a wrapper for \code{extract} with a for loop that allows you to discard unwanted columns. Note that this function is not intended to make things fast... just feasible
+This function is the same as the \code{\link[terra]{extract}} function in the \pkg{terra} package, except that it is built to better handle cases when the points/lines/polygons where the extractions are are very large in memory. Essentially, the function is a wrapper for \code{extract} with a for loop that allows you to discard unwanted columns. Note that this function is not intended to make things fast... just feasible for cases where memory may be a problem. A few tips for memory management:
+\itemize{
+\item	If you do not need need specific fields from an object you will be extracting from, remove them (e.g., \code{x$doNotNeed <- NULL}).
+\item	Likewise, removing rasters in a raster stack that you don not need may help.
+\item	On a Windows machine, you can give R more memory using \code{memory.limit(memory.limit() * 2^x)} where \code{n} is an integer. On my machine, which has 32 GB of RAM, I use \code{n = 29}.
+\item	Run R through the terminal, not through RStudio or the R GUI. This can reduce overhead because these programs take more memory.
+\item	Close other programs you may not be using.
+\item	Start in a fresh R session and load only what you need to get the extraction done. Save the output before proceeding.
+\item	Go get a coffee, because it may take a while.
+}
 }
 \examples{
+
+# This example does *not* require this function because the raster
+# and points are so small in memory. But it illustrates the process.
+
+data(mad0)
+data(lemurs)
+
+ll <- c('longitude', 'latitude')
+lemurs <- lemurs[ , ll]
+
+# using extractLarge()
+ex1 <- extractLarge(mad0, lemurs, atATime=10)
+
+# using just extract()
+ex2 <- extract(mad0, lemurs)
 
 }

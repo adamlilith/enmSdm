@@ -1,3 +1,6 @@
+enmSdm 0.9.2 2022-04-17
+extractLarge() is preserves memory much better
+
 enmSdm 0.9.1 2022-04-15
 Added function extractLarge()
 rastWithSquareCells() and squareRastCells() now terra-compatible
