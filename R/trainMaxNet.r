@@ -117,8 +117,8 @@ trainMaxNet <- function(
 	###########
 
 	# response and predictors
-	if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
-	if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
+	if (inherits(resp, c('integer', 'numeric'))) resp <- names(data)[resp]
+	if (inherits(preds, c('integer', 'numeric'))) preds <- names(data)[preds]
 
 	# get response and predictors
 	presentBg <- data[ , resp]
@@ -151,11 +151,11 @@ trainMaxNet <- function(
 
 	### collate presences and BG sites
 	presences <- data[which(presentBg == 1), ]
-	if (class(presences) != 'data.frame') presences <- as.data.frame(presences)
+	if (!inherits(presences, 'data.frame')) presences <- as.data.frame(presences)
 	names(presences) <- names(data) # names of data to which to predict
 
 	bg <- data[which(presentBg == 0), ]
-	if (class(bg) != 'data.frame') bg <- as.data.frame(bg)
+	if (!inherits(bg, 'data.frame')) bg <- as.data.frame(bg)
 	names(bg) <- names(data)
 
 	##########
