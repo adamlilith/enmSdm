@@ -1,21 +1,28 @@
-#' Calibrate a Maxent (ver 3.4.0+ or "maxnet") model using AICc
+#' Calibrate a MaxNet (MaxEnt) model using AICc
 #'
-#' This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes. The "best" model has the lowest AICc, with ties broken by number of features (fewer is better), regularization multiplier (higher better), then finally the number of coefficients (fewer better). The function can return the best model (default), a list of models created using all possible combinations of feature classes and regularization multipliers, and/or a data frame with tuning statistics for each model. Models in the list and in the data frame are sorted from best to worst. See Warren, D.L. and S.N. Siefert. 2011. Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria. \emph{Ecological Applications} 21:335-342. 
-#' @param data  Data frame or matrix. Environmental predictors (and no other fields) for presences and background sites.
+#' This function calculates the "best" MaxEnt model using AICc across all possible combinations of a set of master regularization parameters and feature classes. The "best" model has the lowest AICc, with ties broken by number of features (fewer is better), regularization multiplier (higher better), then finally the number of coefficients (fewer better). The function can return the best model (default), a list of models created using all possible combinations of feature classes and regularization multipliers, and/or a data frame with tuning statistics for each model. Models in the list and in the data frame are sorted from best to worst.
+#'
+#' @param data  Data frame or matrix. Contains a column indicating whether each row is a presence (1) or background (0) site, plus columns for environmental predictors.
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param regMult Numeric vector. Values of the master regularization parameters (called \code{beta} in some publications) to test.
 #' @param classes Character list. Names of feature classes to use (either \code{default} to use \code{lpqh}) or any combination of \code{lpqht}, where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.
-#' @param testClasses Logical. If \code{TRUE} (default) then test all possible combinations of classes (note that all tested models will at least have linear features). If \code{FALSE} then use the classes provided (these will not vary between models).
+#' @param testClasses Logical.  If \code{TRUE} (default) then test all possible combinations of classes (note that all tested models will at least have linear features). If \code{FALSE} then use the classes provided (these will not vary between models).
 #' @param dropOverparam Logical, if \code{TRUE} (default), drop models if they have more coefficients than training occurrences. It is possible for no models to fulfill this criterion, in which case no models will be returned.
-#' @param anyway Logical. If no model has fewer coefficients than predictors, return the model with the lowest AICc anyway. Default is \code{TRUE}.
-#' @param out Character. Indicates type of value returned. If \code{model} then returns an object of class \code{maxnet}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.
-#' @param verbose Logical. If \code{TRUE} report progress and AICc table.
-#' @param ... Arguments to pass to \code{maxnet()}.
-#' @return If \code{out = 'model'} this function returns an object of class \code{maxnet}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log-likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{maxnet} object and the data frame.
-#' @details The function ranks models by AICc (first), then breaks any ties by sorting by number of features (fewer is better), regularization multiplier (higher is better), then finally the number of coefficients (fewer is better).
+#' @param anyway Logical. Same as \code{dropOverparam} (included for backwards compatibility. If \code{NULL} (default), then the value of \code{dropOverparam} will take precedence. If \code{TRUE} or \code{FALSE} then \code{anyway} will override the value of \code{dropOverparam}.
+#' @param out Character or character vector. Indicates type of value returned. Values can be \code{'model'} (default; return model with lowest AICc), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with elements named "model", "models", and/or "tuning". If \code{'models'} is specified, they will only be produced if \code{select = TRUE}. The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{MaxEnt}, a list with objects of class \code{MaxEnt}, or a data frame.
+#' @param forceLinear Logical. If \code{TRUE} (default) then require any tested models to include at least linear features.
+#' @param cores Integer >= 1. Number of cores to use. Default is 1.
+#' @param verbose Logical. If \code{TRUE} report the AICc table.
+#' @param ... Extra arguments. Not used.
+#' @return If \code{out = 'model'} this function returns an object of class \code{MaxEnt}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{MaxEnt} object and the data frame.
+#' @details This function is a wrapper for \code{\link[maxnet]{maxnet}}.
 #' @seealso \code{\link[maxnet]{maxnet}}, \code{\link[dismo]{maxent}}, \code{\link{trainMaxEnt}}
+#' @references
+#' Phillips, S.J., Anderson, R.P., Dudík, M. Schapire, R.E., and Blair, M.E.  2017.  Opening the black box: An open-source release of Maxent. \emph{Ecography} 40:887-893.
+#' Warren, D.L. and S.N. Siefert. 2011. Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria. \emph{Ecological Applications} 21:335-342.
 #' @examples
+#'
 #' ### model red-bellied lemurs
 #' data(mad0)
 #' data(lemurs)
@@ -29,6 +36,7 @@
 #' # occurrence data
 #' occs <- lemurs[lemurs$species == 'Eulemur rubriventer', ]
 #' occsEnv <- raster::extract(clim, occs[ , c('longitude', 'latitude')])
+#' occsEnv <- as.data.frame(occsEnv) # need to do this for prediction later
 #' 
 #' # background sites
 #' bg <- 2000 # too few cells to locate 10000 background points
@@ -75,6 +83,11 @@
 #' plot(mapNet, main='MaxNet')
 #' points(occs[ , c('longitude', 'latitude')])
 #'
+#' # predictions to occurrences
+#' (dismo::predict(ent, occsEnv, args=c('outputformat=logistic')))
+#' (enmSdm::predictMaxEnt(ent, occsEnv, type='logistic'))
+#' (c(predict(net, occsEnv, type='logistic')))
+#' 
 #' # note the differences between the tuning of the two models...
 #' # this is because maxnet() (used by trainMaxNet())
 #' # uses an approximation:
@@ -97,7 +110,6 @@
 #' plot(predMx, predMn)
 #' abline(0, 1)
 #' @export
-
 trainMaxNet <- function(
 	data,
 	resp = names(data)[1],
@@ -108,6 +120,8 @@ trainMaxNet <- function(
 	dropOverparam = TRUE,
 	anyway = TRUE,
 	out = 'model',
+	forceLinear = TRUE,
+	cores = 1,
 	verbose = FALSE,
 	...
 ) {
@@ -116,219 +130,271 @@ trainMaxNet <- function(
 	## setup ##
 	###########
 
-	# response and predictors
-	if (inherits(resp, c('integer', 'numeric'))) resp <- names(data)[resp]
-	if (inherits(preds, c('integer', 'numeric'))) preds <- names(data)[preds]
+		if (!is.null(anyway)) dropOverparam <- anyway
+		
+		# response and predictors
+		if (inherits(data, 'data.table')) data <- as.data.frame(data)
+		if (inherits(resp, c('integer', 'numeric'))) resp <- names(data)[resp]
+		if (inherits(preds, c('integer', 'numeric'))) preds <- names(data)[preds]
 
-	# get response and predictors
-	presentBg <- data[ , resp]
-	data <- data[ , preds, drop=FALSE]
+		# get response and predictors
+		presBg <- data[ , resp, drop=TRUE]
+		data <- data[ , preds, drop=FALSE]
 
-	### get combinations of features to test for each regularization multiplier
+		## collate all presences
+		allPres <- data[presBg == 1, , drop=FALSE]
 
-	if (classes == 'default') {
-		classesToTest <- if (ncol(data) > 1) {
+		## collate all background sites
+		allBg <- data[presBg == 0, , drop=FALSE]
+
+	### generate table of parameterizations
+	#######################################
+		
+		### get combinations of features to test for each regularization multiplier
+		classesToTest <- if (classes == 'default') {
 			c('l', 'p', 'q', 'h')
 		} else {
-			c('l', 'q', 'h')
+			unlist(strsplit(classes, ''))
 		}
-	} else {
-		classesToTest <- rep(NA, nchar(classes))
-		for (i in 1:nchar(classes)) classesToTest[i] <- substr(classes, i, i)
-	}
 
-	# create df of 1/0 to indicate each combination of classes to test
-	if (testClasses) {
-		classGrid <- expand.grid(rep(list(c(1, 0)), length(classesToTest)))
-		classGrid <- classGrid[-which(rowSums(classGrid) == 0), ]
-		classGrid <- as.data.frame(classGrid)
-	} else {
-		classGrid <- data.frame(matrix(rep(1, length(classesToTest)), nrow=1))
-	}
+		if (any('p' %in% classesToTest) & ncol(data) == 1) {
+			product <- FALSE
+			warning('Data has only one variable so forcing product features to FALSE.')
+		}
 
-	names(classGrid) <- classesToTest
-	if (any(classGrid$l == 0)) classGrid <- classGrid[-which(classGrid$l == 0), ]
+		# create df of 1/0 to indicate each combination of classes to test
+		if (testClasses) {
+			classGrid <- expand.grid(rep(list(c(1, 0)), length(classesToTest)))
+			classGrid <- classGrid[-which(rowSums(classGrid) == 0), , drop=FALSE]
+		} else {
+			classGrid <- data.frame(matrix(rep(1, length(classesToTest)), nrow=1))
+		}
 
-	### collate presences and BG sites
-	presences <- data[which(presentBg == 1), ]
-	if (!inherits(presences, 'data.frame')) presences <- as.data.frame(presences)
-	names(presences) <- names(data) # names of data to which to predict
+		names(classGrid) <- classesToTest
 
-	bg <- data[which(presentBg == 0), ]
-	if (!inherits(bg, 'data.frame')) bg <- as.data.frame(bg)
-	names(bg) <- names(data)
+		if (forceLinear & any(classGrid$l == 0)) classGrid <- classGrid[-which(classGrid$l == 0), , drop=FALSE]
 
-	##########
-	## MAIN ##
-	##########
+		tuning <- data.frame()
+		
+		# by beta
+		for (thisRegMult in regMult) {
 
-	# remember all models and evaluation data
-	models <- list()
-	tuning <- data.frame()
+			# by feature combination
+			for (countParam in 1:nrow(classGrid)) {
+
+				# classes
+				classes <- paste0(
+					ifelse('l' %in% names(classGrid) && classGrid$l[countParam] == 1, 'l', ''),
+					ifelse('p' %in% names(classGrid) && classGrid$p[countParam] == 1, 'p', ''),
+					ifelse('q' %in% names(classGrid) && classGrid$q[countParam] == 1, 'q', ''),
+					ifelse('h' %in% names(classGrid) && classGrid$h[countParam] == 1, 'h', ''),
+					ifelse('t' %in% names(classGrid) && classGrid$t[countParam] == 1, 't', '')
+				)
+				
+				tuning <- rbind(
+					tuning,
+						data.frame(
+						regMult=thisRegMult,
+						classes=classes
+					)
+				)
+				
+			}
+			
+		}
+
+	### train models
+	################
+		
+		if (cores > 1) {
+			`%makeWork%` <- foreach::`%dopar%`
+			cl <- parallel::makeCluster(cores)
+			doParallel::registerDoParallel(cl)
+		} else {
+			`%makeWork%` <- foreach::`%do%`
+		}
+		
+		mcOptions <- list(preschedule=TRUE, set.seed=FALSE, silent=FALSE)
+		
+		work <- foreach::foreach(i=1:nrow(tuning), .options.multicore=mcOptions, .combine='c', .inorder=FALSE, .export=c('.trainMaxNetWorker', 'predictMaxNet'), .packages = c('maxnet')) %makeWork%
+			.trainMaxNetWorker(
+				i = i,
+				tuning = tuning,
+				presBg = presBg,
+				data = data,
+				allPres = allPres,
+				allBg = allBg
+			)
+				
+		if (cores > 1) parallel::stopCluster(cl)
 	
-	if (verbose) omnibus::say('Evaluating models with regularization multiplier:', post=0)
+	### collate results
+	###################
 
-	# for each regularization multiplier
-	for (thisRegMult in regMult) {
+		models <- list()
+		tuning <- data.frame()
 
-		if (verbose) omnibus::say(thisRegMult, post=0)
+		for (i in seq_along(work)) {
+		
+			models[[i]] <- work[[i]]$model
+			tuning <- rbind(tuning, work[[i]]$thisTuning)
+		
+		}
+		
+	### process models
+	##################
+		
+		# sort from best to worst model
+		modelOrder <- order(tuning$AICc, tuning$numClasses, tuning$regMult, tuning$numCoeff, decreasing=c(FALSE, FALSE, TRUE, FALSE))
+		tuning <- tuning[modelOrder, ]
+		models <- models[modelOrder]
 
-		# for each combination of class features
-		for (countCombo in 1:nrow(classGrid)) {
+		# remove models with more parameters than data points that have more than 0 parameters
+		if (dropOverparam) {
+		
+			topModel <- models[[1]]
+			topTuning <- tuning[1, , drop=FALSE]
 
-			# if (verbose) omnibus::say(classesToTest[c(classGrid[countCombo, ]) == 1], post=0)
-
-			theseClasses <- paste(classesToTest[as.logical(unlist(classGrid[countCombo, ]))], collapse='')
-
-			# add dummy column if doing univariate model to avoid error in maxnet.default.regularizationMOD
-			if (ncol(data) == 1 & theseClasses == 'l') {
-
-				thisData <- data
-				thisPresences <- presences
-				thisBg <- bg
-
-				thisData$DUMMY <- rep(1, nrow(thisData))
-				thisPresences$DUMMY <- rep(1, nrow(presences))
-				thisBg$DUMMY <- rep(1, nrow(bg))
-
-			} else {
-
-				thisData <- data
-				thisPresences <- presences
-				thisBg <- bg
-
+			overparamModels <- which(tuning$n < tuning$numCoeff)
+			if (length(overparamModels) > 0) {
+				tuning <- tuning[-overparamModels, ]
+				models <- models[-overparamModels]
 			}
 
-			# # train model
-			# model <- maxnet::maxnet(
-				# p=as.vector(presentBg),
-				# data=thisData,
-				# f=maxnet::maxnet.formula(p=as.vector(presentBg), data=thisData, classes=theseClasses),
-				# regfun=maxnet.default.regularizationMOD,
-				# regmult=thisRegMult,
-				# ...
-			# )
+			if (length(models) == 0 & anyway) {
+				warning('No models had fewer coefficients than predictors. Returning best model anyway.', immediate.=TRUE)
+				model <- topModel
+				tuning <- topTuning
+			} else if (length(models) == 0 & !anyway) {
+				warning('No models had fewer coefficients than predictors. NA model(s) returned.', immediate.=TRUE)
+				model <- NULL
+			} else {
+				model <- models[[1]]
+			}
+				
+		}
+		
+		# AICc weights
+		if (nrow(tuning) > 0) {
 
-			# train model
-			model <- maxnet::maxnet(
-				p=as.vector(presentBg),
-				data=thisData,
-				f=maxnet::maxnet.formula(p=as.vector(presentBg), data=thisData, classes=theseClasses),
-				regfun=maxnet::maxnet.default.regularization,
-				regmult=thisRegMult,
-				...
-			)
+			tuning$deltaAICc <- tuning$AICc - min(tuning$AICc)
+			tuning$relLike <- exp(-0.5 * tuning$deltaAICc)
+			tuning$aicWeight <- tuning$relLike / sum(tuning$relLike)
 
-			# predict presences
-			predPres <- stats::predict(
-				object=model,
-				newdata=presences,
-				type='exponential',
-				...
-			)
-
-			# predict to background
-			predBg <- stats::predict(
-				object=model,
-				newdata=bg,
-				type='exponential',
-				...
-			)
-
-			rawSum <- sum(c(predPres, predBg), na.rm=TRUE)
-
-			## calculate log likelihood
-			ll <- sum(log(predPres / rawSum), na.rm=TRUE)
-
-			## number of parameters
-			numCoeff <- length(model$betas)
-
-			# AICc
-			AICc <- -2 * ll + 2 * numCoeff + (2 * numCoeff * (numCoeff + 1)) / (sum(presentBg) - numCoeff - 1)
-
-			# remember
-			thisAicFrame <- data.frame(
-				regMult=thisRegMult,
-				numPres=sum(presentBg),
-				classes=theseClasses,
-				numClasses=nchar(theseClasses),
-				numCoeff=numCoeff,
-				logLik=ll,
-				AICc=AICc
-			)
-
-			models[[length(models) + 1]] <- model
-			tuning <- rbind(tuning, thisAicFrame)
-
-		} # next combination of class features
-
-	} # next reg mult
-
-	if (verbose) omnibus::say('')
-
-	# sort from best to worst model
-	modelOrder <- order(tuning$AICc, tuning$numClasses, tuning$regMult, tuning$numCoeff, decreasing=c(FALSE, FALSE, TRUE, FALSE))
-	tuning <- tuning[modelOrder, ]
-	models <- models[modelOrder]
-
-	# remove models with more parameters than data points that have more than 0 parameters
-	if (dropOverparam) {
-	
-		topModel <- models[[1]]
-		topTuning <- tuning[1, , drop=FALSE]
-
-		overparamModels <- which(tuning$n < tuning$numCoeff)
-		if (length(overparamModels) > 0) {
-			tuning <- tuning[-overparamModels, ]
-			models <- models[-overparamModels]
+			rownames(tuning) <- 1:nrow(tuning)
+		
 		}
 
-		if (length(models) == 0 & anyway) {
-			warning('No models had fewer coefficients than predictors. Returning best model anyway.', immediate.=TRUE)
-			model <- topModel
-			tuning <- topTuning
-		} else if (length(models) == 0 & !anyway) {
-			warning('No models had fewer coefficients than predictors. No model(s) returned.', immediate.=TRUE)
-			model <- NULL
-		} else {
-			model <- models[[1]]
+		if (verbose) {
+
+			omnibus::say('')
+			print(tuning, digits=3)
+			omnibus::say('')
+
 		}
-			
-	}
 
-	# AICc weights
-	if (nrow(tuning) > 0) {
+	### return
+	##########
 		
-		tuning$deltaAICc <- tuning$AICc - min(tuning$AICc)
-		tuning$relLike <- exp(-0.5 * tuning$deltaAICc)
-		tuning$aicWeight <- tuning$relLike / sum(tuning$relLike)
-		
-		rownames(tuning) <- 1:nrow(tuning)
-
-	}
-		
-	if (verbose) {
-
-		omnibus::say('')
-		print(tuning)
-		omnibus::say('')
-
-	}
-
-	# return
-	if (length(out) > 1) {
-		output <- list()
-		if ('models' %in% out) output$models <- models
-		if ('model' %in% out) output$model <- model
-		if ('tuning' %in% out) output$tuning <- tuning
-		output
-	} else if (out == 'models') {
-		models
-	} else if (out == 'model') {
-		model
-	} else if (out == 'tuning') {
-		tuning
-	}
+		if (length(out) > 1) {
+			output <- list()
+			if ('models' %in% out) output$models <- models
+			if ('model' %in% out) output$model <- model
+			if ('tuning' %in% out) output$tuning <- tuning
+			output
+		} else if (out == 'models') {
+			models
+		} else if (out == 'model') {
+			model
+		} else if (out == 'tuning') {
+			tuning
+		}
 
 }
 
+#######################
+### worker function ###
+#######################
+
+.trainMaxNetWorker <- function(
+	i,								# iterator
+	tuning,							# tuning data frame
+	presBg,						# vector with 1 (present) / 0 (background)
+	data,							# df with all presence/background environmental data
+	allPres,						# df with all presence environmental data
+	allBg							# df with all background environmental data
+) {
+	
+	thisRegMult <- tuning$regMult[i]
+	thisClasses <- tuning$classes[i]
+	
+	# add dummy column if doing univariate model to avoid error in maxnet.default.regularizationMOD
+	if (ncol(data) == 1 & thisClasses == 'l') {
+
+		thisData <- data
+		thisPres <- allPres
+		thisBg <- allBg
+
+		thisData$DUMMY <- rep(1, nrow(thisData))
+		thisPres$DUMMY <- rep(1, nrow(allPres))
+		thisBg$DUMMY <- rep(1, nrow(allBg))
+
+	} else {
+
+		thisData <- data
+		thisPres <- allPres
+		thisBg <- allBg
+
+	}
+	
+	# train model
+	model <- maxnet::maxnet(
+		p=as.vector(presBg),
+		data=thisData,
+		f=maxnet::maxnet.formula(p=as.vector(presBg), data=thisData, classes=thisClasses),
+		regfun=maxnet::maxnet.default.regularization,
+		regmult=thisRegMult
+	)
+
+	## predict to training (and maybe test presences)
+	predPres <- predictMaxNet(
+		model=model,
+		newdata=thisPres,
+		na.rm=TRUE,
+		type='exponential'
+	)
+
+	## predict to background
+	predBg <- predictMaxNet(
+		model=model,
+		newdata=thisBg,
+		na.rm=TRUE,
+		type='exponential'
+	)
+
+	rawSum <- sum(c(predPres, predBg), na.rm=TRUE)
+
+	## log likelihood
+	ll <- sum(log(predPres / rawSum), na.rm=TRUE)
+
+	## number of parameters
+	numCoeff <- length(model$betas)
+
+	# AICc
+	AICc <- -2 * ll + 2 * numCoeff + (2 * numCoeff * (numCoeff + 1)) / (sum(presBg) - numCoeff - 1)
+
+	out <- list(list(
+		model=model,
+		thisTuning=data.frame(
+			regMult=thisRegMult,
+			classes=thisClasses,
+			numClasses=nchar(thisClasses),
+			numCoeff=numCoeff,
+			logLik=ll,
+			AICc=AICc
+		)
+	))
+	
+	out
+
+}

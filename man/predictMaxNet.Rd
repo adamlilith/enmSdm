@@ -4,10 +4,10 @@
 \alias{predictMaxNet}
 \title{Predictions from a MaxNet model}
 \usage{
-predictMaxNet(object, newdata, clamp = TRUE, type = "cloglog", ...)
+predictMaxNet(model, newdata, clamp = TRUE, type = "cloglog", ...)
 }
 \arguments{
-\item{object}{Object of class \code{maxnet}.}
+\item{model}{Object of class \code{maxnet}.}
 
 \item{newdata}{Object of class \code{data.frame}, \code{SpatRaster} (\pkg{terra} package), or any of \code{Raster}, \code{RasterBrick}, or \code{RasterStack} (\pkg{raster} package).}
 

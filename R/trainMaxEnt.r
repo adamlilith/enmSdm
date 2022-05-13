@@ -1,8 +1,8 @@
-#' Calibrate a Maxent (ver 3.3.3- or "maxent") model using AICc
+#' Calibrate a MaxEnt (ver 3.3.3+ or "maxent") model using AICc
 #'
-#' This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes. The "best" model has the lowest AICc, with ties broken by number of features (fewer is better), regularization multiplier (higher better), then finally the number of coefficients (fewer better). The function can return the best model (default), a list of models created using all possible combinations of feature classes and regularization multipliers, and/or a data frame with tuning statistics for each model. Models in the list and in the data frame are sorted from best to worst. The function requires the \code{maxent} jar file (see \emph{Details}).
+#' This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes. The best model has the lowest AICc, with ties broken by number of features (fewer is better), regularization multiplier (higher better), then finally the number of coefficients (fewer better). The function can return the best model (default), a list of models created using all possible combinations of feature classes and regularization multipliers, and/or a data frame with tuning statistics for each model. Models in the list and in the data frame are sorted from best to worst. The function requires the \code{maxent} jar file (see \emph{Details}).
 #'
-#' @param data  Data frame or matrix. Environmental predictors (and no other fields) for presences and background sites.
+#' @param data  Data frame or matrix. Contains a column indicating whether each row is a presence (1) or background (0) site, plus columns for environmental predictors.
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param regMult Numeric vector. Values of the master regularization parameters (called \code{beta} in some publications) to test.
@@ -138,18 +138,19 @@ trainMaxEnt <- function(
 		if (!is.null(anyway)) dropOverparam <- anyway
 		
 		# response and predictors
-		if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
-		if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
+		if (inherits(data, 'data.table')) data <- as.data.frame(data)
+		if (inherits(resp, c('integer', 'numeric'))) resp <- names(data)[resp]
+		if (inherits(preds, c('integer', 'numeric'))) preds <- names(data)[preds]
 
 		# get response and predictors
-		presentBg <- data[ , resp]
+		presBg <- data[ , resp]
 		data <- data[ , preds, drop=FALSE]
 
 		## collate all presences
-		allPres <- data[presentBg == 1, , drop=FALSE]
+		allPres <- data[presBg == 1, , drop=FALSE]
 
 		## collate all background sites
-		allBg <- data[presentBg == 0, , drop=FALSE]
+		allBg <- data[presBg == 0, , drop=FALSE]
 
 	### generate table of parameterizations
 	#######################################
@@ -225,7 +226,7 @@ trainMaxEnt <- function(
 				i = i,
 				scratchDir = scratchDir,
 				tuning = tuning,
-				presentBg = presentBg,
+				presBg = presBg,
 				data = data,
 				allPres = allPres,
 				allBg = allBg,
@@ -330,7 +331,7 @@ trainMaxEnt <- function(
 	i,								# iterator
 	scratchDir,						# master temp path
 	tuning,							# tuning data frame
-	presentBg,						# vector with 1 (present) / 0 (background)
+	presBg,						# vector with 1 (present) / 0 (background)
 	data,							# df with all presence/background environmental data
 	allPres,						# df with all presence environmental data
 	allBg,							# df with all background environmental data
@@ -370,7 +371,7 @@ trainMaxEnt <- function(
 	# train model
 	model <- dismo::maxent(
 		x=data,
-		p=as.vector(presentBg),
+		p=as.vector(presBg),
 		path=thisScratchDir,
 		args=params,
 		silent=TRUE
@@ -414,7 +415,7 @@ trainMaxEnt <- function(
 	}
 
 	# AICc
-	AICc <- -2 * ll + 2 * numCoeff + (2 * numCoeff * (numCoeff + 1)) / (sum(presentBg) - numCoeff - 1)
+	AICc <- -2 * ll + 2 * numCoeff + (2 * numCoeff * (numCoeff + 1)) / (sum(presBg) - numCoeff - 1)
 
 	# remove temporary files... note that "species.lambda" file cannot be removed unless R is closed, so we'll just make it smaller to reduce disk space usage
 	utils::write.csv(NULL, paste0(thisScratchDir, '/species.lambdas'))
