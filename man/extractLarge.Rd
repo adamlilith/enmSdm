@@ -7,6 +7,8 @@
 extractLarge(x, y, keep = NULL, atATime = 10000, verbose = TRUE, ...)
 }
 \arguments{
+\item{x}{\code{sf}, \code{Raster}*, \code{SpatRaster}, \code{Spatial}*, or \code{SpatVector} object from which data will be extracted from.}
+
 \item{y}{\code{sf}, \code{Spatial}* or \code{SpatVector} with points/lines/polygons denoting locations where data will be extracted from.}
 
 \item{keep}{Names or indices of the fields or values in \code{x} to keep. If \code{NULL} (default), then all columns will be kept. If you are unsure of these, try just extracting a small number items from \code{y} and see what the names in the output are.}

@@ -11,7 +11,7 @@
 #'	\item	Go get a coffee, because it may take a while.
 #' }
 #'
-#' @param	x	\code{sf}, \code{Raster}*, \code{SpatRaster}, \Spatial}*, or \code{SpatVector} object from which data will be extracted from.
+#' @param	x	\code{sf}, \code{Raster}*, \code{SpatRaster}, \code{Spatial}*, or \code{SpatVector} object from which data will be extracted from.
 #' @param	y \code{sf}, \code{Spatial}* or \code{SpatVector} with points/lines/polygons denoting locations where data will be extracted from.
 #' @param	keep Names or indices of the fields or values in \code{x} to keep. If \code{NULL} (default), then all columns will be kept. If you are unsure of these, try just extracting a small number items from \code{y} and see what the names in the output are.
 #' @param	atATime Number of records in \code{y} to extract at one time. If the object \code{x} has just a few things you are extracting (e.g., a few layers for a raster set or a few fields from a polygon), you can probably use a larger number; maybe, say, 100000. If your raster set or polygon has a lot of fields, then a smaller number may be required.
