@@ -8,7 +8,7 @@
 #'		\item   The function can be explicitly called (versus doing, say, \code{maxnet:::predict.maxnet}, which does not work even when that would be really useful...).
 #' }
 #'
-#' @param object	Object of class \code{maxnet}.
+#' @param model	Object of class \code{maxnet}.
 #' @param newdata	Object of class \code{data.frame}, \code{SpatRaster} (\pkg{terra} package), or any of \code{Raster}, \code{RasterBrick}, or \code{RasterStack} (\pkg{raster} package).
 #' @param clamp		If \code{TRUE} (default), predict outside the range of training data by 'clamping' values to the last value.
 #' @param type		One of:
@@ -23,31 +23,29 @@
 #' @seealso \code{\link[raster]{predict}} from the \pkg{raster} package, \code{\link[terra]{predict}} from the \pkg{terra} package, and \code{\link[maxnet]{maxnet}} (see the \code{predict} function therein)
 #' @export
 
-predictMaxNet <- function(object, newdata, clamp=TRUE, type='cloglog', ...)
-{
+predictMaxNet <- function(model, newdata, clamp=TRUE, type='cloglog', ...) {
 	
 	if (inherits(newdata, 'Raster')) {
-		out <- raster::predict(newdata, object, fun=predictMaxNet, ...)
+		out <- raster::predict(newdata, model, fun=predictMaxNet, ...)
 	} else if (inherits(newdata, 'SpatRaster')) {
-		out <- terra::predict(newdata, object, fun=predictMaxNet, ...)
+		out <- terra::predict(newdata, model, fun=predictMaxNet, ...)
 	} else {
 
 		if (clamp) {
-			for (v in intersect(names(object$varmax), names(newdata))) {
-				newdata[ , v] <- pmin(pmax(newdata[ , v], object$varmin[v]), object$varmax[v])
+			for (v in intersect(names(model$varmax), names(newdata))) {
+				newdata[ , v] <- pmin(pmax(newdata[ , v], model$varmin[v]), model$varmax[v])
 			}
 		}
-		terms <- sub('hinge\\((.*)\\):(.*):(.*)$', 'maxnet:::hingeval(\\1,\\2,\\3)', names(object$betas))
+		terms <- sub('hinge\\((.*)\\):(.*):(.*)$', 'maxnet:::hingeval(\\1,\\2,\\3)', names(model$betas))
 		terms <- sub('categorical\\((.*)\\):(.*)$', 'maxnet:::categoricalval(\\1,\'\\2\')', terms)
 		terms <- sub('thresholds\\((.*)\\):(.*)$', 'maxnet:::thresholdval(\\1,\\2)', terms)
 		f <- formula(paste('~', paste(terms, collapse=' + '), '-1'))
 		mm <- model.matrix(f, data.frame(newdata))
-		if (clamp) mm <- t(pmin(pmax(t(mm), object$featuremins[names(object$betas)]), 
-			object$featuremaxs[names(object$betas)]))
-		link <- (mm %*% object$betas) + object$alpha
-		type <- match.arg(type)
-		if (type=='cloglog') out <- 1 - exp(0 - exp(object$entropy + link))
-		if (type=='logistic') out <- 1 / (1 + exp(-object$entropy - link))
+		if (clamp) mm <- t(pmin(pmax(t(mm), model$featuremins[names(model$betas)]), 
+			model$featuremaxs[names(model$betas)]))
+		link <- (mm %*% model$betas) + model$alpha
+		if (type=='cloglog') out <- 1 - exp(0 - exp(model$entropy + link))
+		if (type=='logistic') out <- 1 / (1 + exp(-model$entropy - link))
 		if (type=='exponential') out <- exp(link)
 		if (type=='link') out <- link
 		out <- out[ , 1]

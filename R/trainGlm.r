@@ -152,8 +152,8 @@ trainGlm <- function(
 	}
 
 	# response and predictors
-	if (class(resp) %in% c('integer', 'numeric')) resp <- names(data)[resp]
-	if (class(preds) %in% c('integer', 'numeric')) preds <- names(data)[preds]
+	if (inherits(resp, c('integer', 'numeric'))) resp <- names(data)[resp]
+	if (inherits(preds, c('integer', 'numeric'))) preds <- names(data)[preds]
 
 	# number of data
 	sampleSize <- if (family=='binomial') {
@@ -189,8 +189,8 @@ trainGlm <- function(
 		for (thisPred in preds) { # for each predictor test single-variable terms
 
 			# train model
-			# thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method)
-			thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method, ...)
+			thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method)
+			# thisModel <- stats::glm(formula=stats::as.formula(paste0(form, ' + ', thisPred)), family=family, data=data, weights=w, method=method, ...)
 
 			# get AICc
 			thisAic <- MuMIn::AICc(thisModel)

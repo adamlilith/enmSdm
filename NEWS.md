@@ -1,3 +1,6 @@
+enmSdm 0.9.3 2022-05-12
+trainMaxNet() can now multi-core!
+
 enmSdm 0.9.2 2022-04-17
 extractLarge() is preserves memory much better
 

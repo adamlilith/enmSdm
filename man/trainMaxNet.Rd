@@ -2,7 +2,7 @@
 % Please edit documentation in R/trainMaxNet.r
 \name{trainMaxNet}
 \alias{trainMaxNet}
-\title{Calibrate a Maxent (ver 3.4.0+ or "maxnet") model using AICc}
+\title{Calibrate a MaxNet (MaxEnt) model using AICc}
 \usage{
 trainMaxNet(
   data,
@@ -14,12 +14,14 @@ trainMaxNet(
   dropOverparam = TRUE,
   anyway = TRUE,
   out = "model",
+  forceLinear = TRUE,
+  cores = 1,
   verbose = FALSE,
   ...
 )
 }
 \arguments{
-\item{data}{Data frame or matrix. Environmental predictors (and no other fields) for presences and background sites.}
+\item{data}{Data frame or matrix. Contains a column indicating whether each row is a presence (1) or background (0) site, plus columns for environmental predictors.}
 
 \item{resp}{Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.}
 
@@ -29,28 +31,33 @@ trainMaxNet(
 
 \item{classes}{Character list. Names of feature classes to use (either \code{default} to use \code{lpqh}) or any combination of \code{lpqht}, where \code{l} ==> linear features, \code{p} ==> product features, \code{q} ==> quadratic features, \code{h} ==> hinge features, and \code{t} ==> threshold features.}
 
-\item{testClasses}{Logical. If \code{TRUE} (default) then test all possible combinations of classes (note that all tested models will at least have linear features). If \code{FALSE} then use the classes provided (these will not vary between models).}
+\item{testClasses}{Logical.  If \code{TRUE} (default) then test all possible combinations of classes (note that all tested models will at least have linear features). If \code{FALSE} then use the classes provided (these will not vary between models).}
 
 \item{dropOverparam}{Logical, if \code{TRUE} (default), drop models if they have more coefficients than training occurrences. It is possible for no models to fulfill this criterion, in which case no models will be returned.}
 
-\item{anyway}{Logical. If no model has fewer coefficients than predictors, return the model with the lowest AICc anyway. Default is \code{TRUE}.}
+\item{anyway}{Logical. Same as \code{dropOverparam} (included for backwards compatibility. If \code{NULL} (default), then the value of \code{dropOverparam} will take precedence. If \code{TRUE} or \code{FALSE} then \code{anyway} will override the value of \code{dropOverparam}.}
 
-\item{out}{Character. Indicates type of value returned. If \code{model} then returns an object of class \code{maxnet}. If \code{tuning} then just return the AICc table for each kind of model term used in model construction. If both then return a 2-item list with the best model and the AICc table.}
+\item{out}{Character or character vector. Indicates type of value returned. Values can be \code{'model'} (default; return model with lowest AICc), \code{'models'} (return a list of all models), and/or \code{'tuning'} (return a data frame with AICc for each model). If more than one value is specified, then the output will be a list with elements named "model", "models", and/or "tuning". If \code{'models'} is specified, they will only be produced if \code{select = TRUE}. The models will appear in the list in same order as they appear in the tuning table (i.e., model with the lowest AICc first, second-lowest next, etc.). If just one value is specified, the output will be either an object of class \code{MaxEnt}, a list with objects of class \code{MaxEnt}, or a data frame.}
 
-\item{verbose}{Logical. If \code{TRUE} report progress and AICc table.}
+\item{forceLinear}{Logical. If \code{TRUE} (default) then require any tested models to include at least linear features.}
 
-\item{...}{Arguments to pass to \code{maxnet()}.}
+\item{cores}{Integer >= 1. Number of cores to use. Default is 1.}
+
+\item{verbose}{Logical. If \code{TRUE} report the AICc table.}
+
+\item{...}{Extra arguments. Not used.}
 }
 \value{
-If \code{out = 'model'} this function returns an object of class \code{maxnet}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log-likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{maxnet} object and the data frame.
+If \code{out = 'model'} this function returns an object of class \code{MaxEnt}. If \code{out = 'tuning'} this function returns a data frame with tuning parameters, log likelihood, and AICc for each model tried. If \code{out = c('model', 'tuning'} then it returns a list object with the \code{MaxEnt} object and the data frame.
 }
 \description{
-This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes. The "best" model has the lowest AICc, with ties broken by number of features (fewer is better), regularization multiplier (higher better), then finally the number of coefficients (fewer better). The function can return the best model (default), a list of models created using all possible combinations of feature classes and regularization multipliers, and/or a data frame with tuning statistics for each model. Models in the list and in the data frame are sorted from best to worst. See Warren, D.L. and S.N. Siefert. 2011. Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria. \emph{Ecological Applications} 21:335-342.
+This function calculates the "best" MaxEnt model using AICc across all possible combinations of a set of master regularization parameters and feature classes. The "best" model has the lowest AICc, with ties broken by number of features (fewer is better), regularization multiplier (higher better), then finally the number of coefficients (fewer better). The function can return the best model (default), a list of models created using all possible combinations of feature classes and regularization multipliers, and/or a data frame with tuning statistics for each model. Models in the list and in the data frame are sorted from best to worst.
 }
 \details{
-The function ranks models by AICc (first), then breaks any ties by sorting by number of features (fewer is better), regularization multiplier (higher is better), then finally the number of coefficients (fewer is better).
+This function is a wrapper for \code{\link[maxnet]{maxnet}}.
 }
 \examples{
+
 ### model red-bellied lemurs
 data(mad0)
 data(lemurs)
@@ -64,6 +71,7 @@ clim <- raster::crop(clim, mad0)
 # occurrence data
 occs <- lemurs[lemurs$species == 'Eulemur rubriventer', ]
 occsEnv <- raster::extract(clim, occs[ , c('longitude', 'latitude')])
+occsEnv <- as.data.frame(occsEnv) # need to do this for prediction later
 
 # background sites
 bg <- 2000 # too few cells to locate 10000 background points
@@ -110,6 +118,11 @@ points(occs[ , c('longitude', 'latitude')])
 plot(mapNet, main='MaxNet')
 points(occs[ , c('longitude', 'latitude')])
 
+# predictions to occurrences
+(dismo::predict(ent, occsEnv, args=c('outputformat=logistic')))
+(enmSdm::predictMaxEnt(ent, occsEnv, type='logistic'))
+(c(predict(net, occsEnv, type='logistic')))
+
 # note the differences between the tuning of the two models...
 # this is because maxnet() (used by trainMaxNet())
 # uses an approximation:
@@ -131,6 +144,10 @@ predMn <- predict(mn, data, type='logistic')
 par(mfrow=c(1, 1))
 plot(predMx, predMn)
 abline(0, 1)
+}
+\references{
+Phillips, S.J., Anderson, R.P., Dudík, M. Schapire, R.E., and Blair, M.E.  2017.  Opening the black box: An open-source release of Maxent. \emph{Ecography} 40:887-893.
+Warren, D.L. and S.N. Siefert. 2011. Ecological niche modeling in Maxent: The importance of model complexity and the performance of model selection criteria. \emph{Ecological Applications} 21:335-342.
 }
 \seealso{
 \code{\link[maxnet]{maxnet}}, \code{\link[dismo]{maxent}}, \code{\link{trainMaxEnt}}
