@@ -72,8 +72,7 @@ Note: If for some reason these commands don't work, you can install the package(
 * `squareRastCells`: Resample a raster so cells are square
 
 ### Range area based on minimum convex polygons ###
-* `mcpFromPolygons`: Minimum convex polygon from a set of polygons *and* points
-* `areaFromPointsOrPoly`: Area of a spatial polygon or set of points
+* `mcpFromPolys`: Minimum convex polygon from a set of polygons *and* points
 
 ### Geographic utility functions ###
 * `convertTropicosCoords`: Convert coordinates from the TROPICOS database
