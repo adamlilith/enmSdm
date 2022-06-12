@@ -2,7 +2,7 @@
 #'
 #' This function calculates the "best" Maxent model using AICc across all possible combinations of a set of master regularization parameters and feature classes. The best model has the lowest AICc, with ties broken by number of features (fewer is better), regularization multiplier (higher better), then finally the number of coefficients (fewer better). The function can return the best model (default), a list of models created using all possible combinations of feature classes and regularization multipliers, and/or a data frame with tuning statistics for each model. Models in the list and in the data frame are sorted from best to worst. The function requires the \code{maxent} jar file (see \emph{Details}).
 #'
-#' @param data  Data frame or matrix. Contains a column indicating whether each row is a presence (1) or background (0) site, plus columns for environmental predictors.
+#' @param data	Data frame or matrix. Contains a column indicating whether each row is a presence (1) or background (0) site, plus column(s) for environmental predictor(s).
 #' @param resp Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.
 #' @param preds Character list or integer list. Names of columns or column indices of predictors. Default is to use the second and subsequent columns in \code{data}.
 #' @param regMult Numeric vector. Values of the master regularization parameters (called \code{beta} in some publications) to test.
@@ -123,7 +123,7 @@ trainMaxEnt <- function(
 	anyway = TRUE,
 	out = 'model',
 	forceLinear = TRUE,
-	jackknife = TRUE,
+	jackknife = FALSE,
 	arguments = NULL,
 	scratchDir = NULL,
 	cores = 1,
@@ -211,17 +211,22 @@ trainMaxEnt <- function(
 	### train models
 	################
 		
-		if (cores > 1) {
+		if (cores > 1L) {
+
+			cores <- min(cores, parallel::detectCores(logical = FALSE))
 			`%makeWork%` <- foreach::`%dopar%`
-			cl <- parallel::makeCluster(cores)
+			cl <- parallel::makePSOCKcluster(cores)
 			doParallel::registerDoParallel(cl)
+
 		} else {
 			`%makeWork%` <- foreach::`%do%`
 		}
 		
+		paths <- .libPaths() # need to pass this to avoid "object '.doSnowGlobals' not found" error!!!
 		mcOptions <- list(preschedule=TRUE, set.seed=FALSE, silent=FALSE)
-		
-		work <- foreach::foreach(i=1:nrow(tuning), .options.multicore=mcOptions, .combine='c', .inorder=FALSE, .export=c('.trainMaxEntWorker'), .packages = c('rJava')) %makeWork%
+
+		work <- foreach::foreach(i=1:nrow(tuning), .options.multicore=mcOptions, .combine='c', .inorder=FALSE, .export=c('.trainMaxEntWorker'),
+		.packages = c('rJava')) %makeWork%
 			.trainMaxEntWorker(
 				i = i,
 				scratchDir = scratchDir,
@@ -231,10 +236,11 @@ trainMaxEnt <- function(
 				allPres = allPres,
 				allBg = allBg,
 				jackknife = jackknife,
-				arguments = arguments
+				arguments = arguments,
+				paths = paths
 			)
-				
-		if (cores > 1) parallel::stopCluster(cl)
+
+		if (cores > 1L) parallel::stopCluster(cl)
 	
 	### collate results
 	###################
@@ -331,13 +337,17 @@ trainMaxEnt <- function(
 	i,								# iterator
 	scratchDir,						# master temp path
 	tuning,							# tuning data frame
-	presBg,						# vector with 1 (present) / 0 (background)
+	presBg,							# vector with 1 (present) / 0 (background)
 	data,							# df with all presence/background environmental data
 	allPres,						# df with all presence environmental data
 	allBg,							# df with all background environmental data
 	jackknife,						# logical
-	arguments						# string of arguments for maxent()
+	arguments,						# string of arguments for maxent()
+	paths							# library path(s)
 ) {
+	
+	 # need to call this to avoid "object '.doSnowGlobals' not found" error!!!
+	.libPaths(paths)
 	
 	thisRegMult <- tuning$regMult[i]
 	thisClasses <- tuning$classes[i]
