@@ -1,4 +1,4 @@
-#' Magascar spatial object
+#' Madagascar spatial object
 #'
 #' SpatialPolygonsDataFrame of Madagascar from GADM
 #'
