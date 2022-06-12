@@ -2,21 +2,26 @@
 #'
 #' This function calculates the Continuous Boyce Index (CBI), a measure of model accuracy for presence-only test data. Overlapping bins are placed such that any given point (prediction) along [0, 1] is covered by at most 2 bins. See the function \code{\link[enmSdm]{contBoyce}} for a version that allows coverage by 2 or more bins.
 #' @param pres Numeric vector. Predicted values at presence sites.
-#' @param bg Numeric vector.  Predicted values at absence/background sites.
+#' @param bg Numeric vector.  Predicted values at background sites.
 #' @param numClasses Positive integer. Number of classes into which to divide predictions at background sites. Hirzel et al. suggest using 10 (default).
 #' @param presWeight Numeric vector same length as \code{pres}. Relative weights of presence sites. The default is to assign each presence a weight of 1.
 #' @param bgWeight Numeric vector same length as \code{bg}. Relative weights of background sites. The default is to assign each presence a weight of 1.
 #' @param upweightTails Logical. \code{TRUE} ==> weights of presences and background sites that occur in the first half of the lowest bin or in the second half of the last bin  have their weights multiplied by 2.
 #' @param na.rm Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.
 #' @param autoWindow Logical. If TRUE then calculate bin boundaries starting at minimum predicted value and ending at maximum predicted value (default). If FALSE calculate bin boundaries starting at 0 and ending at 1.
-#' @param method Character. Type of correlation to calculate. The default is \code{'spearman'}, the Spearman rank correlation coefficient used by Boyce et al. (2002) and Hirzel et al. (2006), which is the traditional CBI. In contrast, \code{'pearson'} or \code{'kendall'} can be used instead.  See [stats::cor()] for more details.
-#' @param graph Logical. If TRUE then plot P vs E and P/E versus bin.
+#' @param method Character. Type of correlation to calculate. The default is \code{'spearman'}, the Spearman rank correlation coefficient used by Boyce et al. (2002) and Hirzel et al. (2006), which is the "traditional" CBI. In contrast, \code{'pearson'} or \code{'kendall'} can be used instead.    See \code{\link[stats]{cor}} for more details.
+#' @param graph Logical. If \code{TRUE} then plot P vs E and P/E versus bin.
 #' @return Numeric value.
-#' @details The CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class. Values >0 indicate the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probabilty of presence.
-#' @references Boyce, M.S., Vernier, P.R., Nielsen, S.E., and Schmiegelow, F.K.A.  2002.  Evaluating resource selection functions.  \emph{Ecological Modeling} 157:281-300)
-#' @references Hirzel, A.H., Le Lay, G., Helfer, V., Randon, C., and Guisan, A.  2006.  Evaluating the ability of habitat suitability models to predict species presences.  \emph{Ecological Modeling} 199:142-152.
+#'
+#' @details CBI is the Spearman rank correlation coefficient between the proportion of sites in each prediction class and the expected proportion of predictions in each prediction class based on the proportion of the landscape that is in that class.  The index ranges from -1 to 1. Values >0 indicate the model's output is positively correlated with the true probability of presence.  Values <0 indicate it is negatively correlated with the true probability of presence.
+#'
+#' @references Boyce, M.S., Vernier, P.R., Nielsen, S.E., and Schmiegelow, F.K.A.  2002.  Evaluating resource selection functions.  \emph{Ecological Modeling} 157:281-300. \doi{https://doi.org/10.1016/S0304-3800(02)00200-4}
+#' @references Hirzel, A.H., Le Lay, G., Helfer, V., Randon, C., and Guisan, A.  2006.  Evaluating the ability of habitat suitability models to predict species presences.  \emph{Ecological Modeling} 199:142-152. \doi{10.1016/j.ecolmodel.2006.05.017}
+#'
 #' @seealso \code{\link[enmSdm]{contBoyce}}
+#'
 #' @examples
+#'
 #' set.seed(57)
 #' pres <- seq(0.5, 1, length.out=100)
 #' bg <- runif(1000)
@@ -25,6 +30,7 @@
 #' presWeight <- c(rep(1, 50), rep(0.5, 50))
 #' contBoyce2x(pres, bg, presWeight=presWeight)
 #' contBoyce(pres, bg, presWeight=presWeight)
+#'
 #' @export
 contBoyce2x <- function(
 	pres,
@@ -67,8 +73,8 @@ contBoyce2x <- function(
 	}
 
 	# right hand side of each class (assumes max value is >0)
-	lowestBound <- if (autoWindow) { min(c(pres, bg), na.rm=T) } else { 0 }
-	highestBound <- if (autoWindow) { max(c(pres, bg), na.rm=T) + .Machine$double.eps } else { 1 + omnibus::eps() }
+	lowestBound <- if (autoWindow) { min(c(pres, bg)) } else { 0 }
+	highestBound <- if (autoWindow) { max(c(pres, bg)) + omnibus::eps() } else { 1 + omnibus::eps() }
 	classBound <- seq(from=lowestBound, to=highestBound, length.out=numClasses + 2)
 
 	# up-weight tails
@@ -124,11 +130,6 @@ contBoyce2x <- function(
 
 	# calculate continuous Boyce index (cbi)
 	cbi <- stats::cor(x=1:length(PE), y=P/E, method=method)
-
-	#####################
-	## post-processing ##
-	#####################
-
 	cbi
 
 }
