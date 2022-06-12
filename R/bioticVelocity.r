@@ -50,6 +50,7 @@
 #' @param onlyInSharedCells Logical, if \code{TRUE}, calculate biotic velocity using only those cells that are not \code{NA} in the start and end of each time period. This is useful for controlling for shifting land mass due to sea level rise, for example, when calculating biotic velocity for an ecosystem or a species. The default is \code{FALSE}.
 #' @param cores Positive integer. Number of processor cores to use. Note that if the number of time steps at which velocity is calculated is small, using more cores may not always be faster.
 #' @param warn Logical, if \code{TRUE} (default) then display function-specific warnings.
+#' @param paths Character vector or \code{NULL} (default). This is used internally for multi-core functionality and so rarely by the user (i.e., leave this as \coed{NULL}).
 #' @param ... Other arguments (not used).
 #' @return A data frame with biotic velocities and related values. Fields are as follows:
 #' \itemize{
@@ -336,7 +337,7 @@
 #' mc1 <- bioticVelocity(x=mats, metrics='centroid', cores=4)
 #' mc2 <- bioticVelocity(x=mats, elevation=elev, metrics='centroid', cores=4)
 #' plot(mc1$centroidVelocity, mc2$centroidVelocity,
-#' xlab='No elevation', ylab='Elevation')
+#' xlab='Velocity: No elevation', ylab='Velocity: Elevation')
 #' abline(0, 1)
 #' }
 #' 
@@ -354,6 +355,7 @@ bioticVelocity <- function(
 	onlyInSharedCells = FALSE,
 	cores = 1,
 	warn = TRUE,
+	paths = NULL,
 	...
 ) {
 
@@ -370,16 +372,22 @@ bioticVelocity <- function(
 		cores <- 1
 		warn <- TRUE
 	}
+
 	
-	xClass <- class(x)
+	# need to pass library paths to single-core instances to avoid "object '.doSnowGlobals' not found" error
+	if (cores == 1L & !is.null(paths)) {
+		.libPaths(paths)
+	} else if (cores > 1L & is.null(paths)) {
+		paths <- .libPaths()
+	}
 
 	### time of each period and times across which to calculate velocity
 	####################################################################
 
 		# total number of time periods
-		totalTimes <- if ('array' %in% xClass) {
-			dim(x)[3]
-		} else if (xClass %in% c('RasterStack', 'RasterBrick')) {
+		totalTimes <- if (inherits(x, 'array')) {
+			dim(x)[3L]
+		} else if (inherits(x, c('RasterStack', 'RasterBrick'))) {
 			raster::nlayers(x)
 		}
 
@@ -419,7 +427,7 @@ bioticVelocity <- function(
 	#########################################################
 
 		# if rasters
-		if (xClass %in% c('RasterStack', 'RasterBrick')) {
+		if (inherits(x, c('RasterStack', 'RasterBrick'))) {
 
 			if (is.null(longitude) | is.null(latitude)) {
 		
@@ -434,7 +442,7 @@ bioticVelocity <- function(
 		
 		# if input is an array and extent/CRS are specified
 		# then get longitude and latitude and convert to array
-		if ('array' %in% xClass) {
+		if (inherits(x, 'array')) {
 
 			x <- x[ , , atIndices]
 			nRows <- dim(x)[1]
@@ -481,10 +489,10 @@ bioticVelocity <- function(
 	### calculate velocities
 	########################
 	
-		cores <- if (cores > 1 & length(atTimes) > 2) {
-			min(cores, parallel::detectCores())
+		cores <- if (cores > 1 & length(atTimes) > 2L) {
+			min(cores, parallel::detectCores(logical=FALSE))
 		} else {
-			1
+			1L
 		}
 
 		### multi-core
@@ -493,13 +501,13 @@ bioticVelocity <- function(
 		# strategy: divide the key indices atTimes and indicesFrom into sets that can be done by one core
 		# then feed bioticVelocity() a subset of rasters corresponding to these indices
 		
-		if (cores > 1) {
+		if (cores > 1L) {
 
 			# divvy up time periods among cores
 			repAtTimes <- repIndicesFrom <- list()
 			repSize <- floor(length(atTimes) / cores)
 			numReps <- floor(length(atTimes) / repSize)
-			for (i in 1:numReps) {
+			for (i in 1L:numReps) {
 				
 				extra <- ifelse(i > 1, 1, 0)
 				repAtTimes[[i]] <- atTimes[(1 + (i - 1) * repSize - extra):(i * repSize)]
@@ -508,28 +516,28 @@ bioticVelocity <- function(
 			}
 			
 			# add times excluded because of rounding
-			lastRepAtTime <- utils::tail(repAtTimes[[length(repAtTimes)]], 1)
-			lastAtTime <- utils::tail(atTimes, 1)
+			lastRepAtTime <- utils::tail(repAtTimes[[length(repAtTimes)]], 1L)
+			lastAtTime <- utils::tail(atTimes, 1L)
 			if (lastRepAtTime < lastAtTime) {
 				indicesRemainingAtTimes <- which(atTimes == lastRepAtTime):length(atTimes)
-				repAtTimes[[numReps + 1]] <- atTimes[indicesRemainingAtTimes]
-				repIndicesFrom[[numReps + 1]] <- indicesRemainingAtTimes
+				repAtTimes[[numReps + 1L]] <- atTimes[indicesRemainingAtTimes]
+				repIndicesFrom[[numReps + 1L]] <- indicesRemainingAtTimes
 			}
 
 			# multi-core
 			if (cores > 1) {
+				cores <- min(cores, parallel::detectCores(logical = FALSE))
 				`%makeWork%` <- foreach::`%dopar%`
-				cl <- parallel::makeCluster(cores)
+				cl <- parallel::makePSOCKcluster(cores)
 				doParallel::registerDoParallel(cl)
 			} else {
 				`%makeWork%` <- foreach::`%do%`
 			}
 			
+		paths <- .libPaths() # need to pass this to avoid "object '.doSnowGlobals' not found" error!!!
 			mcOptions <- list(preschedule=TRUE, set.seed=FALSE, silent=FALSE)
 			
 			export <- c('bioticVelocity', '.euclid', '.cardinalDistance', '.interpCoordFromQuantile', 'compareNiches')
-			
-			# parallel::clusterEvalQ(cl, .libPaths(.libPaths()))
 			
 			out <- foreach::foreach(
 				i=seq_along(repAtTimes),
@@ -549,9 +557,9 @@ bioticVelocity <- function(
 					metrics = metrics,
 					quants = quants,
 					onlyInSharedCells = onlyInSharedCells,
-					cores = 1,
-					warn = FALSE#,
-					# ...
+					cores = 1L,
+					warn = FALSE,
+					paths = paths
 				)
 					
 			parallel::stopCluster(cl)
@@ -566,19 +574,19 @@ bioticVelocity <- function(
 			# output: data frame with one column per metric
 			out <- data.frame()
 			
-			indicesFrom <- 1:(length(atTimes) - 1)
+			indicesFrom <- 1L:(length(atTimes) - 1L)
 
 			### by each time period
 			for (indexFrom in indicesFrom) {
 
 				### get start time/end period layers and correct for shared non-NA cells
 				x1 <- x[[indexFrom]]
-				x2 <- x[[indexFrom + 1]]
+				x2 <- x[[indexFrom + 1L]]
 				if (!is.null(elevation)) elev <- elevation
 
 				### time
 				timeFrom <- atTimes[indexFrom]
-				timeTo <- atTimes[indexFrom + 1]
+				timeTo <- atTimes[indexFrom + 1L]
 				timeSpan <- timeTo - timeFrom
 
 				### remember
@@ -1021,13 +1029,13 @@ bioticVelocity <- function(
 						elevQuantIndexTo <- omnibus::bracket(weightedElevQuantTo, by=weightedElevTo, index=TRUE, warn=FALSE)
 						
 						# get the elevations
-						if (length(elevQuantIndexFrom) == 1) {
+						if (length(elevQuantIndexFrom) == 1L) {
 							elevFrom <- elevVectFromOrdered[elevQuantIndexFrom]
 						} else {
-							elevFrom <- thisQuant * elevVectFromOrdered[elevQuantIndexFrom[1]] + (1 - thisQuant) * elevVectFromOrdered[elevQuantIndexFrom[2]]
+							elevFrom <- thisQuant * elevVectFromOrdered[elevQuantIndexFrom[1]] + (1 - thisQuant) * elevVectFromOrdered[elevQuantIndexFrom[2L]]
 						}
 						
-						if (length(elevQuantIndexTo) == 1) {
+						if (length(elevQuantIndexTo) == 1L) {
 							elevTo <- elevVectToOrdered[elevQuantIndexTo]
 						} else {
 							elevTo <- thisQuant * elevVectToOrdered[elevQuantIndexTo[1]] + (1 - thisQuant) * elevVectToOrdered[elevQuantIndexTo[2]]
@@ -1148,11 +1156,11 @@ bioticVelocity <- function(
 	### calculate cell weightings
 	
 	# weight row/column containing reference lat/long by 0.5
-	cellLength <- mean(coordVect[2:length(coordVect)] - coordVect[1:(length(coordVect) - 1)])
-	cellSides <- c(coordVect[1] - 0.5 * cellLength, 0.5 * cellLength + coordVect)
+	cellLength <- mean(coordVect[2L:length(coordVect)] - coordVect[1L:(length(coordVect) - 1L)])
+	cellSides <- c(coordVect[1L] - 0.5 * cellLength, 0.5 * cellLength + coordVect)
 	maskCellRows <- omnibus::bracket(refCoord, by=cellSides, inner=TRUE, index=TRUE)
-	coord1 <- cellSides[maskCellRows[1]]
-	coord2 <- cellSides[maskCellRows[2]]
+	coord1 <- cellSides[maskCellRows[1L]]
+	coord2 <- cellSides[maskCellRows[2L]]
 	maskCellsCenter <- 0.5 * (longOrLat >= coord1) * (longOrLat <= coord2)
 		
 	# weight rows/columns east/west/north/south of reference by 1
@@ -1261,8 +1269,8 @@ bioticVelocity <- function(
 	xCumulSumVect <- xCumulSumVect / max(xCumulSumVect)
 	
 	# coordinates of cell edges starting at southernmost edge of southernmost cell... exception: the last latitude will be the northernmost edge of the northernmost cell
-	cellLength <- mean(coordVect[2:length(coordVect)] - coordVect[1:(length(coordVect) - 1)])
-	cellSides <- c(coordVect[1] - 0.5 * cellLength, 0.5 * cellLength + coordVect)
+	cellLength <- mean(coordVect[2:length(coordVect)] - coordVect[1L:(length(coordVect) - 1)])
+	cellSides <- c(coordVect[1L] - 0.5 * cellLength, 0.5 * cellLength + coordVect)
 	
 	# holds output, one row per quantile value
 	quantOut <- data.frame()
@@ -1280,29 +1288,29 @@ bioticVelocity <- function(
 			cells <- omnibus::bracket(quant, by=xCumulSumVect, index=TRUE, inner=TRUE, warn=warn)
 
 			# get bracketing latitudes and abundances
-			cell1 <- cells[1]
+			cell1 <- cells[1L]
 			coord1 <- cellSides[cell1]
 			xCumulSum1 <- xCumulSumVect[cell1]
 			
-			if (length(cells) > 1) {
-				cell2 <- cells[2]
+			if (length(cells) > 1L) {
+				cell2 <- cells[2L]
 				coord2 <- cellSides[cell2]
 				xCumulSum2 <- xCumulSumVect[cell2]
 			}
 
 			# interpolate latitude
-			coord <- if (length(cells) == 1) { # exact match
+			coord <- if (length(cells) == 1L) { # exact match
 				coord1
-			} else if (length(cells) == 2) { # bracketed
+			} else if (length(cells) == 2L) { # bracketed
 				coord1 + ((quant - xCumulSum1) / (xCumulSum2 - xCumulSum1)) * (coord2 - coord1)
 			}
 
 			# interpolate elevation
 			if (!is.null(weightedElev)) {
 				
-				if (length(cells) == 1) { # exact match
+				if (length(cells) == 1L) { # exact match
 					elev <- weightedElevVect[cell1]
-				} else if (length(cells) == 2) { # bracketed
+				} else if (length(cells) == 2L) { # bracketed
 					
 					elev1 <- weightedElevVect[cell1]
 					elev2 <- weightedElevVect[cell2]
