@@ -16,15 +16,15 @@ aucWeighted(
 )
 }
 \arguments{
-\item{pres}{Predictions at presence sites.}
+\item{pres}{Vector of predictions for "positive" cases (e.g., predictions at presence sites).}
 
-\item{contrast}{Predictions at absence/background sites.}
+\item{contrast}{Vector of predictions for "negative" cases (e.g., predictions at absence/background sites).}
 
-\item{presWeight}{Weights of presence cases. The default is to assign each presence case a weight of 1.}
+\item{presWeight}{Weights of positive cases. The default is to assign each positive case a weight of 1.}
 
-\item{contrastWeight}{Weights of absence/background cases. The default is to assign each case a weight of 1.}
+\item{contrastWeight}{Weights of contrast cases. The default is to assign each case a weight of 1.}
 
-\item{na.rm}{Logical. If \code{TRUE} then remove any presences and associated weights and background predictions and associated weights with \code{NA}s.}
+\item{na.rm}{Logical. If \code{TRUE} then remove any positive cases and associated weights and contrast predictions and associated weights with \code{NA}s.}
 
 \item{bg}{Same as \code{contrast}. Included for backwards compatibility. Ignored if \code{contrast} is not \code{NULL}.}
 
@@ -33,10 +33,10 @@ aucWeighted(
 \item{...}{Other arguments (unused).}
 }
 \value{
-Numeric value.
+A Numeric value.
 }
 \description{
-This function calculates the area under the receiver-operator characteristic curve (AUC) following Mason & Graham (2002). Positives and negatives values can be given weights.
+This function calculates the area under the receiver-operator characteristic curve (AUC) following Mason & Graham (2002). Each case (presence/non-presence) can be assigned a weight, if desired.
 }
 \examples{
 pres <- seq(0.5, 1, by=0.1)
@@ -58,8 +58,8 @@ contrastWeight <- sqrt(contrast)
 aucWeighted(pres, contrast, presWeight=presWeight, contrastWeight=contrastWeight)
 }
 \references{
-Mason, S.J. and N.E. Graham.  2002.  Areas beneath the relative operating characteristics (ROC) and relative operating levels (ROL) curves: Statistical significance and interpretation.  \emph{Quarterly Journal of the Royal Meteorological Society} 128:2145-2166.
+Mason, S.J. and N.E. Graham.  2002.  Areas beneath the relative operating characteristics (ROC) and relative operating levels (ROL) curves: Statistical significance and interpretation.  \emph{Quarterly Journal of the Royal Meteorological Society} 128:2145-2166. \doi{10.1256/003590002320603584}
 }
 \seealso{
-\code{\link{fpb}}, \code{\link{contBoyce}}, \code{\link[dismo]{evaluate}}
+\code{\link[dismo]{evaluate}}, \code{\link{aucMultiWeighted}}
 }

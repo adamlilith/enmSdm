@@ -15,7 +15,7 @@ trainMaxEnt(
   anyway = TRUE,
   out = "model",
   forceLinear = TRUE,
-  jackknife = TRUE,
+  jackknife = FALSE,
   arguments = NULL,
   scratchDir = NULL,
   cores = 1,
@@ -24,7 +24,7 @@ trainMaxEnt(
 )
 }
 \arguments{
-\item{data}{Data frame or matrix. Contains a column indicating whether each row is a presence (1) or background (0) site, plus columns for environmental predictors.}
+\item{data}{Data frame or matrix. Contains a column indicating whether each row is a presence (1) or background (0) site, plus column(s) for environmental predictor(s).}
 
 \item{resp}{Character or integer. Name or column index of response variable. Default is to use the first column in \code{data}.}
 

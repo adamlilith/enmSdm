@@ -86,8 +86,7 @@ Create an issue on \href{https://github.com/adamlilith/enmSdm/issues}{GitHub}.
 
 \section{Range area based on minimum convex polygons}{
 
-		\code{\link{mcpFromPolygons}} Minimum convex polygon from a set of polygons \emph{and} points \cr
-		\code{\link{areaFromPointsOrPoly}} Area of a spatial polygon or set of points \cr
+		\code{\link{mcpFromPolys}} Minimum convex polygon from a set of polygons \emph{and} points \cr
 }
 
 \section{Geographic utility functions}{

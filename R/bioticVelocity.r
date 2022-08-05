@@ -50,7 +50,7 @@
 #' @param onlyInSharedCells Logical, if \code{TRUE}, calculate biotic velocity using only those cells that are not \code{NA} in the start and end of each time period. This is useful for controlling for shifting land mass due to sea level rise, for example, when calculating biotic velocity for an ecosystem or a species. The default is \code{FALSE}.
 #' @param cores Positive integer. Number of processor cores to use. Note that if the number of time steps at which velocity is calculated is small, using more cores may not always be faster.
 #' @param warn Logical, if \code{TRUE} (default) then display function-specific warnings.
-#' @param paths Character vector or \code{NULL} (default). This is used internally for multi-core functionality and so rarely by the user (i.e., leave this as \coed{NULL}).
+#' @param paths Character vector or \code{NULL} (default). This is used internally for multi-core functionality and so rarely by the user (i.e., leave this as \code{NULL}).
 #' @param ... Other arguments (not used).
 #' @return A data frame with biotic velocities and related values. Fields are as follows:
 #' \itemize{
