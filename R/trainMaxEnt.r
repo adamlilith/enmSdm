@@ -217,12 +217,12 @@ trainMaxEnt <- function(
 			`%makeWork%` <- foreach::`%dopar%`
 			cl <- parallel::makePSOCKcluster(cores)
 			doParallel::registerDoParallel(cl)
+			parallel::clusterCall(cl, function(x) .libPaths(x), .libPaths()) # can find non-standard paths
 
 		} else {
 			`%makeWork%` <- foreach::`%do%`
 		}
 		
-		paths <- .libPaths() # need to pass this to avoid "object '.doSnowGlobals' not found" error!!!
 		mcOptions <- list(preschedule=TRUE, set.seed=FALSE, silent=FALSE)
 
 		work <- foreach::foreach(i=1:nrow(tuning), .options.multicore=mcOptions, .combine='c', .inorder=FALSE, .export=c('.trainMaxEntWorker'),
@@ -236,8 +236,7 @@ trainMaxEnt <- function(
 				allPres = allPres,
 				allBg = allBg,
 				jackknife = jackknife,
-				arguments = arguments,
-				paths = paths
+				arguments = arguments
 			)
 
 		if (cores > 1L) parallel::stopCluster(cl)
@@ -342,12 +341,8 @@ trainMaxEnt <- function(
 	allPres,						# df with all presence environmental data
 	allBg,							# df with all background environmental data
 	jackknife,						# logical
-	arguments,						# string of arguments for maxent()
-	paths							# library path(s)
+	arguments						# string of arguments for maxent
 ) {
-	
-	 # need to call this to avoid "object '.doSnowGlobals' not found" error!!!
-	.libPaths(paths)
 	
 	thisRegMult <- tuning$regMult[i]
 	thisClasses <- tuning$classes[i]

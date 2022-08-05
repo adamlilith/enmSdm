@@ -139,6 +139,7 @@ trainBrt <- function(
 			`%makeWork%` <- foreach::`%dopar%`
 			cl <- parallel::makePSOCKcluster(cores)
 			doParallel::registerDoParallel(cl)
+			parallel::clusterCall(cl, function(x) .libPaths(x), .libPaths()) # can find non-standard paths
 		} else {
 			`%makeWork%` <- foreach::`%do%`
 		}
