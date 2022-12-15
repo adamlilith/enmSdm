@@ -3,6 +3,10 @@ Tools for modeling niches and distributions of species
 
 <img align="right" src="enmSdm.png" height="250"/>
 
+<strong>Please note</strong>: `enmSdm` is being replaced by <a href='https://github.com/adamlilith/enmSdmX'>`enmSdmX`</a> (available on <a href='https://cran.r-project.org/web/packages/enmSdmX/index.html'>CRAN</a>).
+
+I am no longer actively developing `enmSdm` because it relies heavily on the soon-to-be-defunct `sp` and (maybe) `raster` packages, which in turn rely on the soon-to-be-defunct `PROJ4` geodetic/coordinate reference system libraries. Its replacement, <a href='https://github.com/adamlilith/enmSdmX'>`enmSdmX`</a> works with the new `terra` and `sf` packages, and--most importantly--`PROJ6`!
+
 This package is a complement to the popular `dismo` package for R by Robert Hijmans. Its contains a suite of efficiency functions for preparing data, training and evaluating species distribution models and ecological niche models, and comparing ecological niches.
 
 You can install this package in R using these commands:
