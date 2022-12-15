@@ -65,8 +65,7 @@
 #' 		\code{\link{squareRastCells}} Resample a raster so cells are "square" \cr
 #'
 #' @section Range area based on minimum convex polygons:
-#' 		\code{\link{mcpFromPolygons}} Minimum convex polygon from a set of polygons \emph{and} points \cr
-#' 		\code{\link{areaFromPointsOrPoly}} Area of a spatial polygon or set of points \cr
+#' 		\code{\link{mcpFromPolys}} Minimum convex polygon from a set of polygons \emph{and} points \cr
 #'
 #' @section Geographic utility functions:
 #' 		\code{\link{convertTropicosCoords}} Convert coordinates from the TROPICOS database \cr

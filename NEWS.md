@@ -1,3 +1,7 @@
+enmSdm X.X.X 2022-
+Added parallelization and memory-friendly feature
+to predictEnmSdm!
+
 enmSdm 0.9.3 2022-05-12
 trainMaxNet() can now multi-core!
 

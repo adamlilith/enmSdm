@@ -135,13 +135,16 @@ trainBrt <- function(
 	########
 
 		if (cores > 1) {
+			cores <- min(cores, parallel::detectCores(logical = FALSE))
 			`%makeWork%` <- foreach::`%dopar%`
-			cl <- parallel::makeCluster(cores)
+			cl <- parallel::makePSOCKcluster(cores)
 			doParallel::registerDoParallel(cl)
+			parallel::clusterCall(cl, function(x) .libPaths(x), .libPaths()) # can find non-standard paths
 		} else {
 			`%makeWork%` <- foreach::`%do%`
 		}
 		
+		paths <- .libPaths() # need to pass this to avoid "object '.doSnowGlobals' not found" error!!!
 		mcOptions <- list(preschedule=TRUE, set.seed=TRUE, silent=FALSE)
 		
 		# work <- foreach::foreach(i=1:nrow(tuning), .options.multicore=mcOptions, .combine='c', .inorder=FALSE, .export=c('.trainBrtWorker'), .packages = c('gbm')) %makeWork%
@@ -161,6 +164,7 @@ trainBrt <- function(
 				tries = tries,
 				tryBy = tryBy,
 				w = w,
+				paths = paths,
 				...
 			)
 				
@@ -271,8 +275,12 @@ trainBrt <- function(
 	tries,							# number of times to try if non-convergence
 	tryBy,							# one or more of c('learningRate', 'treeComplexity', 'maxTrees', 'stepSize')
 	w,								# weights (numeric vector),
+	paths,							# .libPaths() output
 	...								# other (to pass to step.gbm)
 ) {
+
+	 # need to call this to avoid "object '.doSnowGlobals' not found" error!!!
+	.libPaths(paths)
 
 	# flag to indicate if model converged or not
 	converged <- FALSE

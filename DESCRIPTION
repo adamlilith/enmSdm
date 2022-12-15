@@ -1,8 +1,8 @@
 Package: enmSdm
 Type: Package
 Title: Tools for Modeling Niches and Distributions of Species
-Version: 0.9.3
-Date: 2022-05-12
+Version: 0.9.4
+Date: 2022-06-15
 Authors@R: 
 	c(
 		person(
@@ -23,7 +23,6 @@ Description: Tools for implementing species distribution models (SDMs) and
 	at which a species' range moves through time).
 Depends:
 Imports:
-	adehabitatHR,
 	boot,
 	brglm2,
 	cluster,
@@ -46,6 +45,7 @@ Imports:
 	rgdal,
 	rgeos,
 	scales,
+	sf,
 	sp,
 	splines,
 	statisfactory,
@@ -64,5 +64,5 @@ LazyLoad: yes
 URL: http://github.com/adamlilith/enmSdm
 BugReports: https://github.com/adamlilith/enmSdm
 Encoding: UTF-8
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 VignetteBuilder: knitr

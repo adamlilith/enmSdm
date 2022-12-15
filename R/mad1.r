@@ -13,7 +13,7 @@
 #' @source www.gadm.org
 #' 
 #' @examples
-#' data(mad0)
-#' mad0
-#' plot(mad0)
-'mad0'
+#' data(mad1)
+#' mad1
+#' plot(mad1)
+'mad1'

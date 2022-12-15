@@ -1,10 +1,14 @@
 #' Metrics of niche overlap
 #'
 #' This function calculates several metrics of niche overlap based on predictions for two species (or for the same species but different models) at the same sites.
-#' @param x1 Numeric. Vector or matrix of predictions from a model.
-#' @param x2 Numeric. Vector or matrix of predictions from another model.
+#' @param x1 Numeric. Vector of predictions from a model.
+#' @param x2 Numeric. Vector of predictions from another model.
 #' @param method Character vector, indicates type of metric to calculate:
 #' \itemize{
+#' 
+#' \item \code{meanDiff}: Average difference
+#' \item \code{meanAbsDiff}: Average of absolute values of difference
+#' \item \code{rmsd}: Root-mean square deviation
 #' \item \code{d}: Schoener's \emph{D}
 #' \item \code{i}: Warren's \emph{I}
 #' \item \code{esp}: Godsoe's \emph{ESP}
@@ -14,15 +18,19 @@
 #' @param w Numeric list. Weights of predictions in \code{x1} and \code{x2}.
 #' @param na.rm Logical.  If T\code{TRUE} then remove elements in \code{x1} and \code{2} that are \code{NA} in \emph{either} \code{x1} or \code{x2}.
 #' @param ... Other arguments (not used).
+#' 
 #' @return List object with one element per value specified by the argument in \code{method}.
-#' @references Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution.  Evolution 62:2868-2883.
-#' @references Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Erratum.  Evolution 62:2868-2883.
-#' @references Godsoe, W.  2014.  Inferring the similarity of species distributions using Species’ Distribution Models.  Ecography 37:130-136.
+#' @references Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution. \emph{Evolution} 62:2868-2883. \doi{10.1111/j.1558-5646.2008.00482.x}
+#' @references Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Erratum.  \emph{Evolution} 62:2868-2883. \doi{10.1111/j.1558-5646.2010.01204.x}
+#' @references Godsoe, W.  2014.  Inferring the similarity of species distributions using Species’ Distribution Models.  \emph{Ecography} 37:130-136. \doi{10.1111/j.1600-0587.2013.00403.x}
+#' 
 #' @seealso \code{\link[enmSdm]{compareResponse}}
 #' @examples
+#'
 #' x1 <- seq(0, 1, length.out=100)
 #' x2 <- x1^2
 #' compareNiches(x1, x2)
+#'
 #' @export
 
 compareNiches <- function(
@@ -40,9 +48,9 @@ compareNiches <- function(
 	# remove NAs
 	if (na.rm) {
 		out <- omnibus::naOmitMulti(x1, x2, w)
-		x1 <- out[[1]]
-		x2 <- out[[2]]
-		w <- out[[3]]
+		x1 <- out[[1L]]
+		x2 <- out[[2L]]
+		w <- out[[3L]]
 	}
 
 	# weight

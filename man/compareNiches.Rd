@@ -14,12 +14,16 @@ compareNiches(
 )
 }
 \arguments{
-\item{x1}{Numeric. Vector or matrix of predictions from a model.}
+\item{x1}{Numeric. Vector of predictions from a model.}
 
-\item{x2}{Numeric. Vector or matrix of predictions from another model.}
+\item{x2}{Numeric. Vector of predictions from another model.}
 
 \item{method}{Character vector, indicates type of metric to calculate:
 \itemize{
+
+\item \code{meanDiff}: Average difference
+\item \code{meanAbsDiff}: Average of absolute values of difference
+\item \code{rmsd}: Root-mean square deviation
 \item \code{d}: Schoener's \emph{D}
 \item \code{i}: Warren's \emph{I}
 \item \code{esp}: Godsoe's \emph{ESP}
@@ -40,16 +44,18 @@ List object with one element per value specified by the argument in \code{method
 This function calculates several metrics of niche overlap based on predictions for two species (or for the same species but different models) at the same sites.
 }
 \examples{
+
 x1 <- seq(0, 1, length.out=100)
 x2 <- x1^2
 compareNiches(x1, x2)
+
 }
 \references{
-Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution.  Evolution 62:2868-2883.
+Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Environmental niche equivalency versus conservatism: Quantitative approaches to niche evolution. \emph{Evolution} 62:2868-2883. \doi{10.1111/j.1558-5646.2008.00482.x}
 
-Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Erratum.  Evolution 62:2868-2883.
+Warren, D.L., Glor, R.E., and Turelli, M.  2008.  Erratum.  \emph{Evolution} 62:2868-2883. \doi{10.1111/j.1558-5646.2010.01204.x}
 
-Godsoe, W.  2014.  Inferring the similarity of species distributions using Species’ Distribution Models.  Ecography 37:130-136.
+Godsoe, W.  2014.  Inferring the similarity of species distributions using Species’ Distribution Models.  \emph{Ecography} 37:130-136. \doi{10.1111/j.1600-0587.2013.00403.x}
 }
 \seealso{
 \code{\link[enmSdm]{compareResponse}}

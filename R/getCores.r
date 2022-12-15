@@ -8,8 +8,8 @@
 #' @export
 getCores <- function(rast, cores = 2, forceMulti = FALSE) {
 
-	cpus <- min(cores, parallel::detectCores())
-	if (!forceMulti) cpus <- min(cpus, raster::blockSize(rast, minblocks = 1)$n)
-	cpus
+	cores <- min(cores, parallel::detectCores(logical = FALSE))
+	if (!forceMulti) cores <- min(cores, raster::blockSize(rast, minblocks = 1)$n)
+	cores
 
 }

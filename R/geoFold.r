@@ -35,23 +35,23 @@
 #' sites <- rbind(group1, group2, group3)
 #'
 #' # simple g-folds
-#' folds <- geoFold(sites, k=3)
+#' folds <- pointGeoFold(sites, k=3)
 #' pointPlot(sites, folds, main='Simple G-folds')
 #'
 #' # g-folds with >= 5 sites per fold
-#' folds <- geoFold(sites, k=3, minIn=5)
+#' folds <- pointGeoFold(sites, k=3, minIn=5)
 #' pointPlot(sites, folds, main='G-folds with >=5 sites in each')
 #'
 #' # g-folds with >= 10 sites in and out of each fold
-#' folds <- geoFold(sites, k=3, minIn=10, minOut=10)
+#' folds <- pointGeoFold(sites, k=3, minIn=10, minOut=10)
 #' pointPlot(sites, folds, main='G-folds with >=10\nsites in/outside each')
 #'
 #' # g-folds with >=14 sites in and >= 20 sites out of each fold
-#' folds <- geoFold(sites, k=3, minIn=14, minOut=20)
+#' folds <- pointGeoFold(sites, k=3, minIn=14, minOut=20)
 #' pointPlot(sites, folds, main='G-folds >=14 in\nand >=20 outside')
 #' @export
 
-geoFold <- function(
+pointGeoFold <- function(
 	x,
 	k,
 	minIn = NULL,

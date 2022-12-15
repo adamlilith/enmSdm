@@ -17,6 +17,7 @@ bioticVelocity(
   onlyInSharedCells = FALSE,
   cores = 1,
   warn = TRUE,
+  paths = NULL,
   ...
 )
 }
@@ -80,6 +81,8 @@ bioticVelocity(
 \item{cores}{Positive integer. Number of processor cores to use. Note that if the number of time steps at which velocity is calculated is small, using more cores may not always be faster.}
 
 \item{warn}{Logical, if \code{TRUE} (default) then display function-specific warnings.}
+
+\item{paths}{Character vector or \code{NULL} (default). This is used internally for multi-core functionality and so rarely by the user (i.e., leave this as \code{NULL}).}
 
 \item{...}{Other arguments (not used).}
 }
@@ -374,7 +377,7 @@ elev <- raster(elev, crs=getCRS('wgs84'))
 mc1 <- bioticVelocity(x=mats, metrics='centroid', cores=4)
 mc2 <- bioticVelocity(x=mats, elevation=elev, metrics='centroid', cores=4)
 plot(mc1$centroidVelocity, mc2$centroidVelocity,
-xlab='No elevation', ylab='Elevation')
+xlab='Velocity: No elevation', ylab='Velocity: Elevation')
 abline(0, 1)
 }
 
