@@ -12,8 +12,6 @@
 #' }
 #'
 #' @return Object of class\code{SpatialPoints}, class\code{SpatVector}, class\code{sf}, a 2-column \code{matrix}, or a 2-column \code{data.frame}.
-#' @examples
-#'
 #'
 #' @export
 xToCoords <- function(x, longLat = NULL, out = 'default') {

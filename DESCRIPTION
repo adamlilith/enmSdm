@@ -64,5 +64,5 @@ LazyLoad: yes
 URL: http://github.com/adamlilith/enmSdm
 BugReports: https://github.com/adamlilith/enmSdm
 Encoding: UTF-8
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1
 VignetteBuilder: knitr
